@@ -2,6 +2,8 @@
 Ylow's version of the [Shadowdark](https://www.thearcanelibrary.com/pages/shadowdark) system. A module for [Foundry VTT](https://foundryvtt.com/).
 Based out of [Muttley's Shadowdark Module](https://github.com/Muttley/foundryvtt-shadowdark).
 
+This module implements the variant house rules found on [this wiki](https://shadowdark.fandom.com/wiki/Shadowdark_Wiki).
+
 # License
 foundryvtt-ylows-shadowdark is an independent product published under the Shadowdark RPG Third-Party License and is not affiliated with The Arcane Library, LLC. Shadowdark RPG © 2023 The Arcane Library, LLC.
 
