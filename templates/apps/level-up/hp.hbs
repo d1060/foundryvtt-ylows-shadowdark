@@ -1,0 +1,34 @@
+<div class="SD-box">
+	<div class="header">
+		<label>
+			{{localize "SHADOWDARK.apps.level-up.hit_points"}}
+		</label>
+		<span>
+			{{class.system.hitPoints}}
+			{{#ifCond hpRollMode '===' 0}}
+			{{#if rolls.hp}}
+				<a class="fas fa-dice" data-action="reRollHp"></a>
+			{{/if}}
+			{{/ifCond}}
+		</span>
+	</div>
+
+	<div class="content hit-points">
+		{{#if rolls.hp}}
+			{{rolls.hp}}
+			{{#ifEq targetLevel 1}}
+				<span style="font-size:0.7em">
+					({{numberFormat hpMod
+						decimals=0
+						sign=true
+					}})
+				</span>
+			{{/ifEq}}
+		{{/if}}
+		{{#unless rolls.hp}}
+			<button class="level-up" type="button" data-action="rollHp">
+				{{localize "SHADOWDARK.sheet.general.roll_hp"}}
+			</button>
+		{{/unless}}
+	</div>
+</div>

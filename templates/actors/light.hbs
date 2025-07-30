@@ -1,0 +1,33 @@
+<form class="{{cssClass}}" autocomplete="off">
+
+	<header class="SD-header flex0">
+		<img
+			src="{{ actor.img }}"
+			data-edit="img"
+			data-tooltip="{{ actor.name }}"
+			height="64"
+			width="64"
+		/>
+		<div class="SD-title">
+			<input
+				class="item-name"
+				name="name"
+				type="text"
+				value="{{ actor.name }}"
+				placeholder="{{localize 'SHADOWDARK.sheet.actor.placeholder.name'}}"
+			/>
+		</div>
+	</header>
+	<section class="SD-content-body flex1">
+		<div class="grid-1-column centered">
+			<br>
+			<button
+				class="large"
+				data-action="pickUpLight"
+				style="width:50%"
+			>
+				{{localize "SHADOWDARK.light-source.pick-up-lightsource.tooltip"}}
+			</button>
+		</div>
+	</section>
+</form>

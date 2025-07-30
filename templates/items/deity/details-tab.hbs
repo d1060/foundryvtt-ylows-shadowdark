@@ -1,0 +1,17 @@
+<section class="tab {{tabs.deityDetails.cssClass}} deityDetails SD-content-body flex1" data-group="sheet" data-tab="deityDetails">
+	<div class="grid-3-columns">
+		<div class="SD-grid">
+			<h3>
+				{{localize 'SHADOWDARK.sheet.actor.alignment'}}
+			</h3>
+			<select name="system.alignment">
+				<option value="">&mdash;</option>
+				{{selectOptions
+					config.ALIGNMENTS
+					selected=system.alignment
+					localize=false
+				}}
+			</select>
+		</div>
+	</div>
+</section>

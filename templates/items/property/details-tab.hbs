@@ -1,0 +1,91 @@
+<section class="tab {{tabs.propertyDetails.cssClass}} propertyDetails SD-content-body flex1" data-group="sheet" data-tab="propertyDetails">
+	<div class="grid-3-columns">
+		<div>
+			<h3>
+				{{localize 'SHADOWDARK.property.type.title'}}
+			</h3>
+
+			<select name="system.itemType">
+				<option value="">&mdash;</option>
+				{{selectOptions
+					config.PROPERTY_TYPES
+					selected=system.itemType
+					localize=false
+				}}
+			</select>
+		</div>
+	</div>
+	<div style="height: 5px;">&nbsp;</div>
+{{#if showMagicalNomenclature}}
+	<div class="grid-2-columns">
+		<div class="SD-box" style="margin: 0 0 auto 0;">
+			<div class="header">
+				<label>{{localize 'SHADOWDARK.property.type.prefix'}}</label>
+				<span>
+					<a
+						class="fas fa-square-plus"
+						data-tooltip="{{localize 'SHADOWDARK.sheet.general.prefix_create.tooltip' type='Magical prefix'}}"
+						data-action="addPrefix"
+						data-item-type="Magical prefix"
+					></a>
+				</span>
+			</div>
+			<div class="content" style="display: grid; grid-row-gap: 5px;">
+				{{#each prefixes as |prefix|}}
+					<div class="prefx" style="display: grid; grid-template-columns: 16px 1fr;">
+						<a
+							class="fas fa-square-minus"
+							style="margin: auto;"
+							data-tooltip="{{localize 'SHADOWDARK.sheet.general.prefix_delete.tooltip' type='Magical prefix'}}"
+							data-action="removePrefix"
+							data-index="{{@index}}"
+							data-item-type="Magical prefix"
+						></a>
+						<input
+							name="prefix"
+							type="text"
+							data-action="prefix"
+							data-index="{{@index}}"
+							value="{{ prefix.text }}"
+							/>
+					</div>
+				{{/each}}
+			</div>
+		</div>
+		<div class="SD-box" style="margin: 0 0 auto 0;">
+			<div class="header">
+				<label>{{localize 'SHADOWDARK.property.type.suffix'}}</label>
+				<span>
+					<a
+						class="fas fa-square-plus"
+						data-tooltip="{{localize 'SHADOWDARK.sheet.general.suffix_create.tooltip' type='Magical suffix'}}"
+						data-action="addSuffix"
+						data-item-type="Magical suffix"
+					></a>
+				</span>
+			</div>
+			<div class="content" style="display: grid; grid-row-gap: 5px;">
+				{{#each suffixes as |suffix|}}
+					<div class="suffix"style="display: grid; grid-template-columns: 16px 1fr;" >
+						<a
+							class="fas fa-square-minus"
+							style="margin: auto;"
+							data-tooltip="{{localize 'SHADOWDARK.sheet.general.suffix_delete.tooltip' type='Magical suffix'}}"
+							data-action="removeSuffix"
+							data-index="{{@index}}"
+							data-item-type="Magical suffix"
+						></a>
+						<input
+							name="suffix"
+							type="text"
+							data-action="suffix"
+							data-index="{{@index}}"
+							value="{{ suffix.text }}"
+							/>
+					</div>
+				{{/each}}
+			</div>
+		</div>
+	</div>
+{{/if}}
+</section>

@@ -1,0 +1,19 @@
+<section class="tab notes {{tabs.notes.cssClass}}" data-tab="notes" data-group="sheet">
+	{{#> ui/sd-hideable-section
+		sectionId=""
+		sectionTitle=(localize "SHADOWDARK.sheet.actor.character_notes")
+	}}
+		{{#if editable}}
+			<prose-mirror
+				name="system.notes"
+				button="true"
+				editable="{{editable}}"
+				toggled="false"
+				value="{{system.notes}}">
+				{{{notesHTML}}}
+			</prose-mirror>
+		{{else}}
+			{{{notesHTML}}}
+		{{/if}}
+	{{/ui/sd-hideable-section}}
+</section>

@@ -1,0 +1,118 @@
+{{#if showAuraMagic}}
+<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 1fr 150px;">
+	<div class="SD-box">
+		<div class="header">
+			<label>
+				{{localize 'SHADOWDARK.aura_talents_label'}}
+			</label>
+			<span>
+				{{#if owner}}
+					<a
+						class="item-selector fas fa-pen-to-square edit-button"
+						data-action="selectItem"
+						data-options="auraMagicTalents"
+						for="system.auraMagic.talents">
+					</a>
+				{{/if}}
+			</span>
+		</div>
+		<div class="content">
+			<ul class="tags">
+				{{#each knownAuraMagicTalents}}
+					<li
+						class="tag tag_primary"
+						data-tooltip="{{this.system.description}}"
+					>
+						{{this.name}}
+					</li>
+				{{/each}}
+			</ul>
+		</div>
+	</div>
+	<div class="SD-box">
+		<div class="header">
+			<label>
+				{{localize 'SHADOWDARK.aural_power_label'}}
+			</label>
+			<span></span>
+		</div>
+		<div class="content" style="display: grid; grid-column-gap: 2px; grid-template-columns: 45% 1fr 45%; font-size: 18px; text-align: center;">
+			{{numberInput
+				actor.system.magic.auralCore.value
+				name="system.magic.auralCore.value"
+				placeholder="0"
+			}}
+			<div>/</div>
+			<div>
+				{{actor.system.magic.auralCore.effective}}
+			</div>
+		</div>
+	</div>
+</div>
+<div class="SD-banner">{{localize 'SHADOWDARK.aura_effects'}}</div>
+{{#each auraMagicEffects as |effect|}}
+<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 24px 60px 1fr 70px 2fr 40px 1fr 65px 1fr;">
+	<div style="display: grid; grid-template-columns: 1fr;">
+		<a
+			class="rollable-visible"
+			data-id="{{effect._id}}"
+			data-action="auraEffectRoll"
+			data-power="{{effect.system.level}}"
+{{#if effect.corePowerWithBonus}}
+			data-core-level="{{effect.corePowerWithBonus}}"
+{{/if}}
+{{#unless effect.corePowerWithBonus}}
+			data-core-level="{{../magicCoreLevel}}"
+{{/unless}}
+{{#if effect.redundantPatternways}}
+			data-advantage="{{effect.redundantPatternways}}"
+{{/if}}
+			data-cost="{{effect.system.hpCost}}"
+			data-damage="{{effect.increasedDamage}}"
+		>
+			<i class="fa-solid fa-dice-d20" style="font-size: 18px; margin: 1px;"></i>
+		</a>
+	</div>
+	<div>
+		<h3>{{localize "SHADOWDARK.aura_effect_power"}}</h3>
+	</div>
+	<div>
+		<h3>{{effect.increasedPowerLevel}}</h3>
+	</div>
+	<div>
+		<h3>{{localize "SHADOWDARK.aura_effect_duration"}}</h3>
+	</div>
+	<div>
+		<h3>{{effect.formattedDuration}}</h3>
+	</div>
+	<div>
+		<h3>{{localize "SHADOWDARK.aura_effect_cost"}}</h3>
+	</div>
+	<div>
+		<h3>{{effect.system.hpCost}}</h3>
+	</div>
+{{#if effect.system.damage}}
+	<div>
+		<h3>{{localize "SHADOWDARK.aura_effect_damage"}}</h3>
+	</div>
+	<div>
+		<h3>{{effect.increasedDamage}}</h3>
+	</div>
+{{/if}}
+</div>
+<div style="border-bottom: 5px black; display: grid; grid-column-gap: 2px; grid-template-columns: 1fr;">
+{{effect.formattedDescription}}
+</div>
+{{#if ../canChooseRedundantPatternways}}
+{{#if ../redundantPatternways}}
+<span style="text-align: right;">{{localize "SHADOWDARK.aura_redundantPatternways"}} <input style="width: 12px; height: 12px;" data-id="{{effect.id}}" data-action='redundantPatternways' type="checkbox" name="effect.redundantPatternways"{{#if effect.redundantPatternways}} checked{{/if}}></span>
+{{/if}}
+{{#unless ../redundantPatternways}}
+{{#if effect.redundantPatternways}}
+<span style="text-align: right;">{{localize "SHADOWDARK.aura_redundantPatternways"}} <input style="width: 12px; height: 12px;" data-id="{{effect.id}}" data-action='redundantPatternways' type="checkbox" name="effect.redundantPatternways"{{#if effect.redundantPatternways}} checked{{/if}}></span>
+{{/if}}
+{{/unless}}
+{{/if}}
+<p style="height: 1px; line-height: 1px; font-size: 1px; margin-block-start: 1px; margin-block-end: 1px; margin-top: 1em; margin-bottom: 1em; border-bottom: 1px solid black;">&nbsp;</p>
+{{/each}}
+{{/if}}

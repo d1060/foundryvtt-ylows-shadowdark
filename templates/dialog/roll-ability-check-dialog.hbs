@@ -1,0 +1,61 @@
+<section autocomplete="off" spellcheck="off" style="font-family: var(--font-primary);">
+	<div class="shadowdark-dialog">
+		<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 18px 1fr; margin-bottom: 5px;">
+			<input type="radio" name="check-type" data-action="checkTypeRadio" data-value="raw"{{#ifCond checkType '===' 'raw'}} checked{{/ifCond}}><h2 class="raw-ability-check-type{{#if rawAdvantage}} advantage{{/if}}{{#if rawDisadvantage}} disadvantage{{/if}}" data-action="checkTypeLabel" data-value="raw">{{ data.ability }} {{localize "SHADOWDARK.dialog.ability_check.title"}}</h2>
+		</div>
+{{#if data.checkTypes }}
+		<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 18px 1fr 18px 1fr">
+{{#each checkTypes as |checkType|}}
+			<input type="radio" name="check-type" value="{{checkType.label}}"{{#unless checkType.no}} data-action="checkTypeRadio"{{/unless}} data-value="{{checkType.label}}"{{#if checkType.no}} disabled{{else}}{{#ifCond ../checkType '===' checkType.label}} checked{{/ifCond}}{{/if}}>
+			<label{{#unless checkType.no}} data-action="checkTypeLabel"{{/unless}} data-value="{{checkType.label}}" class="ability-check-type{{#if checkType.advantage}} advantage{{/if}}{{#if checkType.disadvantage}} disadvantage{{/if}}" style="margin-top: auto; margin-bottom: auto;{{#if checkType.no}} opacity: 0.5;{{/if}}">{{checkType.label}}</label>
+{{/each}}
+		</div>
+{{/if}}
+		<hr />
+
+		<div class="form-group">
+			<label>
+				{{localize "SHADOWDARK.dialog.item_roll.ability_bonus"}}
+			</label>
+			<input type="number" name="ability-bonus" value="{{ data.abilityBonus }}" placeholder="0">
+		</div>
+{{#if data.talentBonus}}
+		<div class="form-group">
+			<label>
+				{{localize "SHADOWDARK.dialog.item_roll.talent_bonus"}}
+			</label>
+			<input type="number" name="talent-bonus" value="{{ data.talentBonus }}" placeholder="0">
+		</div>
+{{/if}}
+{{#if data.itemBonus}}
+		<div class="form-group">
+			<label>
+				{{localize "SHADOWDARK.dialog.item_roll.item_bonus"}}
+			</label>
+			<input type="number" name="item-bonus" value="{{ data.itemBonus }}" placeholder="0">
+		</div>
+{{/if}}
+		<div class="form-group">
+			<label>{{localize "SHADOWDARK.dialog.roll_mode_label"}}</label>
+			<select name="rollMode">
+				{{#select rollMode}}
+					{{#each rollModes as |mode|}}
+						<option value="{{mode.label}}">{{localize mode.label}}</option>
+					{{/each}}
+				{{/select}}
+			</select>
+		</div>
+		<hr />
+	</div>
+	<div class="dialog-buttons" style="display: grid; grid-column-gap: 3px; grid-template-columns: 1fr 1fr 1fr;">
+		<button class="dialog-button roll-button advantage{{#if data.advantage}} talent-highlight{{/if}}" data-button="advantage" data-action="rollButton">
+			{{localize "SHADOWDARK.roll.advantage"}}
+		</button>
+		<button class="dialog-button roll-button normal default" data-button="normal" data-action="rollButton">
+			{{localize "SHADOWDARK.roll.normal"}}
+		</button>
+		<button class="dialog-button roll-button disadvantage{{#if data.disadvantage}} talent-highlight{{/if}}" data-button="disadvantage" data-action="rollButton">
+			{{localize "SHADOWDARK.roll.disadvantage"}}
+		</button>
+	</div>
+</section>

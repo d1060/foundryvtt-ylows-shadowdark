@@ -1,0 +1,36 @@
+<div class="SD-box">
+	<div class="header">
+		<label>{{localize 'SHADOWDARK.inventory.coins'}}</label>
+		<span></span>
+	</div>
+	<div class="content">
+		<div class="SD-grid center centered">
+			{{numberInput
+				actor.system.coins.gp
+				name="system.coins.gp"
+				class="coin-value"
+				min="0"
+				placeholder="0"
+			}}
+			<h3>{{localize 'SHADOWDARK.coins.gp'}}</h3>
+
+			{{numberInput
+				actor.system.coins.sp
+				name="system.coins.sp"
+				class="coin-value"
+				min="0"
+				placeholder="0"
+			}}
+			<h3>{{localize 'SHADOWDARK.coins.sp'}}</h3>
+
+			{{numberInput
+				actor.system.coins.cp
+				name="system.coins.cp"
+				class="coin-value"
+				min="0"
+				placeholder="0"
+			}}
+			<h3>{{localize 'SHADOWDARK.coins.cp'}}</h3>
+		</div>
+	</div>
+</div>

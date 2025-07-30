@@ -1,0 +1,27 @@
+<section autocomplete="off">
+	<div class="grid-1-columns">
+		<div class="centered">
+			<h2 class="centered">
+				{{actor.name}}
+			</h2>
+			<h3>
+				{{localize "SHADOWDARK.apps.level-up.leveling_to"}}
+				{{targetLevel}}
+			</h3>
+		</div>
+
+		{{> apps/level-up/hp}}
+		{{> apps/level-up/metalCoreHp}}
+		{{> apps/level-up/talents}}
+		{{> apps/level-up/spells}}
+		{{> apps/level-up/techniques}}
+
+		<button
+			class="level-up-button level-up"
+			data-action="finalizeLevelUp"
+			type="button"
+		>
+			{{localize "SHADOWDARK.apps.level-up.level_up"}}
+		</button>
+	</div>
+</section>

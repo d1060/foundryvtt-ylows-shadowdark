@@ -1,0 +1,310 @@
+<div>
+    <div style="display: grid; grid-template-columns: 182px 1fr 182px 1fr; grid-column-gap: 5px; grid-row-gap: 5px">
+        <span>{{localize 'SHADOWDARK.app.loot_maker.loot_level'}}</span>
+        <div>
+            <select name="system.level" data-action="selectLootLevel">
+                <option value="0-3"{{#if (eq system.level '0-3')}} selected{{/if}}>0-3</option>
+                <option value="4-6"{{#if (eq system.level '4-6')}} selected{{/if}}>4-6</option>
+                <option value="7-9"{{#if (eq system.level '7-9')}} selected{{/if}}>7-9</option>
+                <option value="10"{{#if (eq system.level '10')}} selected{{/if}}>10+</option>
+            </select>
+        </div>
+        <span>{{localize 'SHADOWDARK.app.loot_maker.include_magical'}}</span>
+        <div>
+            <input type="checkbox" data-action="selectIncludeMagical" name="system.includeMagical" {{#if system.includeMagical}} checked{{/if}}>
+        </div>
+        <div style="margin: auto 0;">
+            {{localize 'SHADOWDARK.app.loot_maker.table_03'}}
+        </div>
+        <div>
+            <fieldset class="items" style="height: 100%;">
+                {{#unless system.table03Chosen}}
+                    <div data-table="0-3" style="color: rgba(0, 0, 0, 0.6); text-align: center;"  class="droppable">
+                        {{localize "SHADOWDARK.apps.level-up.dragdrop"}}
+                    </div>
+                {{/unless}}
+                {{#if system.table03Chosen}}
+                    <div style="white-space: nowrap;">
+                        <a
+                            class="remove-item fas fa-delete-right"
+                            data-action="deleteTable"
+                            data-table="0-3"
+                            data-uuid="{{system.tableMagicSources.uuid}}"
+                        ></a>
+                        <a
+                            class="content-link"
+                            data-tooltip="{{system.table03.name}}"
+                            data-uuid="{{system.table03.uuid}}"
+                        >
+                            {{system.table03.name}}
+                        </a>
+                    </div>
+                {{/if}}
+            </fieldset>
+        </div>
+        <div style="margin: auto 0;">
+            {{localize 'SHADOWDARK.app.loot_maker.table_46'}}
+        </div>
+        <div>
+            <fieldset class="items" style="height: 100%;">
+                {{#unless system.table46Chosen}}
+                    <div data-table="4-6" style="color: rgba(0, 0, 0, 0.6); text-align: center;" class="droppable">
+                        {{localize "SHADOWDARK.apps.level-up.dragdrop"}}
+                    </div>
+                {{/unless}}
+                {{#if system.table46Chosen}}
+                    <div style="white-space: nowrap;">
+                        <a
+                            class="remove-item fas fa-delete-right"
+                            data-action="deleteTable"
+                            data-table="4-6"
+                            data-uuid="{{system.tableMagicSources.uuid}}"
+                        ></a>
+                        <a
+                            class="content-link"
+                            data-tooltip="{{system.table46.name}}"
+                            data-uuid="{{system.table46.uuid}}"
+                        >
+                            {{system.table46.name}}
+                        </a>
+                    </div>
+                {{/if}}
+            </fieldset>
+        </div>
+        <div style="margin: auto 0;">
+            {{localize 'SHADOWDARK.app.loot_maker.table_79'}}
+        </div>
+        <div>
+            <fieldset class="items" style="height: 100%;">
+                {{#unless system.table79Chosen}}
+                    <div data-table="7-9" style="color: rgba(0, 0, 0, 0.6); text-align: center;" class="droppable">
+                        {{localize "SHADOWDARK.apps.level-up.dragdrop"}}
+                    </div>
+                {{/unless}}
+                {{#if system.table79Chosen}}
+                    <div style="white-space: nowrap;">
+                        <a
+                            class="remove-item fas fa-delete-right"
+                            data-action="deleteTable"
+                            data-table="7-9"
+                            data-uuid="{{system.tableMagicSources.uuid}}"
+                        ></a>
+                        <a
+                            class="content-link"
+                            data-tooltip="{{system.table79.name}}"
+                            data-uuid="{{system.table79.uuid}}"
+                        >
+                            {{system.table79.name}}
+                        </a>
+                    </div>
+                {{/if}}
+            </fieldset>
+        </div>
+        <div style="margin: auto 0;">
+            {{localize 'SHADOWDARK.app.loot_maker.table_10'}}
+        </div>
+        <div>
+            <fieldset class="items" style="height: 100%;">
+                {{#unless system.table10Chosen}}
+                    <div data-table="10" style="color: rgba(0, 0, 0, 0.6); text-align: center;" class="droppable">
+                        {{localize "SHADOWDARK.apps.level-up.dragdrop"}}
+                    </div>
+                {{/unless}}
+                {{#if system.table10Chosen}}
+                    <div style="white-space: nowrap;">
+                        <a
+                            class="remove-item fas fa-delete-right"
+                            data-action="deleteTable"
+                            data-table="10"
+                            data-uuid="{{system.tableMagicSources.uuid}}"
+                        ></a>
+                        <a
+                            class="content-link"
+                            data-tooltip="{{system.table10.name}}"
+                            data-uuid="{{system.table10.uuid}}"
+                        >
+                            {{system.table10.name}}
+                        </a>
+                    </div>
+                {{/if}}
+            </fieldset>
+        </div>
+{{#if system.includeMagical}}
+        <div style="margin: auto 0;">
+            {{localize 'SHADOWDARK.app.loot_maker.magical_item'}}
+        </div>
+        <div>
+            <fieldset class="items" style="height: 100%;">
+                {{#unless system.tableMagicItemChosen}}
+                    <div data-table="magicItem" style="color: rgba(0, 0, 0, 0.6); text-align: center;" class="droppable">
+                        {{localize "SHADOWDARK.apps.level-up.dragdrop"}}
+                    </div>
+                {{/unless}}
+                {{#if system.tableMagicItemChosen}}
+                    <div style="white-space: nowrap;">
+                        <a
+                            class="remove-item fas fa-delete-right"
+                            data-action="deleteTable"
+                            data-table="magicItem"
+                            data-uuid="{{system.tableMagicSources.uuid}}"
+                        ></a>
+                        <a
+                            class="content-link"
+                            data-tooltip="{{system.tableMagicItem.name}}"
+                            data-uuid="{{system.tableMagicItem.uuid}}"
+                        >
+                            {{system.tableMagicItem.name}}
+                        </a>
+                    </div>
+                {{/if}}
+            </fieldset>
+        </div>
+        <div style="margin: auto 0;">
+            {{localize 'SHADOWDARK.app.loot_maker.magical_weapon'}}
+        </div>
+        <div>
+            <fieldset class="items" style="height: 100%;">
+                {{#unless system.tableMagicWeaponChosen}}
+                    <div data-table="magicWeapon" style="color: rgba(0, 0, 0, 0.6); text-align: center;" class="droppable">
+                        {{localize "SHADOWDARK.apps.level-up.dragdrop"}}
+                    </div>
+                {{/unless}}
+                {{#if system.tableMagicWeaponChosen}}
+                    <div style="white-space: nowrap;">
+                        <a
+                            class="remove-item fas fa-delete-right"
+                            data-action="deleteTable"
+                            data-table="magicWeapon"
+                            data-uuid="{{system.tableMagicSources.uuid}}"
+                        ></a>
+                        <a
+                            class="content-link"
+                            data-tooltip="{{system.tableMagicWeapon.name}}"
+                            data-uuid="{{system.tableMagicWeapon.uuid}}"
+                        >
+                            {{system.tableMagicWeapon.name}}
+                        </a>
+                    </div>
+                {{/if}}
+            </fieldset>
+        </div>
+        <div style="margin: auto 0;">
+            {{localize 'SHADOWDARK.app.loot_maker.magical_armor'}}
+        </div>
+        <div>
+            <fieldset class="items" style="height: 100%;">
+                {{#unless system.tableMagicArmorChosen}}
+                    <div data-table="magicArmor" style="color: rgba(0, 0, 0, 0.6); text-align: center;" class="droppable">
+                        {{localize "SHADOWDARK.apps.level-up.dragdrop"}}
+                    </div>
+                {{/unless}}
+                {{#if system.tableMagicArmorChosen}}
+                    <div style="white-space: nowrap;">
+                        <a
+                            class="remove-item fas fa-delete-right"
+                            data-action="deleteTable"
+                            data-table="magicArmor"
+                            data-uuid="{{system.tableMagicSources.uuid}}"
+                        ></a>
+                        <a
+                            class="content-link"
+                            data-tooltip="{{system.tableMagicArmor.name}}"
+                            data-uuid="{{system.tableMagicArmor.uuid}}"
+                        >
+                            {{system.tableMagicArmor.name}}
+                        </a>
+                    </div>
+                {{/if}}
+            </fieldset>
+        </div>
+        <div style="margin: auto 0;">
+            {{localize 'SHADOWDARK.app.loot_maker.magical_properties'}}
+        </div>
+        <div>
+            <fieldset class="items" style="height: 100%;">
+                {{#unless system.tableMagicPropertyChosen}}
+                    <div data-table="magicProperty" style="color: rgba(0, 0, 0, 0.6); text-align: center;" class="droppable">
+                        {{localize "SHADOWDARK.apps.level-up.dragdrop"}}
+                    </div>
+                {{/unless}}
+                {{#if system.tableMagicPropertyChosen}}
+                    <div style="white-space: nowrap;">
+                        <a
+                            class="remove-item fas fa-delete-right"
+                            data-action="deleteTable"
+                            data-table="magicProperty"
+                            data-uuid="{{system.tableMagicSources.uuid}}"
+                        ></a>
+                        <a
+                            class="content-link"
+                            data-tooltip="{{system.tableMagicProperty.name}}"
+                            data-uuid="{{system.tableMagicProperty.uuid}}"
+                        >
+                            {{system.tableMagicProperty.name}}
+                        </a>
+                    </div>
+                {{/if}}
+            </fieldset>
+        </div>
+        <div style="margin: auto 0;">
+            {{localize 'SHADOWDARK.app.loot_maker.magical_sources'}}
+        </div>
+        <div>
+            <fieldset class="items" style="height: 100%;">
+                {{#unless system.tableMagicSourcesChosen}}
+                    <div data-table="magicSources" style="color: rgba(0, 0, 0, 0.6); text-align: center;">
+                        {{localize "SHADOWDARK.apps.level-up.dragdrop"}}
+                    </div>
+                {{/unless}}
+                {{#if system.tableMagicSourcesChosen}}
+                    <div style="white-space: nowrap;">
+                        <a
+                            class="remove-item fas fa-delete-right"
+                            data-action="deleteTable"
+                            data-table="magicSources"
+                            data-uuid="{{system.tableMagicSources.uuid}}"
+                        ></a>
+                        <a
+                            class="content-link"
+                            data-tooltip="{{system.tableMagicSources.name}}"
+                            data-uuid="{{system.tableMagicSources.uuid}}"
+                        >
+                            {{system.tableMagicSources.name}}
+                        </a>
+                    </div>
+                {{/if}}
+            </fieldset>
+        </div>
+        <div style="grid-column: 1 / 5;">
+            <div style="display: grid; grid-column-gap: 5px; grid-template-columns: 1fr 1fr;">
+                <button type="button" data-action="rollLoot" {{#unless system.canRoll}} disabled{{/unless}}>
+                    {{localize "SHADOWDARK.app.loot_maker.roll"}}
+                </button>
+                <button type="button" data-action="rollMagical" {{#unless system.canRollMagical}} disabled{{/unless}}>
+                    {{localize "SHADOWDARK.app.loot_maker.roll_magical"}}
+                </button>
+            </div>
+        </div>
+{{else}}
+        <div style="grid-column: 1 / 3;">
+            <button type="button" data-action="rollLoot" {{#unless system.canRoll}} disabled{{/unless}}>
+				{{localize "SHADOWDARK.app.loot_maker.roll"}}
+			</button>
+        </div>
+{{/if}}
+    </div>
+    <div style="display: grid; grid-row-gap: 5px; grid-template-columns: 1fr 45px 5px 1fr 45px 5px">
+{{#each lootItems as |lootItem|}}
+        <span class="item" id="drag-item" draggable="true" data-tooltip="{{lootItem.name}}" data-index="{{@index}}" data-uuid="{{lootItem.uuid}}" style="display: grid; grid-column-gap: 5px; grid-template-columns: 32px 1fr; height: 32px;">
+            <img class="result-image" style="flex: 0 0 32px; width: 32px; height: 32px;" src="{{lootItem.img}}" />
+            <div style="margin: auto 0;"><a
+                class="content-link"
+                data-tooltip="{{lootItem.name}}"
+                data-uuid="{{lootItem.uuid}}"
+            >{{lootItem.name}}</a></div>
+        </span>
+        <span>{{lootItem.displayCost}}</span>
+        <span></span>
+{{/each}}
+    </div>
+</div>

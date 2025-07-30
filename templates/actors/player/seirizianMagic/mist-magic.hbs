@@ -1,0 +1,160 @@
+{{#if showMistMagic}}
+<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 1fr;">
+	<div class="SD-box">
+		<div class="header">
+			<label>
+				{{localize 'SHADOWDARK.mist_corruption'}}
+			</label>
+			<span></span>
+		</div>
+		<div class="content" style="display: grid; grid-column-gap: 3px; grid-template-columns: 56px 56px 56px 56px;">
+			<div style="text-align: center;">
+				<h3>{{localize 'SHADOWDARK.mist_corruption_value'}}</h3>
+				<div style="font-size: 12pt; vertical-align: middle;">
+				{{system.magic.corruption.value}}
+				</div>
+			</div>
+			<div>
+				<h3>{{localize 'SHADOWDARK.ability_str'}}</h3>
+				<select name="system.magic.corruption.str"
+						data-action='mistUpdateCorruption'
+						data-attribute="str" >
+					<option value="0"{{#if (eq system.magic.corruption.str '0')}} selected{{/if}}>0</option>
+					{{#ifCond remainingStr '>=' 1}}
+					<option value="-1"{{#if (eq system.magic.corruption.str '-1')}} selected{{/if}}>-1</option>
+					{{/ifCond}}
+					{{#ifCond remainingStr '>=' 2}}
+					<option value="-2"{{#if (eq system.magic.corruption.str '-2')}} selected{{/if}}>-2</option>
+					{{/ifCond}}
+					{{#ifCond remainingStr '>=' 3}}
+					<option value="-3"{{#if (eq system.magic.corruption.str '-3')}} selected{{/if}}>-3</option>
+					{{/ifCond}}
+					{{#ifCond remainingStr '>=' 4}}
+					<option value="-4"{{#if (eq system.magic.corruption.str '-4')}} selected{{/if}}>-4</option>
+					{{/ifCond}}
+					{{#ifCond remainingStr '>=' 5}}
+					<option value="-5"{{#if (eq system.magic.corruption.str '-5')}} selected{{/if}}>-5</option>
+					{{/ifCond}}
+					{{#ifCond remainingStr '>=' 6}}
+					<option value="-6"{{#if (eq system.magic.corruption.str '-6')}} selected{{/if}}>-6</option>
+					{{/ifCond}}
+					{{#ifCond remainingStr '>=' 7}}
+					<option value="-7"{{#if (eq system.magic.corruption.str '-7')}} selected{{/if}}>-7</option>
+					{{/ifCond}}
+					{{#ifCond remainingStr '>=' 8}}
+					<option value="-8"{{#if (eq system.magic.corruption.str '-8')}} selected{{/if}}>-8</option>
+					{{/ifCond}}
+					{{#ifCond remainingStr '>=' 9}}
+					<option value="-9"{{#if (eq system.magic.corruption.str '-9')}} selected{{/if}}>-9</option>
+					{{/ifCond}}
+					{{#ifCond remainingStr '>=' 10}}
+					<option value="-10"{{#if (eq system.magic.corruption.str '-10')}} selected{{/if}}>-10</option>
+					{{/ifCond}}
+				</select>
+			</div>
+			<div>
+				<h3>{{localize 'SHADOWDARK.ability_dex'}}</h3>
+				<select name="system.magic.corruption.dex"
+						data-action='mistUpdateCorruption'
+						data-attribute="dex" >
+					<option value="0"{{#if (eq system.magic.corruption.dex '0')}} selected{{/if}}>0</option>
+					{{#ifCond remainingDex '>=' 1}}
+					<option value="-1"{{#if (eq system.magic.corruption.dex '-1')}} selected{{/if}}>-1</option>
+					{{/ifCond}}
+					{{#ifCond remainingDex '>=' 2}}
+					<option value="-2"{{#if (eq system.magic.corruption.dex '-2')}} selected{{/if}}>-2</option>
+					{{/ifCond}}
+					{{#ifCond remainingDex '>=' 3}}
+					<option value="-3"{{#if (eq system.magic.corruption.dex '-3')}} selected{{/if}}>-3</option>
+					{{/ifCond}}
+					{{#ifCond remainingDex '>=' 4}}
+					<option value="-4"{{#if (eq system.magic.corruption.dex '-4')}} selected{{/if}}>-4</option>
+					{{/ifCond}}
+					{{#ifCond remainingDex '>=' 5}}
+					<option value="-5"{{#if (eq system.magic.corruption.dex '-5')}} selected{{/if}}>-5</option>
+					{{/ifCond}}
+					{{#ifCond remainingDex '>=' 6}}
+					<option value="-6"{{#if (eq system.magic.corruption.dex '-6')}} selected{{/if}}>-6</option>
+					{{/ifCond}}
+					{{#ifCond remainingDex '>=' 7}}
+					<option value="-7"{{#if (eq system.magic.corruption.dex '-7')}} selected{{/if}}>-7</option>
+					{{/ifCond}}
+					{{#ifCond remainingDex '>=' 8}}
+					<option value="-8"{{#if (eq system.magic.corruption.dex '-8')}} selected{{/if}}>-8</option>
+					{{/ifCond}}
+					{{#ifCond remainingDex '>=' 9}}
+					<option value="-9"{{#if (eq system.magic.corruption.dex '-9')}} selected{{/if}}>-9</option>
+					{{/ifCond}}
+					{{#ifCond remainingDex '>=' 10}}
+					<option value="-10"{{#if (eq system.magic.corruption.dex '-10')}} selected{{/if}}>-10</option>
+					{{/ifCond}}
+				</select>
+			</div>
+			<div>
+				<h3>{{localize 'SHADOWDARK.ability_con'}}</h3>
+				<select name="system.magic.corruption.con"
+						data-action='mistUpdateCorruption'
+						data-attribute="con" >
+					<option value="0"{{#if (eq system.magic.corruption.con '0')}} selected{{/if}}>0</option>
+					{{#ifCond remainingCon '>=' 1}}
+					<option value="-1"{{#if (eq system.magic.corruption.con '-1')}} selected{{/if}}>-1</option>
+					{{/ifCond}}
+					{{#ifCond remainingCon '>=' 2}}
+					<option value="-2"{{#if (eq system.magic.corruption.con '-2')}} selected{{/if}}>-2</option>
+					{{/ifCond}}
+					{{#ifCond remainingCon '>=' 3}}
+					<option value="-3"{{#if (eq system.magic.corruption.con '-3')}} selected{{/if}}>-3</option>
+					{{/ifCond}}
+					{{#ifCond remainingCon '>=' 4}}
+					<option value="-4"{{#if (eq system.magic.corruption.con '-4')}} selected{{/if}}>-4</option>
+					{{/ifCond}}
+					{{#ifCond remainingCon '>=' 5}}
+					<option value="-5"{{#if (eq system.magic.corruption.con '-5')}} selected{{/if}}>-5</option>
+					{{/ifCond}}
+					{{#ifCond remainingCon '>=' 6}}
+					<option value="-6"{{#if (eq system.magic.corruption.con '-6')}} selected{{/if}}>-6</option>
+					{{/ifCond}}
+					{{#ifCond remainingCon '>=' 7}}
+					<option value="-7"{{#if (eq system.magic.corruption.con '-7')}} selected{{/if}}>-7</option>
+					{{/ifCond}}
+					{{#ifCond remainingCon '>=' 8}}
+					<option value="-8"{{#if (eq system.magic.corruption.con '-8')}} selected{{/if}}>-8</option>
+					{{/ifCond}}
+					{{#ifCond remainingCon '>=' 9}}
+					<option value="-9"{{#if (eq system.magic.corruption.con '-9')}} selected{{/if}}>-9</option>
+					{{/ifCond}}
+					{{#ifCond remainingCon '>=' 10}}
+					<option value="-10"{{#if (eq system.magic.corruption.con '-10')}} selected{{/if}}>-10</option>
+					{{/ifCond}}
+				</select>
+			</div>
+		</div>
+	</div>
+</div>
+{{#if hasSelectedAtLeastOneMistMagicPower}}
+<div class="SD-banner">
+{{localize 'SHADOWDARK.mist_powers'}}
+</div>
+{{#each mistMagicPowers as |power|}}
+<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 172px 1fr;{{#if power.lost}} opacity: 0.5;{{/if}}">
+	<div>
+		<h3>{{power.name}}</h3>
+		<div>
+			<a
+				class="rollable"
+				data-id="{{power._id}}"
+				data-action="mistPowerRoll"
+				data-corruption="{{../system.magic.corruption.value}}"
+				{{#if power.lost}}disabled{{/if}}
+			>
+				<i class="fa-solid fa-dice-d20" style="font-size: 24px; margin: 4px;"></i>
+			</a>
+		</div>
+	</div>
+	<div>
+		{{{power.system.description}}}
+	</div>
+</div>
+{{/each}}
+{{/if}}
+{{/if}}

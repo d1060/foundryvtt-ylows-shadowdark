@@ -1,0 +1,73 @@
+<li class="effect" data-effect-id="{{effect.id}}">
+	<div class="effect-image">
+		<img src="{{effect.img}}" style="border: 0;">
+	</div>
+
+	<div class="item-name">
+		{{effect.name}}
+	</div>
+
+	<div class="effect-list-changes">
+		{{#each effect.changes as |change|}}
+			<span title="{{fromConfig "EFFECT_TRANSLATIONS" change.key}}">
+				{{fromConfig "EFFECT_TRANSLATIONS" change.key}}
+			</span>
+			<input
+				id="effect-change-value"
+				data-effect-id="{{../effect.id}}"
+				data-change-index="{{@index}}"
+				name="{{change.key}}"
+				placeholder="0"
+				type="text"
+				class="small-text"
+				value="{{change.value}}"
+			>
+		{{/each}}
+	</div>
+
+	<div class="actions">
+		<a
+			class="effect-control"
+			data-action="manageActiveEffect"
+			data-option="toggle"
+			data-tooltip="{{localize "SHADOWDARK.sheet.general.active_effects.toggle_effect.tooltip"}}"
+		>
+			{{#if effect.disabled}}
+				<i class="fas fa-circle-xmark"></i>
+			{{else}}
+				<i
+					class="fas fa-circle-check"
+					style="color:var(--primary);"
+				></i>
+			{{/if}}
+		</a>
+
+		<a
+			class="effect-control"
+			data-action="manageActiveEffect"
+			data-option="edit"
+			data-tooltip="{{localize 'SHADOWDARK.sheet.general.active_effects.edit_effect.tooltip'}}"
+		>
+			<i class="fa-solid fa-pen-to-square"></i>
+		</a>
+
+		<a
+			class="effect-control"
+			data-action="manageActiveEffect"
+			data-option="copy"
+			data-tooltip="{{localize 'SHADOWDARK.sheet.general.active_effects.copy_effect.tooltip'}}"
+		>
+			<i class="fa-solid fa-copy-paste"></i>
+		</a>
+
+		<a
+			class="effect-control"
+			data-action="manageActiveEffect"
+			data-option="delete"
+			data-tooltip="{{localize 'SHADOWDARK.sheet.general.active_effects.delete_effect.tooltip'}}"
+		>
+			<i class="fas fa-trash"></i>
+		</a>
+	</div>
+
+</li>

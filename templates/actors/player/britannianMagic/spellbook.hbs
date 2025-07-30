@@ -1,0 +1,61 @@
+{{#ifCond knownRunes '>' 0}}
+{{#if canGoToPreviousPage}}
+<div class="britannian-spellbook-left-flip" data-action="britannianSpellbookLeftFlip" ></div>
+{{/if}}
+{{#if canGoToNextPage}}
+<div class="britannian-spellbook-right-flip" data-action="britannianSpellbookRightFlip" ></div>
+{{/if}}
+{{#if selectingRunes}}
+{{#if readyToCast}}
+<div class="cast-britannian-magic" data-action="castBritannianMagic" data-tooltip="{{localize 'SHADOWDARK.britannian_rune.cast'}}"></div>
+{{/if}}
+{{#if readyToWrite}}
+<div class="write-britannian-magic" data-action="writeBritannianMagic" data-tooltip="{{localize 'SHADOWDARK.britannian_rune.write'}}"></div>
+{{/if}}
+<div class="britannian-spellcasting-parchment" style="grid-template-columns:{{#each selectedRunes as |selectedRune|}} 1fr{{/each}};">
+{{#each selectedRunes as |selectedRune|}}
+<div class="selected-rune" data-action="increaseRune" data-rune="{{selectedRune.name}}"><h2>{{selectedRune.titleName}}</h2>{{#if selectedRune.increases}}<img style="border: 0; margin-top: 4px; margin-left: 2px;" src="/systems/shadowdark/assets/icons/Britannia/{{selectedRune.increases}}-spell-increases.png">{{/if}}</div>
+{{/each}}
+<div style="grid-column: 1 / {{selectedRunesCount}}; margin-left: auto; margin-right: auto;">{{selectedRunesCircle}}<sup>{{selectedRunesCircleOrdinal}}</sup> {{localize "SHADOWDARK.britannian_spell.circleSpell"}}</div>
+</div>
+{{/if}}
+<div class="britannian-spellbook">
+    <div style="height: 50px">&nbsp;</div>
+    {{#ifCond page '==' 0}}
+        <div class="spellbook-content">
+            {{#each runes as |rune|}}
+                {{#if rune.oddLayout}}
+                    <div class="{{rune.style}} {{#if rune.learned}}visible{{/if}}" {{#unless rune.learned}}{{#if ../canLearnRunes}}onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=0" data-action="learnRune" {{/if}}{{else}}data-action="selectRune" data-tooltip="{{localize rune.tooltip type='Rune Magic'}}"{{/unless}} data-rune="{{rune.name}}"><img class="magic-rune {{rune.runeStyle}}" src="/systems/shadowdark/assets/icons/Britannia/Rune-{{rune.titleName}}{{#if rune.selected}}-selected{{/if}}.png"><h2>{{rune.titleName}}</h2><span>{{localize rune.meaning}}</span></div>
+                {{else}}
+                    <div class="{{rune.style}} {{#if rune.learned}}visible{{/if}}" {{#unless rune.learned}}{{#if ../canLearnRunes}}onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=0" data-action="learnRune" {{/if}}{{else}}data-action="selectRune" data-tooltip="{{localize rune.tooltip type='Rune Magic'}}"{{/unless}} data-rune="{{rune.name}}"><span>{{localize rune.meaning}}</span><h2>{{rune.titleName}}</h2><img class="magic-rune {{rune.runeStyle}}" src="/systems/shadowdark/assets/icons/Britannia/Rune-{{rune.titleName}}{{#if rune.selected}}-selected{{/if}}.png"></div>
+                {{/if}}
+            {{/each}}
+        </div>
+    {{else}}
+        <div class="spellbook-content written">
+            {{#each britannianSpells as |spell|}}
+                <div class="britannian-spell-line">
+                    <div style="display: grid; grid-template-columns: auto 1fr 20px;">
+                        <div style="display: flex;" data-tooltip="{{spell.runicName}}">
+                            {{#each spell.runes as |rune|}}
+                                <img class="spell-magic-rune" src="/systems/shadowdark/assets/icons/Britannia/Rune-{{rune.titleName}}.png">
+                            {{/each}}
+                        </div>
+                        <div class="spell-header-title" data-action="editWrittenSpell" data-spell-uuid="{{spell.uuid}}" data-tooltip="{{{spell.sanitizedDescription}}}">{{spell.name}}</div>
+                        <div style="display: flex; gap: 2px;">
+                            <img style="width: 20px; height: 20px; border: 0; z-index: 1;" data-action="eraseWrittenSpell" data-spell-uuid="{{spell.uuid}}" data-tooltip="{{localize 'SHADOWDARK.britannian_spell.eraseSpell'}}" src="/systems/shadowdark/assets/icons/torn-page.png">
+                        </div>
+                    </div>
+                    <div class="britannian-spell-parameter-line">
+                    {{#each spell.parameterLines as |line|}}
+                        {{{line}}}
+                    {{/each}}
+                    </div>
+                </div>
+            {{/each}}
+        </div>
+    {{/ifCond}}
+    </div>
+    <div style="height: 32px">&nbsp;</div>
+</div>
+{{/ifCond}}

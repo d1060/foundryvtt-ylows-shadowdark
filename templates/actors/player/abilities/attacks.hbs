@@ -1,0 +1,59 @@
+<div class="SD-box">
+	<div class="header">
+		<label>{{localize 'SHADOWDARK.sheet.player.melee_attacks'}}</label>
+		<span></span>
+	</div>
+	<div class="content">
+		{{#each attacks.melee as |attack|}}
+			<div class="attack">
+				<a
+					class="rollable"
+					data-action="itemAttack"
+					data-attack-type="melee"
+					data-handedness="{{attack.handedness}}"
+					data-attack-option="{{attack.attackOption}}"
+					data-base-damage="{{attack.baseDamage}}"
+					data-item-id="{{attack.itemId}}"
+				>
+					<i class="fa-solid fa-dice-d20"
+						data-attack-type="melee"
+						data-handedness="{{attack.handedness}}"
+						data-attack-option="{{attack.attackOption}}"
+						data-base-damage="{{attack.baseDamage}}"
+						data-item-id="{{attack.itemId}}"></i>
+					{{{attack.display}}}
+				</a>
+			</div>
+		{{/each}}
+	</div>
+</div>
+
+<div class="SD-box">
+	<div class="header">
+		<label>{{localize 'SHADOWDARK.sheet.player.ranged_attacks'}}</label>
+		<span></span>
+	</div>
+	<div class="content">
+		{{#each attacks.ranged as |attack|}}
+			<div class="attack">
+				<a
+					class="rollable"
+					data-action="itemAttack"
+					data-attack-type="ranged"
+					data-base-damage="{{attack.baseDamage}}"
+					data-handedness="{{attack.handedness}}"
+					data-item-id="{{attack.itemId}}"
+				>
+					<i class="fa-solid fa-dice-d20"
+						data-action="itemAttack"
+						data-attack-type="ranged"
+						data-base-damage="{{attack.baseDamage}}"
+						data-handedness="{{attack.handedness}}"
+						data-item-id="{{attack.itemId}}"></i>
+					{{{attack.display}}}
+				</a>
+			</div>
+		{{/each}}
+	</div>
+</div>
+

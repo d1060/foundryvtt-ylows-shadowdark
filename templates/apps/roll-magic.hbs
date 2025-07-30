@@ -1,0 +1,105 @@
+<section autocomplete="off" spellcheck="off" style="font-family: var(--font-primary);">
+	<div class="shadowdark-dialog">
+		<div class="form-group" style="display: grid; grid-column-gap: 3px; grid-template-columns: 170px 1fr;">
+			<label>
+				{{localize "SHADOWDARK.dialog.item_roll.magic_core_bonus"}}
+			</label>
+			<input type="number" name="data.talentBonus" value="{{data.talentBonus}}" placeholder="0">
+			<input type="hidden" name="data.magicType" value="{{data.magicType}}">
+		</div>
+{{#if data.variableLevelEffects}}
+		<div class="form-group" style="display: grid; grid-column-gap: 3px; grid-template-columns: 170px 1fr;">
+			<label>
+				{{localize "SHADOWDARK.effectivePower"}}
+			</label>
+			<select name="data.effectiveLevel" data-action='change-effective-level' >
+{{#if data.selectPower1}}
+				<option value="1"{{#if (eq data.effectiveLevel '1')}} selected{{/if}}>1</option>
+{{/if}}
+{{#if data.selectPower2}}
+				<option value="2"{{#if (eq data.effectiveLevel '2')}} selected{{/if}}>2</option>
+{{/if}}
+{{#if data.selectPower3}}
+				<option value="3"{{#if (eq data.effectiveLevel '3')}} selected{{/if}}>3</option>
+{{/if}}
+{{#if data.selectPower4}}
+				<option value="4"{{#if (eq data.effectiveLevel '4')}} selected{{/if}}>4</option>
+{{/if}}
+{{#if data.selectPower5}}
+				<option value="5"{{#if (eq data.effectiveLevel '5')}} selected{{/if}}>5</option>
+{{/if}}
+{{#if data.selectPower6}}
+				<option value="6"{{#if (eq data.effectiveLevel '6')}} selected{{/if}}>6</option>
+{{/if}}
+{{#if data.selectPower7}}
+				<option value="7"{{#if (eq data.effectiveLevel '7')}} selected{{/if}}>7</option>
+{{/if}}
+{{#if data.selectPower8}}
+				<option value="8"{{#if (eq data.effectiveLevel '8')}} selected{{/if}}>8</option>
+{{/if}}
+{{#if data.selectPower9}}
+				<option value="9"{{#if (eq data.effectiveLevel '9')}} selected{{/if}}>9</option>
+{{/if}}
+{{#if data.selectPower10}}
+				<option value="10"{{#if (eq data.effectiveLevel '10')}} selected{{/if}}>10</option>
+{{/if}}
+			</select>
+		</div>
+{{/if}}
+{{#if data.damage}}
+		<div class="form-group" style="display: grid; grid-column-gap: 3px; grid-template-columns: 170px 1fr;">
+			<label>
+				{{localize "SHADOWDARK.item.damage"}}
+			</label>
+			<input type="text" name="data.damage" value="{{data.damage}}" placeholder="0">
+		</div>
+{{/if}}
+{{#if data.duration}}
+		<div class="form-group" style="display: grid; grid-column-gap: 3px; grid-template-columns: 170px 1fr;">
+			<label>
+				{{localize "SHADOWDARK.item.talent_duration"}}
+			</label>
+			{{data.duration_amount}} {{data.duration_desc}}
+		</div>
+{{/if}}
+{{#if targetName}}
+		<div class="form-group" style="display: grid; grid-column-gap: 3px; grid-template-columns: 170px 1fr;">
+			<label>
+				{{localize "SHADOWDARK.chat.item_roll.target_name"}}
+			</label>
+			{{targetName}}
+		</div>
+{{/if}}
+{{#if data.target}}
+		<div class="form-group" style="display: grid; grid-column-gap: 3px; grid-template-columns: 170px 1fr;">
+			<label>
+				{{localize "SHADOWDARK.chat.item_roll.target"}}
+			</label>
+			{{data.target}}
+		</div>
+{{/if}}
+		<hr />
+		<div class="form-group" style="display: grid; grid-column-gap: 3px; grid-template-columns: 170px 1fr;">
+			<label>{{localize "SHADOWDARK.dialog.roll_mode_label"}}</label>
+			<select name="rollMode">
+				{{#select rollMode}}
+					{{#each rollModes as |mode|}}
+						<option value="{{mode.label}}">{{localize mode.label}}</option>
+					{{/each}}
+				{{/select}}
+			</select>
+		</div>
+		<hr />
+	</div>
+	<div class="dialog-buttons" style="display: grid; grid-column-gap: 3px; grid-template-columns: 1fr 1fr 1fr;">
+		<button class="dialog-button roll-button advantage{{#if data.advantage}} talent-highlight{{/if}}" data-button="advantage" data-action="rollButton">
+			{{localize "SHADOWDARK.roll.advantage"}}
+		</button>
+		<button class="dialog-button roll-button normal default" data-button="normal" data-action="rollButton">
+			{{localize "SHADOWDARK.roll.normal"}}
+		</button>
+		<button class="dialog-button roll-button disadvantage{{#if data.disadvantage}} talent-highlight{{/if}}" data-button="disadvantage" data-action="rollButton">
+			{{localize "SHADOWDARK.roll.disadvantage"}}
+		</button>
+	</div>
+</section>

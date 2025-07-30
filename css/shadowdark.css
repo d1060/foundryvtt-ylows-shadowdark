@@ -1,0 +1,2467 @@
+:root {
+  --background-highlight: rgba(255, 255, 255, 0.25);
+  --clickable: #a546b6;
+  --form-background: rgba(0, 0, 0, 0.0392156863);
+  --inactive-control: #A0A09A;
+  --primary: black;
+  --secondary: #78557e;
+  --color-shadow-primary: #a546b6;
+  --color-shadow-highlight: #a546b6;
+  --color-border-highlight: #a546b6;
+  --color-border-highlight-alt: #a546b6;
+  scrollbar-color: #464646 #111;
+}
+
+@font-face {
+  font-family: "JSL Blackletter";
+  src: url("../fonts/JBLACK.TTF") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Montserrat-Medium";
+  src: url("../fonts/Montserrat-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Montserrat-SemiBold";
+  src: url("../fonts/Montserrat-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Montserrat-Bold";
+  src: url("../fonts/Montserrat-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Old Newspaper Font";
+  src: url("../fonts/Old Newspaper Font.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+:root {
+  --font-header: "JSL Blackletter", sans-serif;
+}
+
+.grid-10-columns, .grid-9-columns, .grid-8-columns, .grid-7-columns, .grid-6-columns, .grid-5-columns, .grid-4-columns, .grid-3-columns, .grid-2-columns, .grid-1-columns {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  column-gap: 8px;
+  row-gap: 8px;
+}
+
+.grid-colspan-1 {
+  grid-column: span 1;
+}
+
+.grid-colspan-2 {
+  grid-column: span 2;
+}
+
+.grid-colspan-3 {
+  grid-column: span 3;
+}
+
+.grid-colspan-4 {
+  grid-column: span 4;
+}
+
+.grid-colspan-5 {
+  grid-column: span 5;
+}
+
+.grid-colspan-6 {
+  grid-column: span 6;
+}
+
+.grid-colspan-7 {
+  grid-column: span 7;
+}
+
+.grid-colspan-8 {
+  grid-column: span 8;
+}
+
+.grid-colspan-9 {
+  grid-column: span 9;
+}
+
+.grid-colspan-10 {
+  grid-column: span 10;
+}
+
+.grid-colstart-1 {
+  grid-column-start: 1;
+}
+
+.grid-colstart-2 {
+  grid-column-start: 2;
+}
+
+.grid-colstart-3 {
+  grid-column-start: 3;
+}
+
+.grid-colstart-4 {
+  grid-column-start: 4;
+}
+
+.grid-colstart-5 {
+  grid-column-start: 5;
+}
+
+.grid-colstart-6 {
+  grid-column-start: 6;
+}
+
+.grid-colstart-7 {
+  grid-column-start: 7;
+}
+
+.grid-colstart-8 {
+  grid-column-start: 8;
+}
+
+.grid-colstart-9 {
+  grid-column-start: 9;
+}
+
+.grid-colstart-10 {
+  grid-column-start: 10;
+}
+
+.grid-rowspan-1 {
+  grid-row: span 1;
+}
+
+.grid-rowspan-2 {
+  grid-row: span 2;
+}
+
+.grid-rowspan-3 {
+  grid-row: span 3;
+}
+
+.grid-rowspan-4 {
+  grid-row: span 4;
+}
+
+.grid-rowspan-5 {
+  grid-row: span 5;
+}
+
+.grid-rowspan-6 {
+  grid-row: span 6;
+}
+
+.grid-rowspan-7 {
+  grid-row: span 7;
+}
+
+.grid-rowspan-8 {
+  grid-row: span 8;
+}
+
+.grid-rowspan-9 {
+  grid-row: span 9;
+}
+
+.grid-rowspan-10 {
+  grid-row: span 10;
+}
+
+.grid-1-columns {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.grid-2-columns {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-3-columns {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-4-columns {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.grid-5-columns {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.grid-6-columns {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.grid-7-columns {
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.grid-8-columns {
+  grid-template-columns: repeat(8, 1fr);
+}
+
+.grid-9-columns {
+  grid-template-columns: repeat(9, 1fr);
+}
+
+.grid-10-columns {
+  grid-template-columns: repeat(10, 1fr);
+}
+
+.flex-40-px {
+  flex: 0 0 40px;
+}
+
+.flex-60-px {
+  flex: 0 0 60px;
+}
+
+.flex-80-px {
+  flex: 0 0 80px;
+}
+
+.flex-100-px {
+  flex: 0 0 100px;
+}
+
+.flex-120-px {
+  flex: 0 0 120px;
+}
+
+.shadowdark.active-effects .active-effects-grid {
+  display: grid;
+  row-gap: 8px;
+}
+.shadowdark.active-effects .effect {
+  font-size: 18px;
+  text-align: center;
+  width: 100%;
+  background-color: var(--form-background);
+}
+.shadowdark.active-effects .effect:hover {
+  cursor: pointer;
+  text-shadow: 0 0 8px var(--clickable);
+}
+.shadowdark.active-effects .effect.selected {
+  background-color: var(--secondary);
+  color: white;
+}
+
+.character-generator button {
+  font-size: 1.1rem;
+  font-family: "Old Newspaper Font";
+}
+.character-generator input[type=radio] {
+  width: auto;
+}
+.character-generator .cg-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 180px 220px 1fr;
+  grid-template-rows: repeat(7, 70px);
+}
+.character-generator .content-link {
+  line-height: 1.7;
+}
+.character-generator #create-bar {
+  margin: 8px 8px 0px 8px;
+  text-align: center;
+}
+.character-generator #create-bar button {
+  width: 50%;
+}
+.character-generator .details {
+  font-size: 0.85em;
+  overflow: auto;
+}
+.character-generator .details p {
+  margin-bottom: 10px;
+}
+.character-generator .details fieldset {
+  margin-bottom: 10px;
+}
+.character-generator .stats div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  column-gap: 4px;
+}
+.character-generator .stats label {
+  text-transform: uppercase;
+  font-family: "Old Newspaper Font";
+  font-weight: bold;
+  font-size: 18px;
+  margin-left: 5px;
+}
+.character-generator .stats select {
+  width: 4em;
+}
+.character-generator .title {
+  align-self: center;
+  text-align: center;
+}
+.character-generator .stat-points {
+  text-transform: uppercase;
+  font-family: "Old Newspaper Font";
+  font-size: 15px;
+  margin-left: 5px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.shadowdark.compendium-item-selector {
+  font-family: "Montserrat-Medium";
+}
+.shadowdark.compendium-item-selector form .form-group {
+  margin: 0;
+  padding: 0;
+}
+.shadowdark.compendium-item-selector form .form-group input:focus {
+  border-bottom: 1px solid #644f33;
+}
+.shadowdark.compendium-item-selector form .form-group select {
+  flex: 2;
+  margin-right: 5px;
+}
+.shadowdark.compendium-item-selector form .form-group input[type=text] {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #aaa;
+}
+.shadowdark.compendium-item-selector form .form-group input::placeholder {
+  color: var(--primary);
+}
+
+.shadowdark.compendium-item-selector section .form-group {
+  margin: 0;
+  padding: 0;
+}
+.shadowdark.compendium-item-selector section .form-group input:focus {
+  border-bottom: 1px solid #644f33;
+}
+.shadowdark.compendium-item-selector section .form-group select {
+  flex: 2;
+  margin-right: 5px;
+}
+.shadowdark.compendium-item-selector section .form-group input[type=text] {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #aaa;
+}
+.shadowdark.compendium-item-selector section .form-group input::placeholder {
+  color: var(--primary);
+}
+
+.shadowdark.compendium-item-selector .remove-item {
+  color: darkred;
+}
+.shadowdark.compendium-item-selector .uuid-link {
+  margin: 4px;
+}
+
+.fake-uuid-link {
+  background: #DDD;
+  padding: 1px 4px;
+  border: 1px solid var(--color-border-dark-tertiary);
+  margin: 4px;
+  border-radius: 2px;
+  white-space: nowrap;
+  word-break: break-all;
+}
+.fake-uuid-link:hover {
+  cursor: auto;
+  text-shadow: none;
+}
+.fake-uuid-link i:hover {
+  cursor: pointer;
+  text-shadow: 0 0 8px var(--color-shadow-primary);
+}
+
+section.effect-panel {
+  /* position: fixed; */
+  z-index: 50;
+}
+section.effect-panel hr {
+  margin-right: 0;
+  width: 42px;
+}
+section.effect-panel .icon {
+  align-items: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 1px rgb(150, 111, 158), 0 0 0 2px rgb(70, 33, 139);
+  box-shadow: 0 0 0 1px rgb(150, 111, 158), 0 0 0 2px rgb(70, 33, 139), inset 0 0 4px rgba(0, 0, 0, 0.5);
+  color: transparent;
+  display: flex;
+  min-height: 42px;
+  justify-content: center;
+  margin: 2px 0;
+  position: relative;
+  min-width: 42px;
+}
+section.effect-panel .icon .progress {
+  width: 42px;
+  height: 42px;
+  background: conic-gradient(var(--progress-color, rgba(214, 102, 241, 0.534)) var(--progress, 0%), rgba(241, 95, 58, 0) var(--progress, 0%) 100%);
+}
+section.effect-panel .icon .badge {
+  bottom: 1px;
+  color: #fff;
+  display: inline-block;
+  left: 1px;
+  bottom: 4px;
+  position: absolute;
+  text-shadow: 0px 0px 2px black;
+}
+section.effect-panel .icon .badge.unlimited {
+  color: orange;
+}
+section.effect-panel .effect-item {
+  display: flex;
+  justify-content: flex-start;
+  height: 46px;
+  margin-bottom: 4px;
+}
+/* section.effect-panel .effect-item:hover .effect-info {
+  display: block;
+} */
+
+section.effect-panel .effect-item .effect-info {
+  background-color: rgba(0, 0, 0, 0.75);
+  display: block;
+  border-radius: 5px;
+  height: 100%;
+  font-family: var(--font-primary);
+  margin: 0 0.5em;
+  padding: 0.1em 0.25em;
+}
+section.effect-panel .effect-item .effect-info h1,
+section.effect-panel .effect-item .effect-info h2 {
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  font-family: var(--font-primary);
+  margin: 0;
+  padding: 0;
+  text-align: right;
+}
+section.effect-panel .effect-item .effect-info h2 {
+  font-size: 12px;
+}
+section.effect-panel .effect-item .effect-info .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  list-style-type: none;
+  margin-bottom: 2px;
+}
+section.effect-panel .effect-item .effect-info .tags .talent,
+section.effect-panel .effect-item .effect-info .tags .duration {
+  text-rendering: optimizeLegibility;
+  background-color: hsl(278, 71%, 41%);
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1px;
+  padding: 3px 4px;
+  text-transform: uppercase;
+}
+section.effect-panel .effect-item .effect-info .tags .talent {
+  background-color: hsl(258, 81%, 69%);
+}
+
+.shadowdark.item-properties .properties-grid {
+  display: grid;
+  row-gap: 8px;
+}
+.shadowdark.item-properties .property {
+  font-size: 18px;
+  text-align: center;
+  width: 100%;
+  background-color: var(--form-background);
+}
+.shadowdark.item-properties .property:hover {
+  cursor: pointer;
+  text-shadow: 0 0 8px var(--clickable);
+}
+.shadowdark.item-properties .property.selected {
+  background-color: var(--secondary);
+  color: white;
+}
+
+.level-up button {
+  font-size: 1.1rem;
+  font-family: "Old Newspaper Font";
+}
+.level-up fieldset {
+  border-style: dashed;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  margin-bottom: 5px;
+}
+.level-up .content-link {
+  line-height: 1.7;
+}
+.level-up .hit-points {
+  text-align: center;
+  font-size: 24px;
+  font-family: "Montserrat-semibold";
+}
+.level-up .spells fieldset {
+  height: 35px;
+}
+.level-up .talents {
+  overflow: hidden;
+}
+.level-up .talents fieldset {
+  height: 100%;
+  overflow: auto;
+}
+
+.shadowdark.loading-spinner img {
+  border-width: 0px;
+  width: 50px;
+  height: 50px;
+}
+
+.shadowdark.light-tracker {
+  margin: 0;
+  padding: 0;
+  margin: 4px;
+  min-width: 230px;
+}
+.shadowdark.light-tracker ol {
+  list-style: none;
+}
+.shadowdark.light-tracker .character {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: min-content 1fr;
+  column-gap: 8px;
+}
+.shadowdark.light-tracker .character-name {
+  align-self: start;
+  font-family: "Old Newspaper Font";
+  font-size: 1.5rem;
+  font-weight: normal;
+  line-height: 1;
+}
+.shadowdark.light-tracker .character-portrait {
+  grid-row: span 2;
+  align-self: start;
+  cursor: pointer;
+  height: auto;
+  width: auto;
+}
+.shadowdark.light-tracker .disable-all-lights {
+  font-size: 18px;
+}
+.shadowdark.light-tracker .light-controls {
+  text-align: center;
+}
+.shadowdark.light-tracker .light-source-grid {
+  display: grid;
+  row-gap: 4px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+.shadowdark.light-tracker .light-sources {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  padding-left: 4px;
+  row-gap: 4px;
+  align-items: start;
+}
+.shadowdark.light-tracker .light-source {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: min-content 1fr max-content;
+  align-items: center;
+  column-gap: 4px;
+  font-family: "Montserrat-Medium";
+  font-weight: bold;
+  font-size: 14px;
+}
+.shadowdark.light-tracker .light-source:hover {
+  background-color: var(--background-highlight);
+}
+.shadowdark.light-tracker .disable-light .flame {
+  color: darkorange;
+}
+.shadowdark.light-tracker .disable-light .magic {
+  color: darkcyan;
+}
+.shadowdark.light-tracker .status {
+  margin: 0;
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 4px;
+  background-color: var(--background-highlight);
+}
+.shadowdark.light-tracker .status__label {
+  text-align: right;
+}
+.shadowdark.light-tracker .status__value {
+  text-align: left;
+}
+.shadowdark.light-tracker .status__active {
+  color: green;
+}
+.shadowdark.light-tracker .status__paused {
+  color: red;
+}
+.shadowdark.light-tracker .time-remaining {
+  font-style: italic;
+  font-weight: normal;
+}
+.shadowdark.light-tracker .title {
+  margin: 0;
+  padding: 0;
+  font-family: "JSL Blackletter";
+  font-size: 3rem;
+  text-align: center;
+  line-height: 1;
+}
+.shadowdark.light-tracker .title__prefix {
+  color: #78557e;
+  text-shadow: -0.2rem -0.2rem black;
+}
+.shadowdark.light-tracker .title__suffix {
+  color: black;
+  text-shadow: -0.2rem -0.2rem #78557e;
+}
+.shadowdark.light-tracker .warning {
+  margin: 0;
+  padding: 0;
+  color: red;
+  text-align: center;
+}
+
+#module-art-config .form-group-stacked {
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+#module-art-config .form-group-stacked label {
+  flex: 1 0 auto;
+}
+#module-art-config .form-group-stacked .form-fields {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 0.5rem;
+}
+#module-art-config .form-group-stacked .form-fields label {
+  display: flex;
+  align-items: center;
+}
+#module-art-config .form-group-stacked .form-fields input {
+  width: 16px;
+  height: 16px;
+}
+
+.shadowdarkling-importer textarea {
+  height: 120px;
+  border: 2px solid #111;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.shadowdarkling-importer button {
+  font-size: 18px;
+  font-family: "Old Newspaper Font";
+}
+
+.shadowdark.welcome-message .card-header,
+.shadowdark.roll-card .card-header,
+.shadowdark.item-card .card-header {
+  padding: 3px 0;
+  border-top: 2px groove #FFF;
+  border-bottom: 2px groove #FFF;
+}
+.shadowdark.welcome-message .card-header img,
+.shadowdark.roll-card .card-header img,
+.shadowdark.item-card .card-header img {
+  flex: 0 0;
+  margin-right: 5px;
+  height: 36px;
+  border-radius: 3px;
+}
+.shadowdark.welcome-message .card-header h3,
+.shadowdark.roll-card .card-header h3,
+.shadowdark.item-card .card-header h3 {
+  flex: 1;
+  margin: 0;
+  line-height: 1;
+  align-self: center;
+}
+.shadowdark.welcome-message .card-content,
+.shadowdark.roll-card .card-content,
+.shadowdark.item-card .card-content {
+  padding: 3px 0 3px;
+}
+.shadowdark.welcome-message .card-content p,
+.shadowdark.roll-card .card-content p,
+.shadowdark.item-card .card-content p {
+  padding: 3px 0 3px;
+}
+.shadowdark.welcome-message .card-attack-roll,
+.shadowdark.roll-card .card-attack-roll,
+.shadowdark.item-card .card-attack-roll {
+  padding: 3px 0 3px;
+  border-top: 2px groove #FFF;
+}
+.shadowdark.welcome-message .card-damage-rolls,
+.shadowdark.roll-card .card-damage-rolls,
+.shadowdark.item-card .card-damage-rolls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.shadowdark.welcome-message .card-damage-roll,
+.shadowdark.roll-card .card-damage-roll,
+.shadowdark.item-card .card-damage-roll {
+  padding: 2px 6px 3px;
+}
+.shadowdark.welcome-message .card-damage-roll h3,
+.shadowdark.roll-card .card-damage-roll h3,
+.shadowdark.item-card .card-damage-roll h3 {
+  font-size: 12px;
+}
+.shadowdark.welcome-message .card-damage-roll-single,
+.shadowdark.roll-card .card-damage-roll-single,
+.shadowdark.item-card .card-damage-roll-single {
+  padding: 12px 0 3px;
+  grid-column: span 2;
+}
+.shadowdark.welcome-message .card-spell-critical,
+.shadowdark.roll-card .card-spell-critical,
+.shadowdark.item-card .card-spell-critical {
+  font-size: 12px;
+  padding: 3px 0 0;
+}
+.shadowdark.welcome-message .card-buttons,
+.shadowdark.roll-card .card-buttons,
+.shadowdark.item-card .card-buttons {
+  padding: 3px 0 3px;
+  display: none;
+}
+.shadowdark.welcome-message .card-buttons.hp,
+.shadowdark.roll-card .card-buttons.hp,
+.shadowdark.item-card .card-buttons.hp {
+  padding: 3px 0 3px;
+  display: block;
+}
+.shadowdark.welcome-message .card-footer,
+.shadowdark.roll-card .card-footer,
+.shadowdark.item-card .card-footer {
+  padding: 3px 0 0;
+  border-top: 2px groove #FFF;
+}
+.shadowdark.welcome-message .card-footer span,
+.shadowdark.roll-card .card-footer span,
+.shadowdark.item-card .card-footer span {
+  border: 2px groove #FFF;
+  border-radius: 5px;
+  padding: 0 4px 0 4px;
+  font-size: 10px;
+}
+
+.shadowdark.welcome-message .message-content {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  row-gap: 18px;
+}
+.shadowdark.welcome-message .message-content p {
+  padding: 3px 0 3px;
+}
+.shadowdark.welcome-message .shadowdark-logo {
+  font-family: "JSL Blackletter";
+  font-size: 40px;
+  color: var(--primary);
+  text-align: center;
+}
+.shadowdark.welcome-message .shadowdark-logo span {
+  border-bottom: solid 2px var(--primary);
+  padding: 0px 10px 0px 10px;
+}
+
+.shadowdark.light-source-card .card-header,
+.shadowdark.ability-card .card-header {
+  padding: 3px 0;
+  border-top: 2px groove #FFF;
+  border-bottom: 2px groove #FFF;
+}
+.shadowdark.light-source-card .card-header img,
+.shadowdark.ability-card .card-header img {
+  flex: 0 0;
+  margin-right: 5px;
+  height: 36px;
+  border-radius: 3px;
+}
+.shadowdark.light-source-card .card-header h3,
+.shadowdark.ability-card .card-header h3 {
+  flex: 1;
+  margin: 0;
+  line-height: 1;
+  align-self: center;
+}
+.shadowdark.light-source-card .card-content,
+.shadowdark.ability-card .card-content {
+  padding: 3px 0 3px;
+}
+.shadowdark.light-source-card .card-content p,
+.shadowdark.ability-card .card-content p {
+  padding: 3px 0 3px;
+}
+.shadowdark.light-source-card .card-ability-roll,
+.shadowdark.ability-card .card-ability-roll {
+  padding: 3px 0 3px;
+  border-top: 2px groove #FFF;
+}
+
+.shadowdark .SD-box {
+  display: grid;
+  grid-template-rows: 28px 1fr;
+  border: 2px solid black;
+}
+.shadowdark .SD-box .header {
+  display: flex;
+  height: 28px;
+  overflow: hidden;
+}
+.shadowdark .SD-box .header label {
+  background: black;
+  color: white;
+  font-size: 18px;
+  font-family: "Old Newspaper Font";
+  text-transform: uppercase;
+  float: left;
+  padding: 0px 8px;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.shadowdark .SD-box .header span {
+  background-image: url("/systems/shadowdark/assets/artwork/title_right.png");
+  background-repeat: no-repeat;
+  background-size: auto;
+  float: right;
+  flex-grow: 1;
+  text-align: right;
+  padding: 3px 5px;
+  font-size: 16px;
+}
+.shadowdark .SD-box .header.light label {
+  background: none;
+  color: black;
+  font-weight: bold;
+}
+.shadowdark .SD-box .header.light span {
+  background: none;
+}
+.shadowdark .SD-box .content {
+  padding: 5px;
+}
+.shadowdark .SD-box ul li, .shadowdark .SD-box ol li {
+  margin-bottom: 0.25rem;
+}
+.shadowdark .SD-box ul li:last-child, .shadowdark .SD-box ol li:last-child {
+  margin-bottom: 0.25rem;
+}
+.shadowdark .SD-rowspan3 {
+  grid-column: 1/4;
+}
+.shadowdark .SD-banner {
+  font-family: "Montserrat-SemiBold";
+  font-size: 16px;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.8;
+  color: white;
+  height: 28px;
+  background: linear-gradient(90deg, transparent 40px, black 40px, black calc(100% - 40px), transparent calc(100% - 40px)), url("/systems/shadowdark/assets/artwork/title_right.png") no-repeat right, url("/systems/shadowdark/assets/artwork/title_left.png") no-repeat left;
+  background-size: auto;
+}
+.shadowdark .SD-bold {
+  font-size: 20px;
+  font-family: "Old Newspaper Font";
+  font-weight: bold;
+}
+.shadowdark .SD-grid {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 4px 8px;
+  align-content: start;
+  align-items: center;
+}
+.shadowdark .SD-grid.left {
+  grid-template-columns: 1fr 3fr;
+}
+.shadowdark .SD-grid.center {
+  grid-template-columns: 1fr 1fr;
+}
+.shadowdark .SD-grid.right {
+  grid-template-columns: 3fr 1fr;
+}
+.shadowdark .SD-grid.small {
+  gap: 0px 8px;
+  font-size: 12px;
+}
+.shadowdark .tab-spells .SD-list > li .actions {
+  flex: 0 0 90px !important;
+}
+.shadowdark .SD-list {
+  margin: 0px;
+  padding: 0px;
+  list-style: none;
+}
+.shadowdark .SD-list > li {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 2px 4px;
+  border-bottom: 1px solid black;
+}
+.shadowdark .SD-list > li.header {
+  font-family: "Montserrat-Bold";
+  color: black;
+}
+.shadowdark .SD-list > li .header {
+  font-family: "Montserrat-Bold";
+  color: black;
+}
+.shadowdark .SD-list > li .item-image,
+.shadowdark .SD-list > li .effect-image {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+.shadowdark .SD-list > li .item-image:hover,
+.shadowdark .SD-list > li .effect-image:hover {
+  background: none !important;
+  color: white;
+}
+.shadowdark .SD-list > li .item-name,
+.shadowdark .SD-list > li .effect-name {
+  flex: 2;
+  overflow: hidden;
+  align-items: center;
+}
+.shadowdark .SD-list > li .item-details {
+  flex: 0 0 100%;
+  margin: 5px;
+  font-size: 12px;
+}
+.shadowdark .SD-list > li .slots {
+  flex: 0 0 40px;
+  text-align: center;
+}
+.shadowdark .SD-list > li .source,
+.shadowdark .SD-list > li .range {
+  flex: 0 0 60px;
+}
+.shadowdark .SD-list > li .quantity {
+  flex: 0 0 80px;
+  text-align: center;
+  font-size: 13px;
+}
+.shadowdark .SD-list > li .standard,
+.shadowdark .SD-list > li .duration {
+  flex: 0 0 100px;
+}
+.shadowdark .SD-list > li .actions {
+  flex: 0 0 60px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+.shadowdark .SD-list > li .actions a {
+  margin: 0px 4px;
+  color: var(--inactive-control);
+}
+.shadowdark .SD-list > li .actions a:hover {
+  color: var(--primary);
+}
+.shadowdark .SD-table {
+  margin: 0;
+  padding: 0;
+  font-family: "Montserrat-Medium";
+  background-color: rgba(255, 255, 255, 0);
+  border: none;
+  font-size: 14px;
+  margin: 0px 6px 14px 6px;
+  width: 100%;
+}
+.shadowdark .SD-table th {
+  font-family: "Montserrat-Bold";
+  color: black;
+  text-align: left;
+}
+.shadowdark .SD-table tr {
+  background-color: rgba(255, 255, 255, 0);
+}
+.shadowdark .SD-table td {
+  border-top: 2px solid black;
+  padding: 2px 2px 2px 5px;
+}
+.shadowdark .SD-table td .item-details {
+  border: none;
+}
+.shadowdark .tags {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 0;
+  margin: 4px;
+  row-gap: 2px;
+}
+.shadowdark .tags .tag {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  color: white;
+  background-color: var(--secondary);
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.25px;
+  padding: 4px 4px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+.shadowdark .tags .tag + .tag, .shadowdark .tags .tag:first-child {
+  margin-right: 4px;
+}
+.shadowdark .tags .tag_primary {
+  background-color: var(--secondary);
+}
+.shadowdark .tags .tag_secondary {
+  background-color: var(--primary);
+}
+.shadowdark .tags .tag_small {
+  font-size: 10px;
+}
+
+.advantage.talent-highlight {
+  background-color: #d6ed15;
+}
+
+.disadvantage.talent-highlight {
+  background-color: #e37474;
+}
+
+.dialog-button.advantage.talent-highlight {
+  background-color: #d6ed15;
+}
+
+.dialog-button.disadvantage.talent-highlight {
+  background-color: #e37474;
+}
+
+#pause > img {
+  content: url("/systems/shadowdark/assets/logo/arcane-library-logo.webp");
+  width: 200px;
+  height: 200px;
+  top: -56px;
+  left: calc(50% - 100px);
+  opacity: 0.6;
+  --fa-animation-duration: 30s;
+}
+
+#pause {
+  height: auto;
+  animation: none;
+  opacity: 0.5;
+  top: calc(75vh - 105px);
+}
+
+#pause figcaption {
+  font-family: var(--font-header);
+  font-size: 64px;
+  line-height: 0.5;
+  opacity: 0.8;
+  text-shadow: 4px 4px black;
+  font-weight: normal;
+  text-transform: none;
+  color: white;
+}
+
+.dice-roll .dice-total.success {
+  color: var(--color-level-success-border);
+}
+
+.dice-roll .dice-total.failure {
+  color: var(--color-level-error-border);
+}
+
+.editor {
+  height: 100%;
+  padding: 0 4px;
+  min-height: 200px;
+}
+.editor .tox-toolbar-overlord,
+.editor .tox-toolbar__primary {
+  background: none;
+}
+
+.tiles .file img {
+  height: 128px;
+  width: auto;
+}
+
+.details .file img {
+  height: 0px;
+  width: auto;
+}
+
+.level-up button {
+  width: 100%;
+}
+
+.system-shadowdark .sheet.journal-entry .journal-entry-content {
+  background: none;
+  background-color: white;
+  color: rgb(25, 24, 19);
+}
+
+.system-shadowdark .journal-sheet .journal-header input[type=text] {
+  background: none;
+  color: black;
+  border: none;
+  border-radius: 0;
+}
+
+.system-shadowdark .journal-sheet .journal-header .title {
+  font-family: "Montserrat-Bold";
+  font-size: 2.2em;
+  font-variant-caps: small-caps;
+}
+
+.system-shadowdark .sheet.journal-entry .journal-entry-page blockquote {
+  border: none;
+  background-color: rgb(182, 219, 198);
+  padding: 8px;
+  margin: 16px;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page blockquote p {
+  font-size: 1.15em;
+  font-style: italic;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page h1, .system-shadowdark .sheet.journal-entry .journal-entry-page h2, .system-shadowdark .sheet.journal-entry .journal-entry-page h3, .system-shadowdark .sheet.journal-entry .journal-entry-page h4, .system-shadowdark .sheet.journal-entry .journal-entry-page h5 {
+  font-family: "Montserrat-Bold";
+  font-weight: bold;
+  text-transform: uppercase;
+  color: black;
+  border: none;
+  margin: 0 0 0.5rem;
+  padding: 0;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page h1 {
+  font-family: "Old Newspaper Font";
+  font-size: 3.5em;
+  font-weight: normal;
+  color: white;
+  background-color: black;
+  width: 100%;
+  text-align: center;
+  text-transform: none;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page h2, .system-shadowdark .sheet.journal-entry .journal-entry-page h3, .system-shadowdark .sheet.journal-entry .journal-entry-page h4, .system-shadowdark .sheet.journal-entry .journal-entry-page h5 {
+  margin-top: 1rem;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page h2 {
+  font-size: 1.6em;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page h2.fancy {
+  font-family: "JSL Blackletter";
+  text-transform: none;
+  font-size: 2.5em;
+  font-weight: normal;
+  margin: 0;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page h3 {
+  font-size: 1.4em;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page h4 {
+  font-size: 1.2em;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page h5 {
+  font-size: 1em;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page img {
+  border: none;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page p {
+  font-family: "Montserrat-Medium";
+  font-style: normal;
+  font-size: 1.1em;
+  margin: 0 0 0.5rem;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page blockquote,
+.system-shadowdark .sheet.journal-entry .journal-entry-page table > caption {
+  font-family: "Montserrat-SemiBold";
+  font-size: 16px;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.8;
+  color: white;
+  background: linear-gradient(90deg, transparent 40px, black 40px, black calc(100% - 40px), transparent calc(100% - 40px)), url("/systems/shadowdark/assets/artwork/title_right.png") no-repeat right, url("/systems/shadowdark/assets/artwork/title_left.png") no-repeat left;
+  background-size: auto;
+  background-repeat: repeat-y;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page blockquote {
+  line-height: 1;
+  padding-top: 20px;
+  padding-bottom: 10px;
+  padding-left: 40px;
+  padding-right: 40px;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page blockquote p {
+  font-family: "Old Newspaper Font";
+  text-transform: none;
+  font-size: 1.4rem;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page table {
+  border: none;
+  margin-bottom: 1em;
+  margin-top: 1em;
+  width: fit-content;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page table p {
+  font-size: 1.1em;
+  margin: 0;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page table tbody tr {
+  border-top: black;
+  border-top-style: solid;
+  border-top-width: 2px;
+  background-color: white;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page table tbody tr:first-child {
+  font-weight: bold;
+  border: none;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page table td,
+.system-shadowdark .sheet.journal-entry .journal-entry-page table th {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page section .reveal {
+  float: right;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page section .secret {
+  background: rgba(125, 28, 28, 0.2);
+  border: 3px solid;
+  padding: 4px;
+  border-color: rgb(125, 28, 28);
+  border-radius: 8px;
+  padding: 8px;
+  margin: 16px;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page section .secret p {
+  font-size: 1.2em;
+}
+.system-shadowdark .sheet.journal-entry .journal-entry-page section .revealed {
+  border-color: rgb(28, 125, 34);
+  background: rgba(28, 125, 34, 0.2);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+  border-bottom: unset;
+}
+
+ul[role=list],
+ol[role=list] {
+  list-style: none;
+}
+
+html:focus-within {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  text-rendering: optimizeSpeed;
+  line-height: 1.5;
+}
+
+a:not([class]) {
+  text-decoration-skip-ink: auto;
+}
+
+img,
+picture {
+  max-width: 100%;
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+.shadowdark.sheet.player .abilities-grid {
+  display: grid;
+  grid-template-columns: minmax(165px, 1fr) 2.5fr;
+  column-gap: 8px;
+  align-items: start;
+}
+.shadowdark.sheet.player .ability-score div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  min-width: 2em;
+  text-align: center;
+}
+.shadowdark.sheet.player .ability-score a {
+  text-transform: uppercase;
+  font-size: 18px;
+  font-family: "Old Newspaper Font";
+  font-weight: bold;
+}
+.shadowdark.sheet.player .ability-score input,
+.shadowdark.sheet.player .ability-score span {
+  font-size: 18px;
+  font-family: "Montserrat-SemiBold";
+  width: 2.5em;
+}
+.shadowdark.sheet.player .background-grid-a {
+  display: grid;
+  grid-template-rows: 1fr;
+  gap: 8px;
+  font-size: 16px;
+}
+.shadowdark.sheet.player .background-content-link {
+  background: none;
+  border: none;
+  padding: 0px;
+  font-size: 16px;
+}
+.shadowdark.sheet.player .background-grid-a {
+  grid-template-columns: 1fr 2fr 2.5fr;
+}
+.shadowdark.sheet.player .inventory-grid {
+  display: grid;
+  grid-template-columns: 4fr 1fr;
+  gap: 8px;
+}
+.shadowdark.sheet.player .tab .notes .active {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 30px 1fr;
+}
+
+.shadowdark.sheet .tab.notes {
+  height: 100%;
+}
+
+.shadowdark.sheet .tab.description {
+  height: 100%;
+}
+
+.shadowdark.sheet .tab.notes .hideable-section {
+  overflow: hidden;
+  height: calc(100% - 28px);
+}
+
+.shadowdark.sheet .tab.description .editor {
+  overflow: hidden;
+  height: calc(100% - 28px);
+}
+
+.shadowdark.sheet .source-editor {
+  height: calc(100% - 80px);
+}
+
+.shadowdark.sheet.npc .abilities-grid {
+  display: grid;
+  grid-template-columns: minmax(175px, 1fr) 3fr;
+  column-gap: 8px;
+  align-items: start;
+}
+.shadowdark.sheet.npc .ability-score {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  text-align: center;
+}
+.shadowdark.sheet.npc .ability-score a {
+  text-transform: uppercase;
+  font-size: 16px;
+  font-family: "Old Newspaper Font";
+  font-weight: bold;
+}
+.shadowdark.sheet.npc .ability-score input {
+  font-size: 16px;
+}
+.shadowdark.sheet.npc .grid-dark-adapted {
+  display: flex;
+  align-items: center;
+}
+.shadowdark.sheet.npc .tab-description.active {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 30px 1fr;
+}
+
+.shadowdark.sheet.player,
+.shadowdark.sheet.npc {
+  min-width: 550px;
+}
+.shadowdark.sheet.player .editor-content,
+.shadowdark.sheet.npc .editor-content {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  font-size: 14px;
+  height: 100%;
+}
+.shadowdark.sheet.player .editor-content p,
+.shadowdark.sheet.npc .editor-content p {
+  margin: 0 0 0.5rem;
+}
+.shadowdark.sheet.player .effect-controls,
+.shadowdark.sheet.npc .effect-controls {
+  flex: 0 0 60px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+.shadowdark.sheet.player .effect-duration,
+.shadowdark.sheet.npc .effect-duration {
+  flex: 0 0 120px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+.shadowdark.sheet.player .effect-source,
+.shadowdark.sheet.npc .effect-source {
+  flex: 0 0 250px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+.shadowdark.sheet.player .item-image,
+.shadowdark.sheet.player .effect-image,
+.shadowdark.sheet.npc .item-image,
+.shadowdark.sheet.npc .effect-image {
+  display: inline-block;
+  max-width: 24px;
+  height: 24px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  font-size: 14px;
+  vertical-align: middle;
+  text-align: center;
+  color: transparent;
+}
+.shadowdark.sheet.player .item-image:hover,
+.shadowdark.sheet.player .effect-image:hover,
+.shadowdark.sheet.npc .item-image:hover,
+.shadowdark.sheet.npc .effect-image:hover {
+  background: none !important;
+  color: white;
+}
+.shadowdark.sheet.player .item-image i,
+.shadowdark.sheet.player .effect-image i,
+.shadowdark.sheet.npc .item-image i,
+.shadowdark.sheet.npc .effect-image i {
+  cursor: pointer;
+}
+.shadowdark.sheet.player .portrait,
+.shadowdark.sheet.npc .portrait {
+  grid-row: span 2;
+}
+.shadowdark.sheet.player .rollable i,
+.shadowdark.sheet.npc .rollable i {
+  font-size: 14px;
+  visibility: hidden;
+}
+.shadowdark.sheet.player .rollable:hover i,
+.shadowdark.sheet.npc .rollable:hover i {
+  visibility: visible;
+}
+.shadowdark.sheet.player .shadowdark-logo,
+.shadowdark.sheet.npc .shadowdark-logo {
+  font-family: "JSL Blackletter";
+  font-size: 1.75rem;
+  color: white;
+  text-align: center;
+}
+.shadowdark.sheet.player .shadowdark-logo span,
+.shadowdark.sheet.npc .shadowdark-logo span {
+  border-bottom: solid 1px white;
+  padding: 0px 10px 0px 10px;
+}
+.shadowdark.sheet.player .uuid-link,
+.shadowdark.sheet.npc .uuid-link {
+  margin: 4px;
+}
+.shadowdark.sheet.player .value-grid,
+.shadowdark.sheet.npc .value-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr;
+  column-gap: 2px;
+  align-items: center;
+  text-align: center;
+}
+.shadowdark.sheet.player .value-grid-with-temp-hp,
+.shadowdark.sheet.npc .value-grid-with-temp-hp {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 2fr;
+  column-gap: 2px;
+  align-items: center;
+  text-align: center;
+}
+.shadowdark.sheet.player .temp-hp,
+.shadowdark.sheet.npc .temp-hp {
+  display: grid;
+  font-size: 14px;
+  grid-template-columns: 4fr;
+  column-gap: 2px;
+  align-items: center;
+  text-align: center;
+}
+.shadowdark.sheet.player .attack,
+.shadowdark.sheet.npc .attack {
+  margin-left: 24px;
+}
+.shadowdark.sheet.player .attack .rollable,
+.shadowdark.sheet.npc .attack .rollable {
+  margin-left: -24px;
+}
+.shadowdark.sheet.player .britannian-spellbook,
+.shadowdark.sheet.npc .britannian-spellbook {
+  background-image: url("/systems/shadowdark/assets/Britannia/open-grimoire.png");
+  background-size: 782px 506px;
+  background-position: unset;
+  background-repeat: no-repeat;
+  height: 498px;
+}
+.shadowdark.sheet.player .britannian-spellbook h2,
+.shadowdark.sheet.npc .britannian-spellbook h2 {
+  font-size: 20px;
+  font-weight: bold;
+}
+.shadowdark.sheet.player .britannian-spellbook span,
+.shadowdark.sheet.npc .britannian-spellbook span {
+  margin-top: auto;
+  margin-bottom: auto;
+  font-size: 16px;
+}
+.shadowdark.sheet.player .britannian-spellbook .magic-rune,
+.shadowdark.sheet.npc .britannian-spellbook .magic-rune {
+  border: 0;
+  justify-self: center;
+  margin: auto;
+  height: 32px;
+}
+.shadowdark.sheet.player .britannian-spellbook .magic-rune-left,
+.shadowdark.sheet.npc .britannian-spellbook .magic-rune-left {
+  margin-right: auto;
+  justify-self: center;
+  margin: auto;
+}
+.shadowdark.sheet.player .britannian-spellbook .magic-rune-right,
+.shadowdark.sheet.npc .britannian-spellbook .magic-rune-right {
+  margin-left: auto;
+  justify-self: center;
+  margin: auto;
+}
+.shadowdark.sheet.player .britannian-spellbook .magic-rune-right-end,
+.shadowdark.sheet.npc .britannian-spellbook .magic-rune-right-end {
+  margin-left: auto;
+  justify-self: center;
+  margin: auto;
+}
+.shadowdark.sheet.player .britannian-spellbook .spell-magic-rune {
+  border: 0;
+  justify-self: center;
+  height: 24px;
+  z-index: 1;
+}
+.shadowdark.sheet.player .britannian-spellbook .britannian-rune-left,
+.shadowdark.sheet.npc .britannian-spellbook .britannian-rune-left {
+  font-family: "Old Newspaper Font";
+  display: grid;
+  grid-column-gap: 5px;
+  grid-template-columns: 32px 45px 1fr;
+  opacity: 0;
+}
+.shadowdark.sheet.player .britannian-spellbook .britannian-rune-left h2,
+.shadowdark.sheet.npc .britannian-spellbook .britannian-rune-left h2 {
+  margin: auto;
+}
+
+.shadowdark.sheet.player .britannian-spellbook .britannian-rune-right,
+.shadowdark.sheet.npc .britannian-spellbook .britannian-rune-right {
+  font-family: "Old Newspaper Font";
+  text-align: right;
+  display: grid;
+  grid-column-gap: 5px;
+  grid-template-columns: 1fr 45px 32px;
+  opacity: 0;
+}
+.shadowdark.sheet.player .britannian-spellbook .britannian-rune-right h2,
+.shadowdark.sheet.npc .britannian-spellbook .britannian-rune-right h2 {
+  margin: auto;
+}
+
+.shadowdark.sheet.player .britannian-spellbook .britannian-rune-right-end,
+.shadowdark.sheet.npc .britannian-spellbook .britannian-rune-right-end {
+  font-family: "Old Newspaper Font";
+  text-align: right;
+  display: grid;
+  grid-column-gap: 5px;
+  grid-template-columns: 1fr 45px 32px;
+  opacity: 0;
+}
+.shadowdark.sheet.player .britannian-spellbook .britannian-rune-right-end h2,
+.shadowdark.sheet.npc .britannian-spellbook .britannian-rune-right-end h2 {
+  margin: auto;
+}
+
+.shadowdark.sheet.player .britannian-spellbook .visible,
+.shadowdark.sheet.npc .britannian-spellbook .visible {
+  opacity: 1;
+}
+.shadowdark.sheet.player .britannian-spellcasting-parchment,
+.shadowdark.sheet.npc .britannian-spellcasting-parchment {
+  background-image: url("/systems/shadowdark/assets/Britannia/parchment-top.png");
+  background-size: 389px 64px;
+  width: 389px;
+  height: 64px;
+  position: absolute;
+  top: 166px;
+  left: 196px;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: grid;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+.shadowdark.sheet.player .cast-britannian-magic,
+.shadowdark.sheet.npc .cast-britannian-magic {
+  background-image: url("/systems/shadowdark/assets/Britannia/Ultima-stroked-glow.png");
+  position: absolute;
+  background-size: 128px 128px;
+  width: 128px;
+  height: 128px;
+  top: 555px;
+  left: 335px;
+  z-index: 10;
+}
+.shadowdark.sheet.player .write-britannian-magic,
+.shadowdark.sheet.npc .write-britannian-magic {
+  background-image: url("/systems/shadowdark/assets/Britannia/scribe-spell.png");
+  position: absolute;
+  background-size: 128px 128px;
+  width: 128px;
+  height: 128px;
+  top: 570px;
+  left: 346px;
+  z-index: 10;
+}
+.shadowdark.sheet.player .britannian-spellbook-left-flip,
+.shadowdark.sheet.npc .britannian-spellbook-left-flip {
+  background-image: url("/systems/shadowdark/assets/Britannia/flip-left.png");
+  position: absolute;
+  background-size: 84px 72px;
+  width: 84px;
+  height: 72px;
+  top: 182px;
+  left: 45px;
+}
+.shadowdark.sheet.player .britannian-spellbook-right-flip,
+.shadowdark.sheet.npc .britannian-spellbook-right-flip {
+  background-image: url("/systems/shadowdark/assets/Britannia/flip-right.png");
+  position: absolute;
+  background-size: 90px 82px;
+  width: 90px;
+  height: 82px;
+  top: 177px;
+  left: 666px;
+}
+.shadowdark.sheet.player .selected-rune,
+.shadowdark.sheet.npc .selected-rune {
+  margin-left: auto;
+  margin-right: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.shadowdark.item {
+  min-width: 550px;
+}
+.shadowdark.item .effect-list-changes {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 4px 8px;
+  font-size: 12px;
+  flex: 2;
+}
+.shadowdark.item .effect-list-changes span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: rtl;
+}
+.shadowdark.item .effect-list-changes input {
+  height: auto;
+}
+.shadowdark.item .effect-list-changes input[type=text] {
+  text-align: center;
+  font-size: 13px;
+}
+.shadowdark.item .properties-list {
+  height: 26px;
+  background-color: var(--form-background);
+  line-height: 1.75;
+}
+.shadowdark.item .tab-description.active {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 30px 1fr;
+}
+
+.shadowdark.sheet .window-content {
+  padding: 0px;
+  overflow-y: hidden;
+}
+.shadowdark.sheet .SD-header {
+  flex: 0;
+  margin: 2px;
+  padding: 2px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 4px;
+  align-items: center;
+  background-color: black;
+  color: white;
+}
+.shadowdark.sheet .SD-title {
+  font-family: "Old Newspaper Font";
+  font-size: 40px;
+  text-align: center;
+  color: white;
+}
+.shadowdark.sheet .SD-title input {
+  height: 100%;
+  color: white;
+  text-overflow: ellipsis;
+}
+.shadowdark.sheet .SD-title input[type=text] {
+  font-size: 60px;
+  text-align: center;
+}
+.shadowdark.sheet .SD-nav {
+  flex: 0;
+  justify-content: space-evenly;
+  align-items: baseline;
+  border-bottom: 2px solid black;
+  margin: 5px 8px 8px 8px;
+  padding: 0px 0px 5px 0px;
+}
+.shadowdark.sheet .SD-nav a {
+  margin: 0;
+  padding: 0;
+  margin: 4px;
+  font-family: "Old Newspaper Font";
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #222;
+}
+.shadowdark.sheet .SD-nav a.active {
+  text-decoration: underline;
+  font-weight: bold;
+  color: black;
+}
+.shadowdark.sheet .flex0 {
+  display: flex;
+  flex: 0;
+}
+.shadowdark.sheet .SD-content-body {
+  padding: 0px 8px 8px 8px;
+  overflow: auto;
+}
+.shadowdark.sheet .SD-content-body input[type=checkbox] {
+  width: 20px;
+  height: 20px;
+}
+.shadowdark.sheet .nano-magic-program-header {
+  margin-top: 3px;
+}
+.shadowdark.sheet .centered-box {
+  display: flex;
+  align-items: center;
+}
+.shadowdark.sheet .tab {
+  padding: 0px 8px 8px 8px;
+  overflow: auto;
+}
+.shadowdark.sheet input[type=text] {
+  text-align: center;
+  font-size: 16px;
+}
+.shadowdark.sheet input[type=number] {
+  text-align: center;
+  font-size: 16px;
+}
+.shadowdark.sheet .window-resize-handle {
+  background: url(/systems/shadowdark/assets/icons/resize-handle.png) no-repeat center/contain;
+  width: 16px;
+  height: 16px;
+  filter: none;
+}
+
+.shadowdark form {
+  font-family: "Montserrat-Medium";
+  height: 100%;
+}
+
+.shadowdark section {
+  font-family: "Montserrat-Medium";
+}
+
+.shadowdark input,
+.shadowdark select {
+  text-overflow: ellipsis;
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  width: 100%;
+  height: 29px;
+  font-size: 15px;
+}
+.shadowdark button {
+  font-size: 1.1rem;
+  font-family: "Old Newspaper Font";
+}
+.shadowdark form button {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-14);
+}
+.shadowdark section button {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-14);
+}
+.shadowdark .roll-button {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-14);
+}
+.shadowdark .form-group {
+  display: grid;
+  grid-template-columns: 128px 1fr;
+  margin-bottom: 5px;
+}
+.shadowdark .stacked {
+  grid-template-columns: 1fr;
+}
+.shadowdark .window-header {
+  --header-height: 30px;
+}
+.shadowdark input[type=radio] {
+  width: auto;
+  --checkbox-checked-color: var(--color-dark-6);
+  --checkbox-size: var(--font-size-14);
+  font-size: var(--checkbox-size);
+  vertical-align: middle;
+  background: transparent;
+}
+.shadowdark input[type=radio]::checked {
+  width: auto;
+  --checkbox-checked-color: var(--color-dark-6);
+  --checkbox-size: var(--font-size-14);
+  font-size: var(--checkbox-size);
+}
+.shadowdark input[type=radio]::before {
+  line-height: unset;
+}
+.shadowdark input[type=radio]::after {
+  line-height: unset;
+}
+.shadowdark input[type=checkbox] {
+  background: rgba(0, 0, 0, 0);
+}
+.shadowdark input[type=checkbox]:checked::before {
+  top: 0px;
+}
+.shadowdark hr {
+  border: none;
+  border-top: solid 1px black;
+  margin: 4px 0px 4px 0px;
+}
+.shadowdark header h1 {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-16);
+}
+.shadowdark header button {
+  background: rgba(255, 255, 255, 0);
+  border: 0;
+  font-size: 0px;
+  background-size: 24px 24px;
+  width: 24px;
+  height: 24px;
+  opacity: 0.75;
+}
+.shadowdark header .fa-xmark {
+  background-image: url("/systems/shadowdark/assets/icons/close-button-white-clear.png");
+}
+.shadowdark header .fa-passport {
+  background-image: url("/systems/shadowdark/assets/icons/passport.png");
+}
+.shadowdark header .fa-ellipsis-vertical {
+  background-image: url("/systems/shadowdark/assets/icons/ellipsis-vertical.png");
+}
+.shadowdark header .popout-module-button {
+  background-image: url("/systems/shadowdark/assets/icons/pop-out.png");
+}
+.shadowdark header button:hover {
+  opacity: 1;
+}
+.shadowdark a:hover {
+  font-weight: bold;
+}
+.shadowdark b {
+  font-family: "Montserrat-Bold";
+}
+.shadowdark h1 {
+  font-family: "JSL Blackletter";
+  font-size: 40px;
+}
+.shadowdark h2 {
+  font-family: "Old Newspaper Font";
+  font-size: 26px;
+}
+.shadowdark h3 {
+  font-family: "Montserrat-Bold";
+  font-size: 14px;
+  display: inline;
+}
+.shadowdark .strike-through {
+  text-decoration: line-through;
+}
+.shadowdark .centered {
+  justify-content: center;
+  text-align: center;
+  vertical-align: middle;
+  margin: auto;
+}
+.shadowdark .large {
+  font-size: 16px;
+}
+.shadowdark .larger {
+  font-size: 20px;
+}
+.shadowdark .uuid-link {
+  margin: 2px;
+}
+.shadowdark .edit-button {
+  color: var(--inactive-control);
+}
+.shadowdark .edit-button:hover {
+  color: var(--primary);
+}
+.shadowdark .checkbox {
+  font-size: 14px;
+}
+.shadowdark .editor-content {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.shadowdark .editor-content p {
+  margin: 0 0 0.5rem;
+}
+.shadowdark .prosemirror .icon {
+  width: 28px;
+  background: var(--button-background-color);
+}
+.shadowdark .fa-copy-paste {
+  background-image: url("/systems/shadowdark/assets/icons/copy-paste-off.png");
+  background-size: 16px 16px;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+}
+.shadowdark .fa-copy-paste:hover {
+  background-image: url("/systems/shadowdark/assets/icons/copy-paste.png");
+  background-size: 16px 16px;
+  width: 16px;
+  height: 16px;
+  box-shadow: 0px 0px 10px lightblue;
+}
+.shadowdark .fa-delete-program {
+  background-image: url("/systems/shadowdark/assets/icons/seirizia/delete-program-off.png");
+  background-size: 24px 24px;
+  width: 24px;
+  height: 24px;
+  margin-top: 2px;
+}
+.shadowdark .fa-delete-program:hover {
+  background-image: url("/systems/shadowdark/assets/icons/seirizia/delete-program.png");
+  background-size: 24px 24px;
+  width: 24px;
+  height: 24px;
+  box-shadow: 0px 0px 10px lightblue;
+}
+.shadowdark .fa-create-program {
+  background-image: url("/systems/shadowdark/assets/icons/seirizia/write-nano-program-off.png");
+  background-size: 32px 32px;
+  width: 32px;
+  height: 32px;
+  margin-top: 2px;
+}
+.shadowdark .fa-create-program:hover {
+  background-image: url("/systems/shadowdark/assets/icons/seirizia/write-nano-program.png");
+  background-size: 32px 32px;
+  width: 32px;
+  height: 32px;
+  box-shadow: 0px 0px 10px lightblue;
+}
+.shadowdark .fa-edit-program {
+  background-image: url("/systems/shadowdark/assets/icons/seirizia/edit-program-off.png");
+  background-size: 24px 24px;
+  width: 24px;
+  height: 24px;
+  margin-top: 2px;
+}
+.shadowdark .fa-edit-program:hover {
+  background-image: url("/systems/shadowdark/assets/icons/seirizia/edit-program.png");
+  background-size: 24px 24px;
+  width: 24px;
+  height: 24px;
+  box-shadow: 0px 0px 10px lightblue;
+}
+.shadowdark .fa-reset-program {
+  background-image: url("/systems/shadowdark/assets/icons/seirizia/nanobot-black.png");
+  background-size: 24px 24px;
+  width: 24px;
+  height: 24px;
+  opacity: 0.4;
+  margin-top: 2px;
+}
+.shadowdark .fa-reset-program:hover {
+  background-image: url("/systems/shadowdark/assets/icons/seirizia/nanobot-black.png");
+  background-size: 24px 24px;
+  width: 24px;
+  height: 24px;
+  opacity: 1;
+  box-shadow: 0px 0px 10px lightblue;
+}
+.shadowdark .fa-cancel-program {
+  background-image: url("/systems/shadowdark/assets/icons/seirizia/cancel-nano-program.png");
+  background-size: 24px 24px;
+  width: 24px;
+  height: 24px;
+  opacity: 0.4;
+  margin-top: 2px;
+}
+.shadowdark .fa-cancel-program:hover {
+  background-image: url("/systems/shadowdark/assets/icons/seirizia/cancel-nano-program.png");
+  background-size: 24px 24px;
+  width: 24px;
+  height: 24px;
+  opacity: 1;
+  box-shadow: 0px 0px 10px lightblue;
+}
+.shadowdark .rollable-visible {
+  visibility: visible;
+  opacity: 0.4;
+}
+.shadowdark .rollable-visible:hover {
+  opacity: 1;
+}
+.shadowdark .magic-grid {
+  display: grid;
+  grid-row-gap: 5px;
+}
+.shadowdark .compendium-item {
+  margin-bottom: 1px;
+}
+.shadowdark .circuit-board-background {
+  background-image: url("/systems/shadowdark/assets/icons/seirizia/circuit-board-alpha.png");
+  background-size: 100% auto;
+  background-position: unset;
+}
+.shadowdark .window-content {
+  padding: 0.3rem;
+}
+.shadowdark .abyssal-power {
+  opacity: 0.5;
+  width: 77px;
+  height: 64px;
+  margin-left: auto;
+  margin-right: auto;
+  transition: opacity 0.5s ease;
+}
+.shadowdark .abyssal-power-2 {
+  opacity: 0;
+  width: 77px;
+  height: 64px;
+  margin-left: auto;
+  margin-right: auto;
+  transition: opacity 0.5s ease;
+  position: relative;
+  top: -64px;
+}
+.shadowdark .abyssal-power:hover {
+  opacity: 1;
+}
+.shadowdark .recover-abyssal-power {
+  opacity: 0.5;
+  width: 64px;
+  height: 64px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.shadowdark .recover-abyssal-power:hover {
+  opacity: 1;
+}
+
+.showImageDialogButton {
+  height: 30px;
+  min-height: 30px;
+}
+
+.shadowdark .toggle-show-all {
+  width: 100%;
+  height: 22px;
+  min-height: 22px;
+  font-size: 18px;
+  font-family: "Old Newspaper Font";
+}
+
+.shadowdark .toggle-show-all:hover {
+  background: #736c44
+}
+
+.shadowdark-dialog {
+  backdrop-filter: none;
+  margin: 0;
+  color: black;
+  font-size: 16px;
+}
+
+.shadowdark-dialog .form-footer button {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-12);
+  --input-height: 1.5rem;
+  align-items: flex-start;
+  height: 28.25px;
+  line-height: 21px;
+}
+
+.shadowdark-dialog .pc-backstab-class {
+  display: grid;
+  grid-template-columns: 1fr min-content;
+  background-color: var(--form-background);
+}
+.shadowdark-dialog .pc-versatile {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  background-color: var(--form-background);
+}
+.shadowdark-dialog .pc-versatile .hand {
+  text-align: right;
+}
+.shadowdark-dialog.pickup-lightsource img {
+  height: 50px;
+  width: auto;
+  max-width: 50px;
+  border-radius: 5px;
+  border: 3px solid rgba(0, 0, 0, 0);
+  margin: 0 3px;
+}
+.shadowdark-dialog.pickup-lightsource .actor-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.shadowdark-dialog.pickup-lightsource .actor-selector .actor input[type=radio] {
+  display: none;
+}
+.shadowdark-dialog.pickup-lightsource .actor-selector .actor label {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.shadowdark-dialog.pickup-lightsource .actor-selector .actor input[type=radio]:checked + label img {
+  border: 3px solid var(--secondary);
+}
+.shadowdark-dialog.pickup-lightsource .actor-selector .actor label:hover {
+  background: var(--form-background);
+}
+.shadowdark-dialog .form-group {
+  display: grid;
+  grid-template-columns: 128px 1fr;
+  margin-bottom: 5px;
+}
+.shadowdark-dialog .form-group input[type=checkbox]:checked::before {
+  display: flex;
+  align-items: center;
+  top: 5px;
+}
+.shadowdark-dialog .raw-ability-check-type.advantage {
+  text-shadow: 0 0 20px yellow;
+}
+.shadowdark-dialog .raw-ability-check-type.disadvantage {
+  text-shadow: 0 0 20px red;
+}
+.shadowdark-dialog .ability-check-type.advantage {
+  text-shadow: 0 0 15px yellow;
+}
+.shadowdark-dialog .ability-check-type.disadvantage {
+  text-shadow: 0 0 15px red;
+}
+.shadowdark-dialog h2 {
+  font-family: "Montserrat-Medium";
+  font-size: 20px;
+}
+.shadowdark-dialog h3 {
+  font-size: 14px;
+}
+.shadowdark-dialog p {
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+.shadowdark.effect-select {
+  font-family: "Signika", "Palatino Linotype", sans-serif;
+  font-size: 14px;
+}
+.shadowdark.effect-select input {
+  font-family: "Signika", "Palatino Linotype", sans-serif;
+  font-size: 14px;
+  scrollbar-color: rgb(120, 46, 34) rgba(0, 0, 0, 0);
+  scrollbar-width: thin;
+  margin-bottom: 3px;
+  margin-top: 3px;
+  width: 384px;
+}
+#token-hud .attribute.barT {
+    bottom: 0;
+}
+
+.shadowdark .britannian-spell {
+  background-image: url("/systems/shadowdark/assets/Britannia/oldpaper.png");
+  background-size: 100% 100%;
+  background-position: unset;
+  background-repeat: no-repeat;
+}
+
+.shadowdark input.select-runes {
+  background: rgba(0, 0, 0, 0);
+  background-image: url("/systems/shadowdark/assets/icons/feather.png");
+  background-size: 20px 20px;
+  height: 20px;
+  width: 20px;
+  align-self: flex-end;
+  margin-bottom: 30px;
+}
+.shadowdark .britannian-spell .title-container {
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  justify-content: center;
+}
+.shadowdark .britannian-spell .parchment-content {
+  width: 92%;
+  margin-left: 20px;
+  margin-top: 15px;
+  height: 700px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.shadowdark .britannian-spell .parchment-content .selected-rune{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.shadowdark .britannian-spell .title {
+  background: rgba(0, 0, 0, 0);
+  font-family: "Old Newspaper Font";
+  box-shadow: none;
+  font-size: 40px;
+  height: 43px;
+  text-align: center;
+}
+.shadowdark .britannian-spell .choose-effect {
+  font-family: "Old Newspaper Font";
+  font-size: 28px;
+  text-align: left;
+  margin-top: 8px;
+}
+.shadowdark .britannian-spell .effect-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: 6px;
+  gap: 8px;
+}
+.shadowdark .britannian-spell .effect {
+  font-family: "Old Newspaper Font";
+  font-size: 24px;
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  column-gap: 6px;
+  align-items: center;
+}
+.shadowdark .britannian-spell .description {
+  margin-top: 5px;
+}
+.shadowdark .britannian-spell .description .editor {
+  margin-top: 5px;
+  height: unset;
+}
+.shadowdark .britannian-spell .parameter-description {
+  font-family: "Old Newspaper Font";
+  font-size: 20px;
+  margin-top: 4px;
+}
+.shadowdark .britannian-spell .selected-creature {
+  display: grid; 
+  grid-template-columns: 80px 26px 1fr;
+}
+.shadowdark .britannian-spell .modifier-word-selection {
+  font-family: "Old Newspaper Font";
+  font-size: 20px;
+  display: grid; 
+  grid-template-columns: 150px 1fr;
+  row-gap: 6px;
+}
+.shadowdark .britannian-spell .modifier-word-selection input[type=checkbox] {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid black;
+  background-color: transparent;
+  cursor: pointer;
+  position: relative;
+  width: 18px;
+  height: 18px;
+}
+.shadowdark .britannian-spell .modifier-word-selection input[type=checkbox]:checked {
+  border: none;
+}
+.shadowdark .britannian-spell .modifier-word-selection input[type=checkbox]:checked::after {
+  content: "✔";
+  color: black;
+  font-family: "Old Newspaper Font";
+  font-size: 16px;
+  position: absolute;
+  font-size: 16px;
+  line-height: 18px;
+  width: 18px;
+  height: 18px;
+}
+.shadowdark .britannian-spell .cast-spell {
+  background-image: url("/systems/shadowdark/assets/Britannia/Ultima-stroked-glow.png");
+  position: absolute;
+  background-size: 64px 64px;
+  width: 64px;
+  height: 64px;
+  bottom: 0px;
+  left: 0px;
+  z-index: 10;
+}
+.shadowdark .britannian-spell .scribe-spell {
+  background-image: url("/systems/shadowdark/assets/Britannia/scribe-spell.png");
+  position: absolute;
+  background-size: 64px 64px;
+  width: 64px;
+  height: 64px;
+  bottom: 0px;
+  right: 0px;
+  z-index: 10;
+}
+.shadowdark .britannian-spellbook .spellbook-content {
+  display: grid;
+  grid-template-columns: 294px 280px;
+  margin-left: 50px;
+  margin-right: 40px;
+  column-gap: 100px;
+  overflow: hidden;
+}
+.shadowdark .britannian-spellbook .written {
+  grid-auto-rows: 105px;
+}
+.disabled {
+  opacity: 0.5;
+}
+.shadowdark .britannian-spellbook .britannian-spell-line {
+  display: grid;
+  grid-template-rows: 24px 1fr;
+  height: auto;
+  padding-bottom: 5px;
+}
+.shadowdark .britannian-spellbook .britannian-spell-header {
+  display: grid;
+  grid-template-columns: 120px 1fr 60px;
+}
+.shadowdark .britannian-spellbook .spell-header-title {
+  font-family: "Old Newspaper Font";
+  font-size: 24px;
+  line-height: 24px;
+  display: flex;
+  justify-content: center;
+}
+.shadowdark .britannian-spellbook .britannian-spell-parameter-line {
+  display: flex;
+  font-family: "Old Newspaper Font";
+  font-size: 16px;
+  row-gap: 2px;
+  column-gap: 5px;
+  flex-wrap: wrap;
+  align-self: start;
+}
+.shadowdark .britannian-spellbook .britannian-spell-parameter {
+  display: flex;
+  flex-wrap: wrap;
+}
+.shadowdark .parchment-content .parameter-description .uuid-link,
+.shadowdark .britannian-spellbook .britannian-spell-parameter .uuid-link {
+  padding-top: 0px;
+  padding-right: 2px;
+  padding-bottom: 0px;
+  padding-left: 2px;
+  margin-top: auto;
+  margin-bottom: auto;
+  margin-right: auto;
+  margin-left: 2px;
+  line-height: 20px;
+  height: 22px;
+}

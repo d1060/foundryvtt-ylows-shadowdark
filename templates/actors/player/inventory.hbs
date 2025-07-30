@@ -1,0 +1,18 @@
+<section class="tab inventory {{tabs.inventory.cssClass}}" data-tab="inventory" data-group="sheet">
+	<div class="inventory-grid">
+		<div>
+			{{> actors/player/inventory/equipped-gear }}
+			{{> actors/player/inventory/carried-gear }}
+			{{> actors/player/inventory/stashed-gear }}
+		</div>
+
+		<!--Sidebar-->
+		<div>
+			<div class="grid-1-columns">
+				{{> actors/player/inventory/slots }}
+				{{> actors/player/inventory/coins }}
+				{{> actors/player/inventory/gems }}
+			</div>
+		</div>
+	</div>
+</section>

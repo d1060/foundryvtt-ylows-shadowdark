@@ -1,0 +1,22 @@
+<div class="SD-box">
+	<div class="header">
+		<label>{{localize 'SHADOWDARK.sheet.npc.specials_label'}}</label>
+		<span>
+			<a
+				class="fas fa-square-plus"
+				data-tooltip="{{localize 'SHADOWDARK.sheet.general.item_create.tooltip' type='NPC Special Attack'}}"
+				data-action="itemCreate"
+				data-item-type="NPC Special Attack"
+			></a>
+		</span>
+	</div>
+	<div class="content">
+
+		{{#each specials as |special|}}
+			<div class="item attack" data-item-id="{{special.itemId}}">
+				{{{special.display}}}
+			</div>
+		{{/each}}
+
+	</div>
+</div>

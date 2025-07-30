@@ -1,0 +1,130 @@
+{{#if showMetalMagic}}
+<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 1fr 78px 136px;">
+	<div class="SD-box">
+		<div class="header">
+			<label>
+				{{localize 'SHADOWDARK.metal_talents_label'}}
+			</label>
+			<span>
+				{{#if owner}}
+					<a
+						class="item-selector fas fa-pen-to-square edit-button"
+						data-action="selectItem"
+						data-options="metalMagicTalents"
+						for="system.metalMagic.talents">
+					</a>
+				{{/if}}
+			</span>
+		</div>
+		<div class="content">
+			<ul class="tags">
+				{{#each knownMetalMagicTalents}}
+					<li
+						class="tag tag_primary"
+						data-tooltip="{{this.system.description}}"
+					>
+						{{this.name}}
+					</li>
+				{{/each}}
+			</ul>
+		</div>
+	</div>
+	<div class="SD-box" style="text-align: center; vertical-align: middle; grid-template-rows: 22px 1fr">
+		<span style="font-family: Montserrat-Bold;">
+{{#if manifested}}		
+		{{localize 'SHADOWDARK.metal_retract'}}
+{{/if}}
+{{#unless manifested}}		
+		{{localize 'SHADOWDARK.metal_manifest'}}
+{{/unless}}
+		</span>
+		<a style="margin: auto;" data-action="manifestMetalCore" style="" ><img style="border: 0px; margin: auto; height: 38px; width: 38px;" src="{{#unless manifested}}/systems/shadowdark/assets/icons/seirizia/retracted-metal-core.png{{/unless}}{{#if manifested}}/systems/shadowdark/assets/icons/seirizia/metal-core.png{{/if}}"></a>
+	</div>
+	<div class="SD-box">
+		<div class="header">
+			<label>
+				{{localize 'SHADOWDARK.metal_core_hp'}}
+			</label>
+			<span></span>
+		</div>
+		<div class="content" style="display: grid; grid-column-gap: 2px; grid-template-columns: 45% 1fr 45%; font-size: 18px; text-align: center;">
+			{{numberInput
+				actor.system.magic.metalCore.hp.value
+				name="system.magic.metalCore.hp.value"
+				placeholder="0"
+			}}
+			<div>/</div>
+			<div>
+				{{actor.system.magic.metalCore.hp.base}}
+			</div>
+		</div>
+	</div>
+</div>
+{{#if hasSelectedAtLeastOneMetalMagicPower}}
+<div class="SD-banner">
+{{localize 'SHADOWDARK.metal_powers'}}
+</div>
+{{#each metalMagicPowers as |power|}}
+<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 24px 172px 1fr 56px;">
+	<div>
+		<input style="width: 12px; height: 12px;" data-id="{{power.nameId}}" data-action='removeMetalPower' type="checkbox" name="remove.metal.power" checked>
+	</div>
+	<div>
+		<h3>{{power.name}}</h3>
+	</div>
+	<div>
+		{{{power.system.description}}}
+	</div>
+	<div style="display: grid; grid-template-rows: 18px 1fr;">
+{{#if power.allowMultipleChoice}}
+		<div style="display: grid; grid-template-columns: 18px 18px;">
+			<div>
+{{#if ../allowsMetalPowerSelection}}
+			<a
+				class="fas fa-square-plus"
+				data-tooltip="{{localize 'SHADOWDARK.metal_power_increase'}}"
+				data-action="increaseMetalPowerAmount"
+				data-item-type="Metal-Magic-Power"
+				data-id="{{power.nameId}}"
+			></a>
+{{/if}}
+			</div><div>
+{{#ifCond power.quantity '>' 1}}
+			<a
+				class="fas fa-square-minus"
+				data-tooltip="{{localize 'SHADOWDARK.metal_power_decrease'}}"
+				data-action="decreaseMetalPowerAmount"
+				data-item-type="Metal-Magic-Power"
+				data-id="{{power.nameId}}" 
+			></a>
+{{/ifCond}}
+			</div>
+		</div>
+		<div style="width: 36px; text-align: center;">{{power.quantity}}</div>
+{{/if}}
+	</div>
+</div>
+{{/each}}
+{{/if}}
+<p style="height: 1px; line-height: 1px; font-size: 1px; margin-block-start: 1px; margin-block-end: 1px; margin-top: 1em; margin-bottom: 1em; border-bottom: 1px solid black;">&nbsp;</p>
+{{#if allowsMetalPowerSelection}}
+<div class="SD-banner">
+{{localize 'SHADOWDARK.metal_powers_unknown'}}
+</div>
+{{#each unknownMetalMagicPowers as |power|}}
+<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 24px 172px 1fr 56px;">
+	<div>
+		<input style="width: 12px; height: 12px;" data-id="{{power.uuid}}" data-action='selectMetalPower' type="checkbox" name="select.metal.power">
+	</div>
+	<div>
+		<h3>{{power.name}}</h3>
+	</div>
+	<div>
+		{{{power.system.description}}}
+	</div>
+	<div>
+	</div>
+</div>
+{{/each}}
+{{/if}}
+{{/if}}

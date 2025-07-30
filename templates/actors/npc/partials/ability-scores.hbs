@@ -1,0 +1,25 @@
+<div class="SD-box grid-colspan-2">
+	<div class="header">
+		<label>{{localize "SHADOWDARK.sheet.abilities.modifiers"}}</label>
+		<span></span>
+	</div>
+	<div class="content grid-2-columns">
+		{{#each actor.system.abilities as |ability id|}}
+
+			<div class="ability-score">
+				<a
+					data-action="rollModifier"
+					data-ability="{{id}}"
+				>
+					{{ability.label}}
+				</a>
+				{{numberInput
+					ability.mod
+					name=(concat "system.abilities." id ".mod")
+					class="ability-score" placeholder="0"
+				}}
+			</div>
+
+		{{/each}}
+	</div>
+</div>

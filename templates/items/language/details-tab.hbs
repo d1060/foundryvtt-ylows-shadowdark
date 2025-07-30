@@ -1,0 +1,16 @@
+<section class="tab {{tabs.languageDetails.cssClass}} languageDetails SD-content-body flex1" data-group="sheet" data-tab="languageDetails">
+	<div class="grid-3-columns">
+		<div class="SD-grid">
+			<h3>
+				{{localize 'SHADOWDARK.language.rarity.label'}}
+			</h3>
+			<select name="system.rarity">
+				{{selectOptions
+					config.LANGUAGE_RARITY
+					selected=system.rarity
+					localize=false
+				}}
+			</select>
+		</div>
+	</div>
+</section>

@@ -1,0 +1,121 @@
+<form autocomplete="off" spellcheck="off">
+	<div class="shadowdark-dialog">
+{{#if data.spellName}}
+		<h2>{{localize "SHADOWDARK.dialog.cast_roll.title"}} {{data.spellName}}</h2>
+{{else}}
+{{#if data.nanoMagic}}
+		<h2>{{localize "SHADOWDARK.dialog.nano_magic_roll.title"}}</h2>
+{{/if}}
+{{#if data.auraMagic}}
+		<h2>{{localize "SHADOWDARK.dialog.aura_magic_roll.title"}}</h2>
+{{/if}}
+{{#if data.metalMagic}}
+		<h2>{{localize "SHADOWDARK.dialog.metal_magic_roll.title"}}</h2>
+{{/if}}
+{{#if data.abyssalMagic}}
+		<h2>{{localize "SHADOWDARK.dialog.abyssal_magic_roll.title"}}</h2>
+{{/if}}
+{{#if data.mistMagic}}
+		<h2>{{localize "SHADOWDARK.dialog.mist_magic_roll.title"}}</h2>
+{{/if}}
+{{/if}}
+		<hr />
+		<div class="form-group">
+			<label>
+				{{localize "SHADOWDARK.dialog.item_roll.magic_core_bonus"}}
+			</label>
+			<input type="number" name="magic-core-bonus" value="{{ data.talentBonus }}" placeholder="0">
+		</div>
+{{#if data.variableLevelEffects}}
+		<div class="form-group">
+			<label>
+				{{localize "SHADOWDARK.effectivePower"}}
+			</label>
+			<select name="data.effectiveLevel" data-action='change-effective-level' >
+{{#if data.selectPower1}}
+				<option value="1"{{#if (eq data.effectiveLevel '1')}} selected{{/if}}>1</option>
+{{/if}}
+{{#if data.selectPower2}}
+				<option value="2"{{#if (eq data.effectiveLevel '2')}} selected{{/if}}>2</option>
+{{/if}}
+{{#if data.selectPower3}}
+				<option value="3"{{#if (eq data.effectiveLevel '3')}} selected{{/if}}>3</option>
+{{/if}}
+{{#if data.selectPower4}}
+				<option value="4"{{#if (eq data.effectiveLevel '4')}} selected{{/if}}>4</option>
+{{/if}}
+{{#if data.selectPower5}}
+				<option value="5"{{#if (eq data.effectiveLevel '5')}} selected{{/if}}>5</option>
+{{/if}}
+{{#if data.selectPower6}}
+				<option value="6"{{#if (eq data.effectiveLevel '6')}} selected{{/if}}>6</option>
+{{/if}}
+{{#if data.selectPower7}}
+				<option value="7"{{#if (eq data.effectiveLevel '7')}} selected{{/if}}>7</option>
+{{/if}}
+{{#if data.selectPower8}}
+				<option value="8"{{#if (eq data.effectiveLevel '8')}} selected{{/if}}>8</option>
+{{/if}}
+{{#if data.selectPower9}}
+				<option value="9"{{#if (eq data.effectiveLevel '9')}} selected{{/if}}>9</option>
+{{/if}}
+{{#if data.selectPower10}}
+				<option value="10"{{#if (eq data.effectiveLevel '10')}} selected{{/if}}>10</option>
+{{/if}}
+			</select>
+		</div>
+{{/if}}
+{{#if data.nanoMagic}}
+		<div class="form-group">
+			<label>
+				{{localize "SHADOWDARK.nano_programDC"}}
+			</label>
+			<input type="number" name="spellDC" value="{{data.spellDC}}" placeholder="0">
+		</div>
+{{/if}}
+{{#if data.auraMagic}}
+		<div class="form-group">
+			<label>
+				{{localize "SHADOWDARK.aura_effectPower"}}
+			</label>
+			<input type="number" name="spellDC" value="{{data.spellDC}}" placeholder="0">
+		</div>
+{{/if}}
+{{#if data.damage}}
+		<div class="form-group">
+			<label>
+				{{localize "SHADOWDARK.item.damage"}}
+			</label>
+			<input type="text" name="damage" value="{{data.damage}}" placeholder="0">
+		</div>
+{{/if}}
+{{#if data.duration}}
+		<div class="form-group">
+			<label>
+				{{localize "SHADOWDARK.item.talent_duration"}}
+			</label>
+			{{data.duration_amount}} {{data.duration_desc}}
+		</div>
+{{/if}}
+{{#if data.target}}
+		<div class="form-group">
+			<label>
+				{{localize "SHADOWDARK.chat.item_roll.target"}}
+			</label>
+			{{data.target}}
+		</div>
+{{/if}}
+		<hr />
+		<div class="form-group">
+			<label>{{localize "SHADOWDARK.dialog.roll_mode_label"}}</label>
+			<select name="rollMode">
+				{{#select rollMode}}
+					{{#each rollModes as |mode|}}
+						<option value="{{mode.label}}">{{localize mode.label}}</option>
+					{{/each}}
+				{{/select}}
+			</select>
+		</div>
+		<hr />
+	</div>
+</form>

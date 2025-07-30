@@ -1,0 +1,104 @@
+<section class="britannian-spell">
+    <div class="parchment-content">
+        {{#if spellReady}}<div class="cast-spell" data-action="castSpell"></div>{{#if canScribeSpells}}<div class="scribe-spell {{#unless hasEquippedSpellbook}}disabled{{/unless}}" {{#if hasEquippedSpellbook}}data-action="scribepell"{{else}}data-tooltip="{{localize 'SHADOWDARK.britannian_spell.noSpellbook'}}"{{/if}}></div>{{/if}}{{/if}}
+        <div style="display: flex; justify-content: center; padding-top: 10px; gap: 6px;">
+            {{#each runes as |rune|}}
+            <div class="selected-rune" data-action="increaseRune" data-rune="{{rune.name}}">
+                <div style="display: flex; justify-content: center;">
+                    <img class="magic-rune" style="border: 0; height: 40px" src="/systems/shadowdark/assets/icons/Britannia/Rune-{{rune.titleName}}{{#if rune.selected}}{{/if}}.png">
+                    {{#if rune.increases}}<img style="border: 0; margin-top: 4px; margin-left: 2px;" src="/systems/shadowdark/assets/icons/Britannia/{{rune.increases}}-spell-increases.png">{{/if}}
+                </div>
+                <h2 style="margin: auto;">{{rune.titleName}}</h2></div>
+            {{/each}}
+            {{#if canSelectRunes}}
+                <input
+                    class="select-runes"
+                    data-choices-key="characterRunesSpell"
+                    data-is-item="false"
+                    list="{{actor._id}}_characterRunesSpell_list"
+                    type="text"
+                    name="actor.system.britannian_magic.selected_runes"
+                    value=""
+                />
+                <datalist id="{{actor._id}}_characterRunesSpell_list">
+                    {{#each availableRunes}}
+                        <option
+                            data-uuid="{{uuid}}"
+                            value="{{name}}"
+                        ></option>
+                    {{/each}}
+                </datalist>
+            {{/if}}
+        </div>
+        <div class="title-container">
+            <input class="title" name="spell.name" type="text" value="{{spell.name}}" placeholder="New Spell" >
+        </div>
+        <div style="display: flex; justify-content: center;">{{selectedRunesCircle}}<sup>{{selectedRunesCircleOrdinal}}</sup> {{localize "SHADOWDARK.britannian_spell.circleSpell"}}</div>
+        <div style="display: flex; justify-content: center;">{{localize "SHADOWDARK.britannian_spell.check"}} {{castingBonus}}, {{localize "SHADOWDARK.britannian_spell.spellDC"}} {{spellDC}}</div>
+        {{#if spell.targets}}<div class="parameter-description">{{localize "SHADOWDARK.britannian_spell.targets"}} {{spell.targets}}</div>{{/if}}
+        {{#if spell.area}}<div class="parameter-description">{{localize "SHADOWDARK.britannian_spell.area"}} {{spell.area}}</div>{{/if}}
+        {{#if spell.resistance}}<div class="parameter-description">{{localize "SHADOWDARK.item.talent_resistedBy"}} {{spell.resistance}}</div>{{/if}}
+        {{#if spell.duration}}<div class="parameter-description">{{localize "SHADOWDARK.item.spell_duration"}} {{spell.duration}}</div>{{/if}}
+        {{#if spell.effect.range}}<div class="parameter-description">{{localize "SHADOWDARK.britannian_spell.range"}} {{spell.effect.range}}</div>{{/if}}
+        {{#if spell.creature}}<div class="parameter-description selected-creature">{{localize "SHADOWDARK.britannian_spell.creature"}} <img class="BritannianSpell-EffectImage" style="border: 0; height: 20px" src="{{spell.creature.img}}"> <a class="content-link uuid-link" data-link data-type="Actor" data-uuid="{{spell.creatureUuid}}" data-tooltip="{{spell.creature.description}}">{{spell.creature.name}}</a></div>{{/if}}
+        {{#if spell.damage}}<div class="parameter-description">{{localize "SHADOWDARK.item.damage"}} {{spell.damage}}</div>{{/if}}
+        {{#if hasInWord}}
+        <div class="modifier-word-selection">
+            <span>{{localize 'SHADOWDARK.britannian_spell.inWordEffect'}}</span>
+            <div>
+                {{#each InWordEffects}}
+                    <div style="display: grid; grid-template-columns: 170px{{#each ../inWordEffects}} 24px{{/each}}">{{label}} {{#each selections}}<input type="checkbox" data-rune="in" name="{{../label}}" checked>{{/each}}{{#each ../openInWordEffects}}<input type="checkbox" data-rune="in" name="{{../label}}">{{/each}}</div>
+                {{/each}}
+            </div>
+        </div>
+        {{/if}}
+        {{#if hasVasWord}}
+        <div class="modifier-word-selection">
+            <span>{{localize 'SHADOWDARK.britannian_spell.vasWordEffect'}}</span>
+            <div>
+                {{#each VasWordEffects}}
+                    <div style="display: grid; grid-template-columns: 170px{{#each ../vasWordEffects}} 24px{{/each}}">{{label}} {{#each selections}}<input type="checkbox" data-rune="vas" name="{{../label}}" checked>{{/each}}{{#each ../openVasWordEffects}}<input type="checkbox" data-rune="vas" name="{{../label}}">{{/each}}</div>
+                {{/each}}
+            </div>
+        </div>
+        {{/if}}
+        {{#if shouldSummonAnimal}}
+        <div class="choose-effect">
+            {{localize "SHADOWDARK.britannian_spell.chooseAnimal"}}
+        </div>
+        <hr />
+        <div class="effect-list">
+        {{#each availableCreatures}}
+            <div class="effect" data-action="selectCreature" data-creature-id="{{uuid}}"><img class="BritannianSpell-EffectImage" style="border: 0; height: 20px" src="{{img}}"><div data-tooltip="{{description}}">{{name}}</div></div>
+        {{/each}}
+        </div>
+        {{/if}}
+        {{#if spellDescriptionHTML}} 
+        <div class="description">
+            {{#if editable}}
+                <prose-mirror
+                    name="spell.description"
+                    button="true"
+                    editable="{{editable}}"
+                    toggled="false"
+                    value="{{spell.description}}">
+                    {{{spellDescriptionHTML}}}
+                </prose-mirror>
+            {{else}}
+                {{{spellDescriptionHTML}}}
+            {{/if}}
+        </div>
+        {{/if}}
+        {{#unless selectedEffect}}
+        <div class="choose-effect">
+            {{localize "SHADOWDARK.britannian_spell.chooseEffect"}}
+        </div>
+        <hr />
+        <div class="effect-list">
+        {{#each availableEffects}}
+            <div class="effect" data-action="selectEffect" data-effect-id="{{uuid}}"><img class="BritannianSpell-EffectImage" style="border: 0; height: 20px" src="{{img}}"><span data-tooltip="{{description}}">{{name}}</span></div>
+        {{/each}}
+        </div>
+        {{/unless}}
+    </div>
+</section>

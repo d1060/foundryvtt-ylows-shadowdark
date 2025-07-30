@@ -1,0 +1,15 @@
+<section class="tab description {{tabs.description.cssClass}}" data-tab="description" data-group="sheet">
+	<div class="SD-banner">Description</div>
+		{{#if editable}}
+			<prose-mirror
+				name="system.notes"
+				button="true"
+				editable="{{editable}}"
+				toggled="false"
+				value="{{system.notes}}">
+				{{{notesHTML}}}
+			</prose-mirror>
+		{{else}}
+			{{{notesHTML}}}
+		{{/if}}
+</section>

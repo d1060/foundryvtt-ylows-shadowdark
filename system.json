@@ -1,0 +1,358 @@
+{
+	"id": "shadowdark",
+	"title": "Ylow's version of the Shadowdark RPG",
+	"description": "A system for playing the Shadowdark RPG from Arcane Library, with Ylow's house rules.",
+	"version": "3.4.2",
+	"compatibility": {
+		"minimum": "13",
+		"verified": "13"
+	},
+	"url": "https://github.com/d1060/foundryvtt-ylows-shadowdark",
+	"manifest": "https://github.com/d1060/foundryvtt-ylows-shadowdark/releases/latest/download/system.json",
+	"download": "https://github.com/d1060/foundryvtt-ylows-shadowdark/releases/latest/download/shadowdark.zip",
+	"authors": [
+		{
+			"name": "Diogo de Souza",
+			"discord": "Ylow"
+		},
+		{
+			"name": "Paul Maskelyne",
+			"discord": "muttley",
+			"email": "mu77ley@gmail.com",
+			"mastodon": "@muttley@dice.camp",
+			"github": "https://github.com/Muttley"
+		},
+		{
+			"name": "Bakbakbakbakbak",
+			"github": "https://github.com/bakbakbakbakbak",
+			"discord": "bakbakbakbak"
+		},
+		{
+			"name": "Prototype",
+			"discord": "prototypesbu"
+		},
+		{
+			"name": "Chris Powell",
+			"github": "https://github.com/chrpow",
+			"discord": "chrpow"
+		}
+	],
+	"esmodules": ["shadowdark.mjs"],
+	"languages": [
+		{
+			"lang": "zh-Hant",
+			"name": "正體字",
+			"path": "i18n/zh-Hant.json"
+		},
+		{
+			"lang": "de",
+			"name": "Deutsch",
+			"path": "i18n/de.json"
+		},
+		{
+			"lang": "en",
+			"name": "English",
+			"path": "i18n/en.json"
+		},
+		{
+			"lang": "es",
+			"name": "Español",
+			"path": "i18n/es.json"
+		},
+		{
+			"lang": "fi",
+			"name": "suomi",
+			"path": "i18n/fi.json"
+		},
+		{
+			"lang": "fr",
+			"name": "Français",
+			"path": "i18n/fr.json"
+		},
+		{
+			"lang": "ko",
+			"name": "한국어",
+			"path": "i18n/ko.json"
+		},
+		{
+			"lang": "pt-BR",
+			"name": "Português (Brasil)",
+			"path": "i18n/pt_BR.json"
+		},
+		{
+			"lang": "ru",
+			"name": "Russian",
+			"path": "i18n/ru.json"
+		},
+		{
+			"lang": "sv",
+			"name": "Svenska",
+			"path": "i18n/sv.json"
+		}
+	],
+	"styles": ["css/shadowdark.css"],
+	"packs": [
+		{
+			"name": "ancestries",
+			"label": "Ancestries",
+			"system": "shadowdark",
+			"path": "packs/ancestries",
+			"type": "Item",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "backgrounds",
+			"label": "Backgrounds",
+			"system": "shadowdark",
+			"path": "packs/backgrounds",
+			"type": "Item",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "class-abilities",
+			"label": "Class Abilities",
+			"system": "shadowdark",
+			"path": "packs/class-abilities",
+			"type": "Item",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "classes",
+			"label": "Classes",
+			"system": "shadowdark",
+			"path": "packs/classes",
+			"type": "Item",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "conditions",
+			"label": "Conditions",
+			"system": "shadowdark",
+			"path": "packs/conditions",
+			"type": "Item",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "documentation",
+			"label": "Documentation",
+			"system": "shadowdark",
+			"path": "packs/documentation",
+			"type": "JournalEntry",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "gear",
+			"label": "Gear",
+			"system": "shadowdark",
+			"path": "packs/gear",
+			"type": "Item",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "languages",
+			"label": "Languages",
+			"system": "shadowdark",
+			"path": "packs/languages",
+			"type": "Item",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "macros",
+			"label": "Macros",
+			"system": "shadowdark",
+			"path": "packs/macros",
+			"type": "Macro",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "magic-items",
+			"label": "Magic Items",
+			"system": "shadowdark",
+			"path": "packs/magic-items",
+			"type": "Item",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "monsters",
+			"label": "Monsters",
+			"system": "shadowdark",
+			"path": "packs/monsters",
+			"type": "Actor",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "patrons-and-deities",
+			"label": "Patrons and Deities",
+			"system": "shadowdark",
+			"path": "packs/patrons-and-deities",
+			"type": "Item",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "properties",
+			"label": "Properties",
+			"system": "shadowdark",
+			"path": "packs/properties",
+			"type": "Item",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "quickstart-adventures",
+			"label": "Quickstart Adventures",
+			"system": "shadowdark",
+			"path": "packs/quickstart-adventures",
+			"type": "Adventure",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "quickstart-guides",
+			"label": "Quickstart Guides",
+			"system": "shadowdark",
+			"path": "packs/quickstart-guides",
+			"type": "JournalEntry",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "quickstart-pregens",
+			"label": "Quickstart Pregens",
+			"system": "shadowdark",
+			"path": "packs/quickstart-pregens",
+			"type": "Actor",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "rollable-tables",
+			"label": "Rollable Tables",
+			"system": "shadowdark",
+			"path": "packs/rollable-tables",
+			"type": "RollTable",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "solodark-journals",
+			"label": "SoloDark",
+			"system": "shadowdark",
+			"path": "packs/solodark-journals",
+			"type": "JournalEntry",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "spell-effects",
+			"label": "Spell Effects",
+			"system": "shadowdark",
+			"path": "packs/spell-effects",
+			"type": "Item",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "spells",
+			"label": "Spells",
+			"system": "shadowdark",
+			"path": "packs/spells",
+			"type": "Item",
+			"private": false,
+			"flags": {}
+		},
+		{
+			"name": "talents",
+			"label": "Talents",
+			"system": "shadowdark",
+			"path": "packs/talents",
+			"type": "Item",
+			"private": false,
+			"flags": {}
+		}
+	],
+	"packFolders": [
+		{
+			"name": "Shadowdark System",
+			"sorting": "a",
+			"color": "#22252b",
+			"packs": [
+				"conditions",
+				"gear",
+				"macros",
+				"magic-items",
+				"monsters",
+				"properties",
+				"rollable-tables",
+				"spell-effects",
+				"spells"
+			],
+			"folders": [
+				{
+					"name": "Character Options",
+					"sorting": "a",
+					"color": "#262626",
+					"packs": [
+						"ancestries",
+						"backgrounds",
+						"class-abilities",
+						"classes",
+						"languages",
+						"patrons-and-deities",
+						"talents"
+					]
+				},
+				{
+					"name": "Journals",
+					"sorting": "a",
+					"color": "#262626",
+					"packs": [
+						"documentation",
+						"solodark-journals"
+					]
+				},
+				{
+					"name": "Quickstart",
+					"sorting": "a",
+					"color": "#262626",
+					"packs": [
+						"quickstart-adventures",
+						"quickstart-guides",
+						"quickstart-pregens"
+					]
+				}
+			]
+		}
+	],
+	"flags": {
+		"hotReload": {
+			"extensions": [
+				"css", "hbs", "json"
+			],
+			"paths": [
+				"css",
+				"i18n",
+				"templates"
+			]
+		}
+	},
+	"grid": {
+		"distance": 2,
+		"units": "m"
+	},
+	"socket": true,
+	"initiative": "@initiativeFormula + @initiativeBonus",
+	"primaryTokenAttribute": "attributes.hp",
+	"background": "systems/shadowdark/assets/artwork/GM_Screen_Final_Drawing_Elongated.webp"
+}

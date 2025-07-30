@@ -1,0 +1,56 @@
+{{#if showBritannianMagic}}
+<div class="SD-box">
+    <div class="header">
+        <label>{{localize 'SHADOWDARK.item.runes.label'}}</label>
+        <span></span>
+    </div>
+    <div class="content">
+        <div class="grid-1-columns">
+
+            {{#if characterRunes}}
+                <div class="items flexrow">
+                {{#each characterRunes}}
+                    <div class="talent flexrow">
+                        <a
+                            class="fake-uuid-link"
+                            data-type="Item"
+                            data-uuid="{{uuid}}"
+                            title="Item"
+                        >
+                            {{#if ../editable}}
+                                <i
+                                    class="fas fa-delete-right"
+                                    data-action="deleteChoice"
+                                    data-choices-key="{{../characterRunesChoicesKey}}"
+                                    data-uuid="{{uuid}}"
+                                ></i>
+                            {{/if}}
+                            {{name}}
+                        </a>
+                    </div>
+                {{/each}}
+                </div>
+            {{/if}}
+
+            <input
+                data-choices-key="{{characterRunesChoicesKey}}"
+                data-is-item="false"
+                list="{{actor._id}}_{{characterRunesChoicesKey}}_list"
+                placeholder="{{localize "SHADOWDARK.item.runes.prompt"}}"
+                type="text"
+                name="system.characterRunes"
+                value=""
+            />
+            <datalist id="{{actor._id}}_{{characterRunesChoicesKey}}_list">
+                {{#each availableRunes}}
+                    <option
+                        data-uuid="{{uuid}}"
+                        value="{{name}}"
+                    ></option>
+                {{/each}}
+            </datalist>
+
+        </div>
+    </div>
+</div>
+{{/if}}

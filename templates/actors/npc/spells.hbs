@@ -1,0 +1,106 @@
+<section class="tab spells {{tabs.spells.cssClass}}" data-tab="spells" data-group="sheet">
+{{#if showSpells}}
+	<div class="grid-3-columns" >
+
+		<div class="item-detail">
+			<h3>{{localize "SHADOWDARK.item.npc.spell_count"}}</h3>
+			{{numberInput
+				system.spellcastingAttackNum
+				name="system.spellcastingAttackNum"
+				class="spell-attack-number"
+				placeholder="0"
+			}}
+		</div>
+		<div class="item-detail">
+			<h3>{{localize "SHADOWDARK.item.npc.spell_bonus"}}</h3>
+			{{numberInput
+				system.spellcastingBonus
+				name="system.spellcastingBonus"
+				class="spell-casting-bonus"
+				placeholder="0"
+			}}
+		</div>
+		<div class="item-detail">
+			<h3>{{localize "SHADOWDARK.item.npc.spell_ability"}}</h3>
+			<select name="system.spellcastingAbility">
+				<option value="">&mdash;</option>
+				{{selectOptions
+					config.ABILITIES_LONG
+					selected=system.spellcastingAbility
+					localize=false
+				}}
+			</select>
+		</div>
+	</div>
+	<br>
+	<div class="SD-banner">{{localize "SHADOWDARK.sheet.npc.tab.spells"}}</div>
+
+	<ol class="SD-list">
+		<li class="header">
+			<div class="item-name">
+				<a
+					class="fa-solid fa-square-plus"
+					style="margin:0px 8px 0px 4px"
+					data-tooltip="{{localize 'SHADOWDARK.sheet.general.item_create.tooltip' type='NPC Spell'}}"
+					data-item-type="NPC Spell"
+					data-action="itemCreate"
+				></a>
+				{{localize "SHADOWDARK.item.spell.label"}}
+			</div>
+			<div class="flex-60-px">{{localize "SHADOWDARK.class-ability.dc.label"}}</div>
+			<div class="duration">{{localize 'SHADOWDARK.item.spell_duration'}}</div>
+			<div class="range">{{localize 'SHADOWDARK.item.spell_range'}}</div>
+			<div class="actions"></div>
+		</li>
+		{{#each spells as |spell|}}
+		<li class="item expanded" data-item-id="{{spell._id}}" data-uuid="Actor.{{../actor._id}}.Item.{{spell._id}}">
+			<div class="item-image" data-action="itemChatClick" style="background-image: url({{spell.img}})">
+				<i class="fas fa-comment"></i>
+			</div>
+			<a class="item-name {{#if spell.system.lost}}strike-through{{/if}}" data-action="showDetails">
+				{{spell.name}}
+			</a>
+			<div class="flex-60-px">{{spell.system.dc}}</div>
+			<div class="duration">
+				{{getSpellDuration spell.system.duration.type spell.system.duration.value}}
+			</div>
+			<div class="range">
+				{{fromConfig "SPELL_RANGES"spell.system.range}}
+			</div>
+			<div class="actions">
+				{{#unless spell.system.lost}}
+					{{#if (eq spell.system.duration.type 'focus')}}
+						<a
+							data-action="castNpcSpell"
+							data-item-id="{{spell._id}}"
+							data-tooltip="{{localize 'SHADOWDARK.sheet.player.tooltip.focus_on_spell'}}"
+						>
+							<i class="fa-solid fa-brain"></i>
+						</a>
+					{{/if}}
+					<a
+						data-action="castNpcSpell"
+						data-item-id="{{spell._id}}"
+						data-tooltip="{{localize 'SHADOWDARK.sheet.player.tooltip.cast_spell'}}"
+					>
+						<i class="fa-solid fa-hand-sparkles"></i>
+					</a>
+				{{/unless}}
+				<a
+					data-action="toggleLost"
+					data-item-id="{{spell._id}}"
+					data-tooltip="{{localize "SHADOWDARK.sheet.player.toggle_spell_lost"}}"
+				>
+					{{#if spell.system.lost}}
+						<i style="color:red;" class="fa-solid fa-xmark"></i>
+					{{else}}
+						<i class="fa-solid fa-check"></i>
+					{{/if}}
+				</a>
+			</div>
+			<div class="item-details">{{{spell.description}}}</div>
+		</li>
+		{{/each}}
+	</ol>
+{{/if}}
+</section>

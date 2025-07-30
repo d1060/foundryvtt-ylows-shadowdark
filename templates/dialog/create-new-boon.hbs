@@ -1,0 +1,18 @@
+<form autocomplete="off" class="shadowdark">
+	<div class="grid-2-columns" style="margin:8px">
+		<h3>{{localize "SHADOWDARK.sheet.player.boons.name"}}:</h3>
+		<input type="text" id="item-name">
+
+		<h3>{{localize "SHADOWDARK.boon.type.label"}}:</h3>
+		<select id="item-boonType">
+			{{selectOptions
+				boonTypes
+				selected=default
+				localize=false
+			}}
+		</select>
+
+		<h3>{{localize 'SHADOWDARK.item.level'}}</h3>
+		<input id="item-boonLevel" type="number" value={{level}} placeholder="0">
+	</div>
+</form>

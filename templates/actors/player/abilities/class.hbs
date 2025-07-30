@@ -1,0 +1,75 @@
+<div class="SD-box">
+	<div class="header">
+		<label>{{localize 'SHADOWDARK.sheet.special_abilities.label'}}</label>
+		<span></span>
+	</div>
+	<div class="content">
+
+		<ol class="SD-list">
+			{{#each classAbilities as |group|}}
+				<li class="header">
+					<div class="item-name">{{group.name}}</div>
+					<div class="standard centered">Uses</div>
+					<div class="actions"></div>
+				</li>
+
+				{{#each group.abilities}}
+				<li class="item" data-item-id="{{this._id}}" data-uuid="Actor.{{../../actor._id}}.Item.{{this._id}}">
+					<div class="item-image" data-action="itemChatClick" style="background-image: url({{this.img}})"></div>
+					<a class="item-name {{#if this.system.lost}}strike-through{{/if}}" data-action="showDetails">
+						{{this.name}}
+					</a>
+					<div class="standard centered">
+						{{#if this.system.limitedUses}}
+							{{#if ../../owner}}
+								<a
+									data-action="abilityDecrement"
+									data-item-id="{{this._id}}"
+									data-tooltip="{{localize 'SHADOWDARK.sheet.abilities.uses.decrement.tooltip'}}"
+								>
+									<i class="fa-regular fa-minus fa-xs"></i>
+								</a>
+							{{/if}}
+							{{this.system.uses.available}}/{{this.system.uses.max}}
+							{{#if ../../owner}}
+								<a
+									data-action="abilityIncrement"
+									data-item-id="{{this._id}}"
+									data-tooltip="{{localize 'SHADOWDARK.sheet.abilities.uses.increment.tooltip'}}"
+								>
+									<i class="fa-regular fa-plus fa-xs"></i>
+								</a>
+							{{/if}}
+						{{else}}
+							&nbsp;
+						{{/if}}
+					</div>
+					<div class="actions">
+						{{#unless this.system.lost}}
+						<a
+							data-action="useAbility"
+							data-item-id="{{this._id}}"
+							data-tooltip="{{localize 'SHADOWDARK.sheet.player.tooltip.use_class_ability'}}"
+						>
+							<i class="fa-solid fa-dice-d20"></i>
+						</a>
+						&nbsp;
+						{{/unless}}
+						<a
+							data-action="toggleLost"
+							data-item-id="{{this._id}}"
+							data-tooltip="{{localize "SHADOWDARK.sheet.player.toggle_ability_lost"}}"
+						>
+							{{#if this.system.lost}}
+								<i style="color:red;" class="fa-solid fa-xmark"></i>
+							{{else}}
+								<i class="fa-solid fa-check"></i>
+							{{/if}}
+						</a>
+					</div>
+				</li>
+				{{/each}}
+			{{/each}}
+		</ol>
+	</div>
+</div>

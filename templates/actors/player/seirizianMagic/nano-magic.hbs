@@ -1,0 +1,180 @@
+{{#if showNanoMagic}}
+<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 70% 1fr;">
+	<div class="SD-box">
+		<div class="header">
+			<label>
+				{{localize 'SHADOWDARK.nano_talents_label'}}
+			</label>
+			<span>
+				{{#if owner}}
+					<a
+						class="item-selector fas fa-pen-to-square edit-button"
+						data-action="selectItem"
+						data-options="nanoMagicTalents"
+						for="system.nanoMagic.talents">
+					</a>
+				{{/if}}
+			</span>
+		</div>
+		<div class="content">
+			<ul class="tags">
+				{{#each knownNanoMagicTalents}}
+					<li
+						class="tag tag_primary"
+						data-tooltip="{{this.system.description}}"
+					>
+						{{this.name}}
+					</li>
+				{{/each}}
+			</ul>
+		</div>
+	</div>
+	<div class="SD-box">
+		<div class="header">
+			<label>
+				{{localize 'SHADOWDARK.nano_points_label'}}
+			</label>
+			<span></span>
+		</div>
+		<div class="content" style="display: grid; grid-column-gap: 2px; grid-template-columns: 45% 1fr 45%; font-size: 18px; text-align: center;">
+			{{numberInput
+				actor.system.magic.nanoPoints.value
+				name="system.magic.nanoPoints.value"
+				placeholder="0"
+			}}
+			<div>/</div>
+			<div>
+				{{actor.system.magic.nanoPoints.base}}
+			</div>
+		</div>
+	</div>
+</div>
+<div class="SD-banner">{{localize 'SHADOWDARK.nano_programs'}}</div>
+{{#each nanoMagicPrograms as |nanoMagicProgram|}}
+<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 32px 1fr{{#if nanoMagicProgram.lost}} 32px{{/if}}{{#if nanoMagicProgram.active}} 32px{{/if}} 32px 32px;">
+	{{#unless nanoMagicProgram.disabled}}
+	<a
+		class="rollable-visible"
+		data-id="{{nanoMagicProgram.id}}"
+		data-action="nanoProgramRoll"
+		data-failure-tolerance="{{../nanoProgramsFailureTolerance}}"
+		data-memory-protection="{{../nanoMemoryProtection}}"
+		{{#if nanoMagicProgram.lost}}disabled{{/if}}
+	>
+		<i class="fa-solid fa-dice-d20" data-id="{{nanoMagicProgram.id}}" style="font-size: 18px; margin: 4px; margin-top: 6px;"></i>
+	</a>
+	{{else}}
+	<div></div>
+	{{/unless}}
+	<h2 {{#if nanoMagicProgram.disabled}}style="opacity: 0.5;"{{/if}}>{{nanoMagicProgram.name}}</h2>
+	{{#if nanoMagicProgram.active}}
+	<a
+		data-action="cancelProgram"
+		data-id="{{nanoMagicProgram.id}}"
+		data-tooltip="{{localize 'SHADOWDARK.nano_programs_cancel.tooltip'}}"
+	>
+		<i class="fa-solid fa-cancel-program" data-id="{{nanoMagicProgram.id}}"></i>
+	</a>
+	{{/if}}
+	{{#if nanoMagicProgram.lost}}
+	<a
+		data-action="resetProgram"
+		data-id="{{nanoMagicProgram.id}}"
+		data-tooltip="{{localize 'SHADOWDARK.nano_programs_edit.tooltip'}}"
+	>
+		<i class="fa-solid fa-reset-program" data-id="{{nanoMagicProgram.id}}"></i>
+	</a>
+	{{/if}}
+	{{#unless nanoMagicProgram.disabled}}
+	<a
+		data-action="editProgram"
+		data-id="{{nanoMagicProgram.id}}"
+		data-tooltip="{{localize 'SHADOWDARK.nano_programs_edit.tooltip'}}"
+	>
+	{{/unless}}
+		<i class="fa-solid fa-edit-program" data-id="{{nanoMagicProgram.id}}" {{#if nanoMagicProgram.disabled}}style="opacity: 0.5;"{{/if}}></i>
+	{{#unless nanoMagicProgram.disabled}}
+	</a>
+	<a
+		data-action="deleteProgram"
+		data-id="{{nanoMagicProgram.id}}"
+		data-tooltip="{{localize 'SHADOWDARK.nano_programs_delete.tooltip'}}"
+	>
+	{{/unless}}
+		<i class="fa-solid fa-delete-program" data-id="{{nanoMagicProgram.id}}" {{#if nanoMagicProgram.disabled}}style="opacity: 0.5;"{{/if}}></i>
+	{{#unless nanoMagicProgram.disabled}}
+	</a>
+{{/unless}}
+</div>
+<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 90px 20px 38px 1fr {{#if (eq nanoMagicProgram.type 'external')}}66px 1.5fr {{/if}}76px 3fr;{{#if nanoMagicProgram.disabled}} opacity: 0.5;{{/if}}">
+	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_program_dc"}}</h3>
+	<span>{{nanoMagicProgram.programDC}}</span>
+	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_programs_type"}}</h3>
+	<span>{{nanoMagicProgram.localizedType}}</span>
+	{{#if (eq nanoMagicProgram.type 'external')}}
+	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_programs_duration"}}</h3>
+	<span>{{nanoMagicProgram.localizedDuration}}</span>
+	{{/if}}
+	{{#unless nanoMagicProgram.hideDrawback}}
+	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_drawback"}}</h3>
+	<span>{{nanoMagicProgram.localizedDrawback}}</span>
+	{{/unless}}
+</div>
+<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 50px 20px 50px 1fr 44px 20px;{{#if nanoMagicProgram.disabled}} opacity: 0.5;{{/if}}">
+	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_points"}}</h3>
+	<span>{{nanoMagicProgram.points}}</span>
+	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_programs_effect"}}</h3>
+	<span data-tooltip="{{nanoMagicProgram.description}}" {{#unless nanoMagicProgram.hasLevels}}style="grid-column: 4 / 6"{{/unless}}>{{nanoMagicProgram.effectDescription}}</span>
+	{{#if nanoMagicProgram.hasLevels}}
+	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.item.level"}}</h3>
+	<span>{{nanoMagicProgram.effectLevels}}</span>
+	{{/if}}
+</div>
+{{#if ../productionReadyOrProgramOptimization}}
+	<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 1fr 1fr;{{#if nanoMagicProgram.disabled}} opacity: 0.5;{{/if}}">
+	{{#if ../productionReady}}
+		{{#if ../productionReadyCount}}
+					<span style="text-align: center;">{{localize "SHADOWDARK.nano_production_ready"}} <input style="width: 12px; height: 12px;" data-id="{{nanoMagicProgram.id}}" data-action='productionReady' type="checkbox" name="program.productionReady"{{#if nanoMagicProgram.productionReady}} checked{{/if}}></span>
+		{{else}}
+			{{#if nanoMagicProgram.productionReady}}
+					<span style="text-align: center;">{{localize "SHADOWDARK.nano_production_ready"}} <input style="width: 12px; height: 12px;" data-id="{{nanoMagicProgram.id}}" data-action='productionReady' type="checkbox" name="program.productionReady"{{#if nanoMagicProgram.productionReady}} checked{{/if}}></span>
+			{{else}}
+					<span></span>
+			{{/if}}
+		{{/if}}
+	{{else}}
+					<span></span>
+	{{/if}}
+
+	{{#if ../programOptimization}}
+		{{#if ../programOptimizations}}
+					<span style="text-align: center;">{{localize "SHADOWDARK.nano_programs_optimized"}} <input style="width: 12px; height: 12px;" data-id="{{nanoMagicProgram.id}}" data-duration-reduction="{{../durationReduction}}" data-action='optimizeProgram' type="checkbox" name="program.optimized"{{#if nanoMagicProgram.optimized}} checked{{/if}}></span>
+		{{else}}
+			{{#if nanoMagicProgram.optimized}}
+					<span style="text-align: center;">{{localize "SHADOWDARK.nano_programs_optimized"}} <input style="width: 12px; height: 12px;" data-id="{{nanoMagicProgram.id}}" data-duration-reduction="{{../durationReduction}}" data-action='optimizeProgram' type="checkbox" name="program.optimized"{{#if nanoMagicProgram.optimized}} checked{{/if}}></span>
+			{{else}}
+					<span></span>
+			{{/if}}
+		{{/if}}
+	{{/if}}
+	{{#unless ../productionReady}}
+					<span></span>
+	{{/unless}}
+	</div>
+{{/if}}
+<p style="height: 1px; line-height: 1px; font-size: 1px; margin-block-start: 1px; margin-block-end: 1px; margin-top: 1em; margin-bottom: 1em; border-bottom: 1px solid black;">&nbsp;</p>
+{{/each}}
+
+{{#if canSelectNanoProgramCount}}
+<div style="margin: auto; display: grid; grid-column-gap: 5px; grid-template-columns: 1fr; width: 32px; height: 32px;">
+	<a
+		data-action="createProgram"
+		data-tooltip="{{localize 'SHADOWDARK.nano_programs_create.tooltip'}}"
+		data-duration-reduction="{{durationReduction}}"
+	>
+		<i class="fa-solid fa-create-program"></i>
+	</a>
+</div>
+{{/if}}
+
+{{/if}}

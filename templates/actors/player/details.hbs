@@ -1,0 +1,31 @@
+<section class="tab details {{tabs.details.cssClass}}" data-tab="details" data-group="sheet">
+	<div class="grid-1-columns">
+		<div class="background-grid-a">
+			{{!-- First Row --}}
+			{{> actors/player/details/level }}
+			{{> actors/player/details/title }}
+			{{> actors/player/details/class }}
+
+			{{!-- Second Row --}}
+			{{> actors/player/details/xp }}
+			{{> actors/player/details/ancestry }}
+			{{> actors/player/details/background }}
+		</div>
+
+		{{#if classHasPatron}}
+			<div class="grid-3-columns">
+				{{> actors/player/details/alignment }}
+				{{> actors/player/details/deity }}
+				{{> actors/player/details/patron }}
+			</div>
+		{{else}}
+			<div class="grid-2-columns">
+				{{> actors/player/details/alignment }}
+				{{> actors/player/details/deity }}
+			</div>
+		{{/if}}
+
+		{{> actors/player/details/languages }}
+		{{> actors/player/details/boons }}
+	</div>
+</section>

@@ -1,0 +1,92 @@
+<section class="tab {{tabs.titles.cssClass}} titles SD-content-body flex1" data-group="sheet" data-tab="titles">
+	<div class="SD-banner">
+		{{localize "SHADOWDARK.sheet.item.tab.titles"}}
+	</div>
+
+	<table class="SD-table">
+		<tr>
+			<th colspan="3" style="text-align:center">
+				{{localize 'SHADOWDARK.class.titles.levels.label'}}
+			</th>
+			<th>
+				{{localize 'SHADOWDARK.alignment.lawful'}}
+			</th>
+			<th>
+				{{localize 'SHADOWDARK.alignment.chaotic'}}
+			</th>
+			<th>
+				{{localize 'SHADOWDARK.alignment.neutral'}}
+			</th>
+			<th>
+				&nbsp;
+			</th>
+		</tr>
+		{{#each item.system.titles}}
+			<tr>
+				<td style="width: 2.5em; text-align: center">
+					<input
+						name="title.from"
+						type="number"
+						data-index="{{@index}}"
+						value="{{this.from}}"
+						placeholder="0"
+					/>
+				</td>
+				<td style="padding:0px">-</td>
+				<td style="width: 2.5em; text-align: center">
+					<input
+						name="title.to"
+						type="number"
+						data-index="{{@index}}"
+						value="{{this.to}}"
+						placeholder="0"
+					/>
+				</td>
+				<td>
+					<input
+						name="title.lawful"
+						type="text"
+						data-index="{{@index}}"
+						value="{{this.lawful}}"
+					/>
+				</td>
+				<td>
+					<input
+						name="title.chaotic"
+						type="text"
+						data-index="{{@index}}"
+						value="{{this.chaotic}}"
+					/>
+				</td>
+				<td>
+					<input
+						name="title.neutral"
+						type="text"
+						data-index="{{@index}}"
+						value="{{this.neutral}}"
+					/>
+				</td>
+				<td>
+					{{#if ../editable}}
+						<a
+							data-action="classTitleDelete"
+							data-index="{{@index}}"
+						>
+							<i class="fa-solid fa-trash"></i>
+						</a>
+					{{/if}}
+				</td>
+			</tr>
+		{{/each}}
+		<tr>
+			<td colspan="7" style="text-align: center;">
+				{{#if editable}}
+					<a data-action="classTitleAdd">
+						<i class=" fa-solid fa-plus"></i>
+					</a>
+				{{/if}}
+			</td>
+		</tr>
+	</table>
+
+</section>

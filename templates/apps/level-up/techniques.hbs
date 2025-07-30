@@ -1,0 +1,58 @@
+{{!-- Techniques --}}
+{{#if techniqueTable}}
+<div class="SD-box">
+	<div class="header">
+		<label>
+			{{localize "SHADOWDARK.class.techniques.label"}}
+		</label>
+		<span>
+			<a
+				class="fas fa-table-list"
+				data-action="viewTechniqueTable"
+				data-tooltip="{{localize 'SHADOWDARK.class.techniques_table.label'}}"
+			></a>
+		</span>
+	</div>
+
+	<div class="content">
+		{{#if techniqueGained}}
+			{{#unless rolls.technique}}
+				<button class="level-up" type="button" data-action="chooseTechnique">
+					{{localize "SHADOWDARK.apps.level-up.choose_technique"}}
+				</button>
+			{{/unless}}
+
+			{{#if techniqueRolled}}
+				<div>
+					<fieldset class="items" style="height: 100%;">
+						{{#unless techniquesChosen}}
+							<div style="color: rgba(0, 0, 0, 0.6); text-align: center;">
+								<em>{{localize "SHADOWDARK.apps.level-up.dragdrop"}}</em>
+							</div>
+						{{/unless}}
+						{{#each techniques}}
+							<div style="white-space: nowrap;">
+								<a
+									class="remove-item fas fa-delete-right"
+									data-action="deleteTechnique"
+									data-index="{{@index}}"
+								></a>
+								<a
+									class="content-link"
+									data-link
+									data-tooltip="{{this.name}}"
+									data-uuid="{{this.uuid}}"
+								>
+									{{this.name}}
+								</a>
+							</div>
+						{{/each}}
+					</fieldset>
+				</div>
+			{{/if}}
+		{{else}}
+			{{localize "SHADOWDARK.apps.level-up.notechnique"}}
+		{{/if}}
+	</div>
+</div>
+{{/if}}

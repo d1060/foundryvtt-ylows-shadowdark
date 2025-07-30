@@ -1,0 +1,15 @@
+<section class="tab {{tabs.description.cssClass}} description SD-content-body flex1" data-group="sheet" data-tab="description">
+	<div class="SD-banner">{{localize 'SHADOWDARK.item.description'}}</div>
+		{{#if editable}}
+			<prose-mirror
+				name="system.description"
+				button="true"
+				editable="{{editable}}"
+				toggled="false"
+				value="{{system.description}}">
+				{{{descriptionHTML}}}
+			</prose-mirror>
+		{{else}}
+			{{{descriptionHTML}}}
+		{{/if}}
+</section>

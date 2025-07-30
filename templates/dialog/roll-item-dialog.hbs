@@ -1,0 +1,77 @@
+<section autocomplete="off" spellcheck="off">
+	<div class="shadowdark-dialog">
+		<h2>{{localize "SHADOWDARK.dialog.item_roll.title"}} {{ data.item.name }}</h2>
+		<hr />
+
+		<div class="form-group">
+			<label>
+				{{localize "SHADOWDARK.dialog.item_roll.item_bonus"}}
+			</label>
+			<input type="number" name="item-bonus" value="{{ data.itemBonus }}" placeholder="0">
+		</div>
+		<div class="form-group">
+			<label>
+				{{localize "SHADOWDARK.dialog.item_roll.ability_bonus"}}
+			</label>
+			<input type="number" name="ability-bonus" value="{{ data.abilityBonus }}" placeholder="0">
+		</div>
+		<div class="form-group">
+			<label>
+				{{localize "SHADOWDARK.dialog.item_roll.talent_bonus"}}
+			</label>
+			<input type="number" name="talent-bonus" value="{{ data.talentBonus }}" placeholder="0">
+		</div>
+		{{#if data.targetLock}}
+		<div class="form-group">
+			<label>
+				{{localize "SHADOWDARK.dialog.item_roll.target_lock"}}
+			</label>
+			<input type="checkbox" name="target-lock" >
+		</div>
+		{{/if}}
+		<hr />
+
+		{{#if data.canBackstab}}
+		<div class="form-group dialog-item">
+			<label>{{localize "SHADOWDARK.talent.backstab"}}</label>
+			<div style="display: grid; grid-template-columns: 30px 1fr; align-items: center;">
+				<input type="checkbox" name="weapon-backstab" {{checked data.backstab}} style="display: flex; align-items: center;">
+				{{#if data.backstabDice}}+{{data.backstabDice}}{{/if}}
+			</div>
+		</div>
+		{{/if}}
+		{{#if data.item.system.damage}}
+		<div class="form-group">
+			<label>{{localize "SHADOWDARK.item.damage"}}</label>
+			<div{{#if data.item.system.damage.type}} style="display: grid; grid-template-columns: 1fr 120px"{{/if}}>
+				<input type="text" name="damage" value="{{data.item.system.damage.value}}" placeholder="0">
+				{{#if data.item.system.damage.type}}<span style="text-align: center;">{{data.item.system.damage.type}}</span>{{/if}}
+			</div>
+		</div>
+		<hr />
+		{{/if}}
+
+
+		{{#if target}}
+		<div class="form-group">
+			<label>{{localize "SHADOWDARK.chat.item_roll.target"}}</label>
+			<div>
+				{{target}}
+			</div>
+		</div>
+		<hr />
+		{{/if}}
+
+		<div class="form-group">
+			<label>{{localize "SHADOWDARK.dialog.roll_mode_label"}}</label>
+			<select name="rollMode">
+				{{#select rollMode}}
+					{{#each rollModes as |mode|}}
+						<option value="{{mode.label}}">{{localize mode.label}}</option>
+					{{/each}}
+				{{/select}}
+			</select>
+		</div>
+		<hr />
+	</div>
+</section>

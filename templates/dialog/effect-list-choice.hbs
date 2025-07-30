@@ -1,0 +1,26 @@
+<section>
+	{{#each effectParameters}}
+	<h2 style="text-align:center">{{this.name}}</h2>
+		{{this.label}}
+		<div class="effect-input">
+			<div class="form-fields">
+				<input
+					list="{{this.type}}-selections-{{uuid}}"
+					id="{{this.type}}-selection-{{uuid}}"
+					data-parameter-type="{{this.type}}"
+					type="text"
+					value=""
+					placeholder="{{localize "SHADOWDARK.dialog.type_here"}}"
+				/>
+				<datalist id="{{this.type}}-selections-{{uuid}}">
+					{{#each this.options as |key value|}}
+						<option
+							data-slug="{{value}}"
+							value="{{key}}"
+						></option>
+					{{/each}}
+				</datalist>
+			</div>
+		</div>
+	{{/each}}
+</section>

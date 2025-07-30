@@ -1,0 +1,273 @@
+<section class="tab spells {{tabs.spells.cssClass}}" data-tab="spells" data-group="sheet">
+	{{#if isSpellCaster}}
+		{{#> ui/sd-hideable-section
+			sectionId=""
+			sectionTitle=(localize "SHADOWDARK.sheet.item.tab.spellsknown")
+		}}
+			{{#each spells as |tier tid|}}
+				<ol class="SD-list">
+					<li class="header">
+						<div class="item-name">{{localize 'SHADOWDARK.sheet.player.spells_tier'}} {{tid}}</div>
+						<div class="duration">{{localize 'SHADOWDARK.item.spell_duration'}}</div>
+						<div class="range">{{localize 'SHADOWDARK.item.spell_range'}}</div>
+						<div class="actions"></div>
+					</li>
+					{{#each tier as |spell|}}
+						<li class="item" data-item-id="{{spell._id}}" data-uuid="Actor.{{../../actor._id}}.Item.{{this._id}}">
+							<div class="item-image" data-action="itemChatClick" style="background-image: url({{spell.img}})">
+								<i class="fas fa-comment fa-lg"></i>
+							</div>
+							<a class="item-name {{#if spell.system.lost}}strike-through{{/if}}" data-action="showDetails">
+								{{this.name}}
+							</a>
+							<div class="duration">
+								{{getSpellDuration spell.system.duration.type spell.system.duration.value}}
+							</div>
+							<div class="range">
+								{{fromConfig "SPELL_RANGES" spell.system.range}}
+							</div>
+							<div class="actions">
+								{{#unless spell.system.lost}}
+										{{#if (eq spell.system.duration.type 'focus')}}
+											<a
+												data-action="focusSpell"
+												data-item-id="{{spell._id}}"
+												data-tooltip="{{localize 'SHADOWDARK.sheet.player.tooltip.focus_on_spell'}}"
+											>
+												<i class="fa-solid fa-brain"></i>
+											</a>
+										{{/if}}
+										<a
+											data-action="castSpell"
+											data-item-id="{{spell._id}}"
+											data-tooltip="{{localize 'SHADOWDARK.sheet.player.tooltip.cast_spell'}}"
+										>
+											<i class="fa-solid fa-hand-sparkles"></i>
+										</a>
+									{{/unless}}
+									<a
+										data-action="toggleLost"
+										data-item-id="{{spell._id}}"
+										data-tooltip="{{localize "SHADOWDARK.sheet.player.toggle_spell_lost"}}"
+									>
+										{{#if spell.system.lost}}
+											<i style="color:red;" class="fa-solid fa-xmark"></i>
+										{{else}}
+											<i class="fa-solid fa-check"></i>
+										{{/if}}
+									</a>
+							</div>
+						</li>
+					{{/each}}
+				</ol>
+			{{/each}}
+			<br>
+		{{/ui/sd-hideable-section}}
+	{{/if}}
+
+	{{#if canUseMagicItems}}
+		{{#> ui/sd-hideable-section
+			sectionId=""
+			sectionTitle=(localize "SHADOWDARK.sheet.player.spells_from_items")
+		}}
+			{{#if spellitems.wands}}
+				<ol class="SD-list">
+					<li class="header">
+						<div class="item-name">{{localize "SHADOWDARK.item.wand.label"}}</div>
+						<div class="duration">{{localize 'SHADOWDARK.item.spell_duration'}}</div>
+						<div class="range">{{localize 'SHADOWDARK.item.spell_range'}}</div>
+						<div class="actions"></div>
+					</li>
+
+				{{#each spellitems.wands as |item|}}
+
+					<li class="item" data-item-id="{{item._id}}" data-uuid="Actor.{{../actor._id}}.Item.{{item._id}}">
+						<div class="item-image" data-action="itemChatClick" style="background-image: url({{item.img}})">
+							<i class="fas fa-comment fa-lg"></i>
+						</div>
+						<a class="item-name {{#if item.system.lost}}strike-through{{/if}}" data-action="showDetails">
+							{{item.system.spellName}}
+						</a>
+						<div class="duration">
+							{{getSpellDuration item.system.duration.type item.system.duration.value}}
+						</div>
+						<div class="range">
+							{{fromConfig "SPELL_RANGES" item.system.range}}
+						</div>
+						<div class="actions">
+							{{#if (eq item.system.duration.type 'focus')}}
+								<a
+									data-action="focusSpell"
+									data-item-id="{{item._id}}"
+									data-tooltip="{{localize 'SHADOWDARK.sheet.player.tooltip.focus_on_spell'}}"
+								>
+									<i class="fa-solid fa-brain"></i>
+								</a>
+							{{/if}}
+							{{#unless item.system.lost}}
+								<a
+									data-action="castSpell"
+									data-item-id="{{item._id}}"
+									data-tooltip="{{localize 'SHADOWDARK.sheet.player.tooltip.use_wand'}}"
+								>
+									<i class="fa-solid fa-wand-magic-sparkles"></i>
+								</a>
+								&nbsp;
+							{{/unless}}
+							<a
+								data-action="toggleLost"
+								data-item-id="{{item._id}}"
+								data-tooltip="{{localize "SHADOWDARK.sheet.player.toggle_spell_lost"}}"
+							>
+								{{#if item.system.lost}}
+									<i style="color:red;" class="fa-solid fa-xmark"></i>
+								{{else}}
+									<i class="fa-solid fa-check"></i>
+								{{/if}}
+							</a>
+						</div>
+					</li>
+				{{/each}}
+				</ol>
+			{{/if}}
+
+			{{#if spellitems.scrolls}}
+				<ol class="SD-list">
+					<li class="header">
+						<div class="item-name">{{localize "SHADOWDARK.item.scroll.label"}}</div>
+						<div class="duration">{{localize 'SHADOWDARK.item.spell_duration'}}</div>
+						<div class="range">{{localize 'SHADOWDARK.item.spell_range'}}</div>
+						<div class="actions"></div>
+					</li>
+
+				{{#each spellitems.scrolls as |item|}}
+					<li class="item" data-item-id="{{item._id}}" data-uuid="Actor.{{../actor._id}}.Item.{{item._id}}">
+						<div class="item-image" data-action="itemChatClick" style="background-image: url({{item.system.spellImg}})">
+							<i class="fas fa-comment fa-lg"></i>
+						</div>
+						<a class="item-name {{#if spell.system.lost}}strike-through{{/if}}" data-action="showDetails">
+							{{item.system.spellName}}
+						</a>
+						<div class="duration">
+							{{getSpellDuration item.system.duration.type item.system.duration.value}}
+						</div>
+						<div class="range">
+							{{fromConfig "SPELL_RANGES" item.system.range}}
+						</div>
+						<div class="actions">
+								{{#if (eq item.system.duration.type 'focus')}}
+									<a
+										data-action="focusSpell"
+										data-item-id="{{item._id}}"
+										data-tooltip="{{localize 'SHADOWDARK.sheet.player.tooltip.focus_on_spell'}}"
+									>
+										<i class="fa-solid fa-brain"></i>
+									</a>
+								{{/if}}
+								<a
+									data-action="castSpell"
+									data-item-id="{{item._id}}"
+									data-tooltip="{{localize 'SHADOWDARK.sheet.player.tooltip.use_scroll'}}"
+								>
+									<i class="fa-solid fa-scroll"></i>
+								</a>
+								{{#if ../isSpellCaster}}
+									<a
+										data-action="learnSpell"
+										data-item-id="{{item._id}}"
+										data-tooltip="{{localize 'SHADOWDARK.sheet.player.tooltip.learn_spell'}}"
+									>
+										<i class="fa-solid fa-graduation-cap"></i>
+									</a>
+								{{/if}}
+						</div>
+					</li>
+				{{/each}}
+				</ol>
+			{{/if}}
+		{{/ui/sd-hideable-section}}
+	{{/if}}
+
+	{{#if showSeirizianMagic}}
+	<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 1fr 56px{{#if anyProgramLost}} 130px{{/if}}{{#if auralPowerLost}} 80px{{/if}}{{#if abyssalPowerLost}} 100px{{/if}};">
+		<div>
+			<h3>{{localize "SHADOWDARK.sheet.item.tab.serizianMagicType"}}</h3>
+			<select name="system.magic.type"
+					data-action='loadMagic'
+					id="magic-type"
+			>
+				<option value="">&mdash;</option>
+				{{selectOptions
+					config.MAGIC_TYPES
+					selected=actor.system.magic.type
+					localize=false
+				}}
+			</select>
+		</div>
+		<div>
+			<div>
+				<h3>{{localize "SHADOWDARK.sheet.item.tab.serizianMagicRoll"}}</h3>
+			</div>
+			<a
+				class="rollable"
+				data-action="magicRoll"
+				data-magic-core-level="{{magicCoreLevel}}"
+				{{#if showNanoMagic}}
+				data-magic-type="nano-magic"
+				{{/if}}
+				{{#if showAuraMagic}}
+				data-magic-type="aura-magic"
+				{{/if}}
+				{{#if showMetalMagic}}
+				data-magic-type="metal-magic"
+				{{/if}}
+				{{#if showAbyssalMagic}}
+				data-magic-type="abyssal-magic"
+				{{/if}}
+				{{#if showMistMagic}}
+				data-magic-type="mist-magic"
+				{{/if}}
+			>
+				<i class="fa-solid fa-dice-d20" style="font-size: 18px"></i>
+				{{magicCoreLevel}}
+			</a>
+		</div>
+		{{#if anyProgramLost}}
+		<div>
+			<div>
+				<h3>{{localize "SHADOWDARK.nano_resetCoreDump"}}</h3>
+			</div>
+			<a data-action="resetCoreDump" ><img style="border: 0px; margin: auto; height: 28px; width: 28px" src="/systems/shadowdark/assets/icons/seirizia/nanobot-black.png" alt="{{localize "SHADOWDARK.nano_resetCoreDump_tooltip"}}"></a>
+		</div>
+		{{/if}}
+		{{#if auralPowerLost}}
+		<div>
+			<div>
+				<h3>{{localize "SHADOWDARK.aura_resetAuralPower"}}</h3>
+			</div>
+			<a data-action="resetAuralCore" ><img style="border: 0px; margin: auto; height: 28px; width: 28px" src="/systems/shadowdark/assets/icons/seirizia/reset-aural-core.svg" alt="{{localize "SHADOWDARK.aura_resetAuralPower_tooltip"}}"></a>
+		</div>
+		{{/if}}
+		{{#if abyssalPowerLost}}
+		<div>
+			<div>
+				<h3>{{localize "SHADOWDARK.abyss_resetPowers"}}</h3>
+			</div>
+			<a data-action="clearAbyssalPowers" ><img style="border: 0px; margin: auto; height: 28px; width: 28px" src="/systems/shadowdark/assets/icons/seirizia/abyssal-mage.png" alt="{{localize "SHADOWDARK.abyss_resetPowers_tooltip"}}"></a>
+		</div>
+		{{/if}}
+		<div style="font-size: 5px">&nbsp;</div>
+	</div>
+	<div class="content details magic-grid{{#if showNanoMagic}} circuit-board-background{{/if}}">
+		{{> actors/player/seirizianMagic/nano-magic}}
+		{{> actors/player/seirizianMagic/aura-magic}}
+		{{> actors/player/seirizianMagic/metal-magic}}
+		{{> actors/player/seirizianMagic/abyssal-magic}}
+		{{> actors/player/seirizianMagic/mist-magic}}
+	</div>
+	{{/if}}
+
+	{{#if showBritannianMagic}}
+		{{> actors/player/britannianMagic/spellbook}}
+	{{/if}}
+</section>

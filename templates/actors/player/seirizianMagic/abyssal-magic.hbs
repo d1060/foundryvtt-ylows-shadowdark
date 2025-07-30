@@ -1,0 +1,217 @@
+{{#if showAbyssalMagic}}
+<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 1fr;">
+	<div class="SD-box">
+		<div class="header">
+			<label>
+				{{localize 'SHADOWDARK.abyssal_disturbance'}}
+			</label>
+			<span></span>
+		</div>
+		<div class="content" style="display: grid; grid-column-gap: 3px; grid-template-columns: 1fr 56px 56px 56px 56px;">
+			<div style="text-align: center;">
+				<h3>{{localize 'SHADOWDARK.abyssal_trauma'}}</h3>
+				<div>
+					<input type="text" name="system.magic.trauma" data-action='abyssalUpdateTrauma' value="{{system.magic.trauma}}" />
+				</div>
+			</div>
+			<div style="text-align: center;">
+				<h3>{{localize 'SHADOWDARK.abyssal_disturbance_value'}}</h3>
+				<div style="font-size: 12pt; vertical-align: middle;">
+				{{system.magic.disturbance.value}}
+				</div>
+			</div>
+			<div>
+				<h3>{{localize 'SHADOWDARK.ability_int'}}</h3>
+				<select name="system.magic.disturbance.int"
+						data-action='abyssalUpdateDisturbance'
+						data-attribute="int" >
+					<option value="0"{{#if (eq system.magic.disturbance.int '0')}} selected{{/if}}>0</option>
+					{{#ifCond remainingInt '>=' 1}}
+					<option value="-1"{{#if (eq system.magic.disturbance.int '-1')}} selected{{/if}}>-1</option>
+					{{/ifCond}}
+					{{#ifCond remainingInt '>=' 2}}
+					<option value="-2"{{#if (eq system.magic.disturbance.int '-2')}} selected{{/if}}>-2</option>
+					{{/ifCond}}
+					{{#ifCond remainingInt '>=' 3}}
+					<option value="-3"{{#if (eq system.magic.disturbance.int '-3')}} selected{{/if}}>-3</option>
+					{{/ifCond}}
+					{{#ifCond remainingInt '>=' 4}}
+					<option value="-4"{{#if (eq system.magic.disturbance.int '-4')}} selected{{/if}}>-4</option>
+					{{/ifCond}}
+					{{#ifCond remainingInt '>=' 5}}
+					<option value="-5"{{#if (eq system.magic.disturbance.int '-5')}} selected{{/if}}>-5</option>
+					{{/ifCond}}
+					{{#ifCond remainingInt '>=' 6}}
+					<option value="-6"{{#if (eq system.magic.disturbance.int '-6')}} selected{{/if}}>-6</option>
+					{{/ifCond}}
+					{{#ifCond remainingInt '>=' 7}}
+					<option value="-7"{{#if (eq system.magic.disturbance.int '-7')}} selected{{/if}}>-7</option>
+					{{/ifCond}}
+					{{#ifCond remainingInt '>=' 8}}
+					<option value="-8"{{#if (eq system.magic.disturbance.int '-8')}} selected{{/if}}>-8</option>
+					{{/ifCond}}
+					{{#ifCond remainingInt '>=' 9}}
+					<option value="-9"{{#if (eq system.magic.disturbance.int '-9')}} selected{{/if}}>-9</option>
+					{{/ifCond}}
+					{{#ifCond remainingInt '>=' 10}}
+					<option value="-10"{{#if (eq system.magic.disturbance.int '-10')}} selected{{/if}}>-10</option>
+					{{/ifCond}}
+				</select>
+			</div>
+			<div>
+				<h3>{{localize 'SHADOWDARK.ability_wis'}}</h3>
+				<select name="system.magic.disturbance.wis"
+						data-action='abyssalUpdateDisturbance'
+						data-attribute="wis" >
+					<option value="0"{{#if (eq system.magic.disturbance.wis '0')}} selected{{/if}}>0</option>
+					{{#ifCond remainingWis '>=' 1}}
+					<option value="-1"{{#if (eq system.magic.disturbance.wis '-1')}} selected{{/if}}>-1</option>
+					{{/ifCond}}
+					{{#ifCond remainingWis '>=' 2}}
+					<option value="-2"{{#if (eq system.magic.disturbance.wis '-2')}} selected{{/if}}>-2</option>
+					{{/ifCond}}
+					{{#ifCond remainingWis '>=' 3}}
+					<option value="-3"{{#if (eq system.magic.disturbance.wis '-3')}} selected{{/if}}>-3</option>
+					{{/ifCond}}
+					{{#ifCond remainingWis '>=' 4}}
+					<option value="-4"{{#if (eq system.magic.disturbance.wis '-4')}} selected{{/if}}>-4</option>
+					{{/ifCond}}
+					{{#ifCond remainingWis '>=' 5}}
+					<option value="-5"{{#if (eq system.magic.disturbance.wis '-5')}} selected{{/if}}>-5</option>
+					{{/ifCond}}
+					{{#ifCond remainingWis '>=' 6}}
+					<option value="-6"{{#if (eq system.magic.disturbance.wis '-6')}} selected{{/if}}>-6</option>
+					{{/ifCond}}
+					{{#ifCond remainingWis '>=' 7}}
+					<option value="-7"{{#if (eq system.magic.disturbance.wis '-7')}} selected{{/if}}>-7</option>
+					{{/ifCond}}
+					{{#ifCond remainingWis '>=' 8}}
+					<option value="-8"{{#if (eq system.magic.disturbance.wis '-8')}} selected{{/if}}>-8</option>
+					{{/ifCond}}
+					{{#ifCond remainingWis '>=' 9}}
+					<option value="-9"{{#if (eq system.magic.disturbance.wis '-9')}} selected{{/if}}>-9</option>
+					{{/ifCond}}
+					{{#ifCond remainingWis '>=' 10}}
+					<option value="-10"{{#if (eq system.magic.disturbance.wis '-10')}} selected{{/if}}>-10</option>
+					{{/ifCond}}
+				</select>
+			</div>
+			<div>
+				<h3>{{localize 'SHADOWDARK.ability_cha'}}</h3>
+				<select name="system.magic.disturbance.cha"
+						data-action='abyssalUpdateDisturbance'
+						data-attribute="cha" >
+					<option value="0"{{#if (eq system.magic.disturbance.cha '0')}} selected{{/if}}>0</option>
+					{{#ifCond remainingCha '>=' 1}}
+					<option value="-1"{{#if (eq system.magic.disturbance.cha '-1')}} selected{{/if}}>-1</option>
+					{{/ifCond}}
+					{{#ifCond remainingCha '>=' 2}}
+					<option value="-2"{{#if (eq system.magic.disturbance.cha '-2')}} selected{{/if}}>-2</option>
+					{{/ifCond}}
+					{{#ifCond remainingCha '>=' 3}}
+					<option value="-3"{{#if (eq system.magic.disturbance.cha '-3')}} selected{{/if}}>-3</option>
+					{{/ifCond}}
+					{{#ifCond remainingCha '>=' 4}}
+					<option value="-4"{{#if (eq system.magic.disturbance.cha '-4')}} selected{{/if}}>-4</option>
+					{{/ifCond}}
+					{{#ifCond remainingCha '>=' 5}}
+					<option value="-5"{{#if (eq system.magic.disturbance.cha '-5')}} selected{{/if}}>-5</option>
+					{{/ifCond}}
+					{{#ifCond remainingCha '>=' 6}}
+					<option value="-6"{{#if (eq system.magic.disturbance.cha '-6')}} selected{{/if}}>-6</option>
+					{{/ifCond}}
+					{{#ifCond remainingCha '>=' 7}}
+					<option value="-7"{{#if (eq system.magic.disturbance.cha '-7')}} selected{{/if}}>-7</option>
+					{{/ifCond}}
+					{{#ifCond remainingCha '>=' 8}}
+					<option value="-8"{{#if (eq system.magic.disturbance.cha '-8')}} selected{{/if}}>-8</option>
+					{{/ifCond}}
+					{{#ifCond remainingCha '>=' 9}}
+					<option value="-9"{{#if (eq system.magic.disturbance.cha '-9')}} selected{{/if}}>-9</option>
+					{{/ifCond}}
+					{{#ifCond remainingCha '>=' 10}}
+					<option value="-10"{{#if (eq system.magic.disturbance.cha '-10')}} selected{{/if}}>-10</option>
+					{{/ifCond}}
+				</select>
+			</div>
+		</div>
+	</div>
+</div>
+{{#if hasSelectedAtLeastOneAbyssalMagicPower}}
+<div class="SD-banner">
+{{localize 'SHADOWDARK.abyssal_powers'}}
+</div>
+{{#each abyssalMagicPowers as |power|}}
+<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 172px 1fr;">
+	<div>
+		<div>
+			<h3 {{#if power.lost}} style="opacity: 0.5;"{{/if}}>{{power.name}}</h3>
+		</div>
+		<div style="display: flex;">
+			{{#if power.lost}}
+			<a
+				data-action="recoverAbyssalPower"
+				data-id="{{power._id}}"
+				data-tooltip="{{localize 'SHADOWDARK.abyssal_power_recover'}}"
+				style="margin-left: auto; margin-right: auto; margin-top: 5px; "
+			>
+				<img class="fa-solid recover-abyssal-power" src="/systems/shadowdark/assets/icons/seirizia/recover-abyssal-power.png";></img>
+			</a>
+			{{else}}
+			<a
+				class="rollable-visible"
+				data-id="{{power._id}}"
+				data-action="abyssalPowerRoll"
+				data-disturbance="{{../system.magic.disturbance.value}}"
+				{{#if power.lost}}disabled{{/if}}
+			>
+				<i class="fa-solid fa-dice-d20" style="font-size: 24px; margin: 4px;"></i>
+			</a>
+			<a
+				data-action="removeAbyssalPower"
+				data-id="{{power._id}}"
+				data-tooltip="{{localize 'SHADOWDARK.abyssal_power_remove'}}"
+				style="margin: auto; height: 64px;"
+			>
+				<img class="fa-solid abyssal-power" src="{{power.randomizedImage}}"></img>
+				<img class="fa-solid abyssal-power-2" src="{{power.randomizedImage2}}"></img>
+			</a>
+			{{/if}}
+		</div>
+	</div>
+	<div{{#if power.lost}} style="opacity: 0.5;"{{/if}}>
+		{{{power.system.description}}}
+	</div>
+</div>
+{{/each}}
+{{/if}}
+<p style="height: 1px; line-height: 1px; font-size: 1px; margin-block-start: 1px; margin-block-end: 1px; margin-top: 1em; margin-bottom: 1em; border-bottom: 1px solid black;">&nbsp;</p>
+{{#if allowsAbyssalPowerSelection}}
+<div class="SD-banner">
+{{localize 'SHADOWDARK.abyssal_powers_unknown'}}
+</div>
+{{#each unknownAbyssalMagicPowers as |power|}}
+<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 172px 1fr;">
+	<div>
+		<div style="display: grid; grid-row-gap: 2px; grid-template-rows: 24px 1fr;">
+			<h3>{{power.name}}</h3>
+			<a
+				data-action="selectAbyssalPower"
+				data-id="{{power._id}}"
+				data-tooltip="{{localize 'SHADOWDARK.abyssal_power_select'}}"
+				style="height: 64px;"
+			>
+				<img class="fa-solid abyssal-power" src="{{power.randomizedImage}}"></img>
+				<img class="fa-solid abyssal-power-2" src="{{power.randomizedImage2}}"></img>
+			</a>
+		</div>
+	</div>
+	<div>
+		{{{power.system.description}}}
+	</div>
+	<div>
+	</div>
+</div>
+{{/each}}
+{{/if}}
+{{/if}}

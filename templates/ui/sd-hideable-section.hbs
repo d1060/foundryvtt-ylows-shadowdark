@@ -1,0 +1,13 @@
+{{> ui/sd-hideable-header
+	sectionTitle=sectionTitle
+	sectionId=sectionId
+}}
+<div
+	data-hideable-section-id="{{sectionId}}"
+	class="hideable-section"
+	{{#if (lookup hiddenSections sectionId)}}
+		style="display: none;"
+	{{/if}}
+>
+	{{> @partial-block }}
+</div>

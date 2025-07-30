@@ -1,0 +1,206 @@
+<section class="tab {{tabs.magicPowerDetails.cssClass}} magicPowerDetails SD-content-body flex1" data-group="sheet" data-tab="magicPowerDetails">
+	<div class="grid-3-columns">
+		<div>
+			<h3>{{localize 'SHADOWDARK.item.runes.label'}}</h3>
+            <div class="content">
+                <div class="grid-1-columns">
+                    {{#if chosenRunes}}
+                        <div class="items flexrow">
+                        {{#each chosenRunes}}
+                            <div class="talent flexrow">
+                                <a
+                                    class="fake-uuid-link"
+                                    data-type="Item"
+                                    data-uuid="{{uuid}}"
+                                    title="Item"
+                                >
+                                    {{#if ../editable}}
+                                        <i
+                                            class="fas fa-delete-right"
+                                            data-action="deleteChoice"
+											data-name="runes"
+                                            data-choices-key="{{../runesChoicesKey}}"
+                                            data-uuid="{{uuid}}"
+                                        ></i>
+                                    {{/if}}
+                                    {{name}}
+                                </a>
+                            </div>
+                        {{/each}}
+                        </div>
+                    {{/if}}
+
+                    <input
+                        data-choices-key="{{runesChoicesKey}}"
+                        data-is-item="false"
+                        list="{{runesChoicesKey}}_list"
+                        placeholder="{{localize "SHADOWDARK.item.runes.prompt"}}"
+                        type="text"
+                        name="system.runes"
+                        value=""
+                    />
+                    <datalist id="{{runesChoicesKey}}_list">
+                        {{#each availableRunes}}
+                            <option
+                                data-uuid="{{uuid}}"
+                                value="{{name}}"
+                            ></option>
+                        {{/each}}
+                    </datalist>
+                </div>
+            </div>
+		</div>
+		<div>
+			<h3>{{localize 'SHADOWDARK.item.talent_powerLevel'}}</h3>
+			<select name="system.powerLevel" >
+				<option value=""{{#if (eq system.powerLevel '')}} selected{{/if}}>&mdash;</option>
+				<option value="*"{{#if (eq system.powerLevel '*')}} selected{{/if}}>Variable</option>
+				<option value="1"{{#if (eq system.powerLevel '1')}} selected{{/if}}>1</option>
+				<option value="2"{{#if (eq system.powerLevel '2')}} selected{{/if}}>2</option>
+				<option value="3"{{#if (eq system.powerLevel '3')}} selected{{/if}}>3</option>
+				<option value="4"{{#if (eq system.powerLevel '4')}} selected{{/if}}>4</option>
+				<option value="5"{{#if (eq system.powerLevel '5')}} selected{{/if}}>5</option>
+				<option value="6"{{#if (eq system.powerLevel '6')}} selected{{/if}}>6</option>
+				<option value="7"{{#if (eq system.powerLevel '7')}} selected{{/if}}>7</option>
+				<option value="8"{{#if (eq system.powerLevel '8')}} selected{{/if}}>8</option>
+				<option value="9"{{#if (eq system.powerLevel '9')}} selected{{/if}}>9</option>
+				<option value="10"{{#if (eq system.powerLevel '10')}} selected{{/if}}>10</option>
+			</select>
+		</div>
+		<div class="content" style="width: 99%">
+			<h3>{{localize 'SHADOWDARK.item.requirements'}}</h3>
+			<div>
+				<fieldset class="items" style="height: 100%;">
+					{{#unless requirementsChosen}}
+						<div style="color: rgba(0, 0, 0, 0.6); text-align: center;">
+							<em>{{localize "SHADOWDARK.apps.level-up.dragdrop"}}</em>
+						</div>
+					{{/unless}}
+					{{#each item.system.requirements}}
+						<div style="white-space: nowrap;">
+							<a
+								class="remove-item fas fa-delete-right"
+								data-action="deleteRequirement"
+								data-index="{{@index}}"
+								data-id="{{this._id}}"
+							></a>
+							<a
+								class="content-link"
+								data-link
+								data-tooltip="{{this.name}}"
+								data-id="{{this._id}}"
+							>
+								{{this.name}}
+							</a>
+						</div>
+					{{/each}}
+				</fieldset>
+			</div>
+		</div>
+		<div>
+            <h3>{{localize 'SHADOWDARK.item.talent_resistedBy'}}</h3>
+            <select name="system.resistedBy" >
+                <option value="">&mdash;</option>
+                {{selectOptions
+                    config.ABILITIES_LONG
+                    selected=system.resistedBy
+                    localize=true
+                }}
+                <option value="ac" {{#if (eq system.resistedBy 'ac')}} selected{{/if}}>{{localize "SHADOWDARK.item.armor_ac"}}</option>
+            </select>
+			<div>
+				{{localize 'SHADOWDARK.item.resistance_penalty'}}
+				<input	name="system.resistance_penalty"
+						type="number"
+						value="{{system.resistance_penalty}}"
+				/>
+			</div>
+			{{#if system.resistance_penalty}}
+			<div style="height: 5px;"></div>
+			<div>
+				<select	name="system.resistance_penalty_step" />
+					<option value="fixed"{{#if (eq system.resistance_penalty_step 'fixed')}} selected{{/if}}>{{localize 'SHADOWDARK.item.resistance_penalty_step_fixed'}}</option>
+					<option value="per_level"{{#if (eq system.resistance_penalty_step 'per_level')}} selected{{/if}}>{{localize 'SHADOWDARK.item.resistance_penalty_step_per_level'}}</option>
+					<option value="per_extra_level"{{#if (eq system.resistance_penalty_step 'per_extra_level')}} selected{{/if}}>{{localize 'SHADOWDARK.item.resistance_penalty_step_per_extra_level'}}</option>
+				</select>
+			</div>
+			{{/if}}
+		</div>
+		<div style="width: 99%">
+			<h3>{{localize 'SHADOWDARK.item.talent_duration'}}</h3>
+			<div>
+				<select name="system.duration" >
+					<option value=""{{#if (eq system.duration '')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_instant'}}</option>
+					<option value="sustained"{{#if (eq system.duration 'sustained')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_sustained'}}</option>
+					<option value="1-turn"{{#if (eq system.duration '1-turn')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_one_turn'}}</option>
+					<option value="1-minute"{{#if (eq system.duration '1-minute')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_one_minute'}}</option>
+					<option value="1-hour"{{#if (eq system.duration '1-hour')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_one_hour'}}</option>
+					<option value="1-day"{{#if (eq system.duration '1-day')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_one_day'}}</option>
+					<option value="permanent"{{#if (eq system.duration 'permanent')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_permanent'}}</option>
+				</select>
+			</div>
+			<div>
+				{{localize 'SHADOWDARK.item.duration_increase'}}
+				<select name="system.duration_increase" >
+					<option value=""{{#if (eq system.duration_increase '')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_increase_none'}}</option>
+					<option value="once"{{#if (eq system.duration_increase 'once')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_increase_once'}}</option>
+					<option value="one-step"{{#if (eq system.duration_increase 'one-step')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_increase_one_step'}}</option>
+				</select>
+			</div>
+			{{#if system.duration_increase}}
+			<div>
+				{{localize 'SHADOWDARK.item.duration_increase_step'}}
+				<select
+				name="system.duration_increase_step"
+				/>
+					<option value="1"{{#if (eq system.duration_increase_step '1')}} selected{{/if}}>{{localize 'SHADOWDARK.item.duration_increase_step_1'}}</option>
+					<option value="2"{{#if (eq system.duration_increase_step '2')}} selected{{/if}}>{{localize 'SHADOWDARK.item.duration_increase_step_2'}}</option>
+					<option value="3"{{#if (eq system.duration_increase_step '3')}} selected{{/if}}>{{localize 'SHADOWDARK.item.duration_increase_step_3'}}</option>
+					<option value="4"{{#if (eq system.duration_increase_step '4')}} selected{{/if}}>{{localize 'SHADOWDARK.item.duration_increase_step_4'}}</option>
+					<option value="5"{{#if (eq system.duration_increase_step '5')}} selected{{/if}}>{{localize 'SHADOWDARK.item.duration_increase_step_5'}}</option>
+				</select>
+			</div>
+			{{/if}}
+		</div>
+		<div class="content" style="width: 99%">
+			<h3>{{localize 'SHADOWDARK.item.damage'}}</h3>
+			<div>
+				<input
+				name="system.damage"
+				type="text"
+				value="{{system.damage}}"
+				/>
+			</div>
+			<h3>{{localize 'SHADOWDARK.item.weapon_damage.type'}}</h3>
+			<select name="system.damage_type">
+				{{selectOptions
+					config.DAMAGE_TYPES
+					selected=system.damage_type
+					localize=false
+				}}
+			</select>
+			<div>
+				{{localize 'SHADOWDARK.item.damage_increase'}}
+				<input
+				name="system.damage_increase"
+				type="text"
+				value="{{ system.damage_increase }}"
+				/>
+			</div>
+			{{#if system.damage_increase}}
+			<div>
+				{{localize 'SHADOWDARK.item.damage_increase_step'}}
+				<select
+				name="system.damage_increase_step"
+				/>
+					<option value="1"{{#if (eq system.damage_increase_step '1')}} selected{{/if}}>{{localize 'SHADOWDARK.item.damage_increase_step_1'}}</option>
+					<option value="2"{{#if (eq system.damage_increase_step '2')}} selected{{/if}}>{{localize 'SHADOWDARK.item.damage_increase_step_2'}}</option>
+					<option value="3"{{#if (eq system.damage_increase_step '3')}} selected{{/if}}>{{localize 'SHADOWDARK.item.damage_increase_step_3'}}</option>
+					<option value="4"{{#if (eq system.damage_increase_step '4')}} selected{{/if}}>{{localize 'SHADOWDARK.item.damage_increase_step_4'}}</option>
+					<option value="5"{{#if (eq system.damage_increase_step '5')}} selected{{/if}}>{{localize 'SHADOWDARK.item.damage_increase_step_5'}}</option>
+				</select>
+			</div>
+			{{/if}}
+		</div>
+	</div>
+</section>

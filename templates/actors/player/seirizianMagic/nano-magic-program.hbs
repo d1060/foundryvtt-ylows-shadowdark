@@ -1,0 +1,121 @@
+<section class="{{cssClass}} flexcol" autocomplete="off">
+	<header class="SD-header flex0">
+		<div></div>
+		<div class="SD-title">
+			<input data-action='program-name' name="program.name" type="text" value="{{program.name}}" placeholder="New Program">
+		</div>
+	</header>
+	<section class="sheet-body">
+		<div style="padding: 8px; display: grid; grid-column-gap: 5px; grid-row-gap: 5px; grid-template-columns: 90px 1fr 80px 1fr;">
+			<div>
+				<h3>{{localize "SHADOWDARK.nano_program_dc"}}</h3>
+			</div>
+			<div>
+				<h3>{{program.programDC}}</h3>
+			</div>
+			<div>
+				<h3>{{localize "SHADOWDARK.nano_programs_type"}}</h3>
+			</div>
+			<select name="program.type"
+					data-action='program-type'
+					data-id="{{program.id}}"
+					id="program-type"
+			>
+				{{selectOptions
+					config.NANO_MAGIC_TYPES
+					selected=program.type
+					localize=false
+				}}
+			</select>
+			{{#ifCond program.type '!==' 'internal'}}
+			<div>
+				<h3>{{localize "SHADOWDARK.nano_programs_duration"}}</h3>
+			</div>
+			<select name="program.duration"
+					data-action='program-duration'
+					data-id="{{program.id}}"
+					id="program-duration"
+			>
+				{{selectOptions
+					config.NANO_MAGIC_DURATIONS
+					selected=program.duration
+					localize=false
+				}}
+			</select>
+			{{/ifCond}}
+			<div>
+				<h3>{{localize "SHADOWDARK.nano_drawback"}}
+			</h3>
+			</div>
+			<select name="program.drawback"
+					data-action='program-drawback'
+					data-id="{{program.id}}"
+					id="program-drawback"
+					{{#ifCond program.type '===' 'internal'}}style="grid-column: 2 / 5"{{/ifCond}}
+			>
+			{{#ifCond program.type '===' 'internal'}}
+				{{selectOptions
+					config.NANO_MAGIC_INTERNAL_DRAWBACKS
+					selected=program.drawback
+					localize=false
+				}}
+			{{else}}
+				{{selectOptions
+					config.NANO_MAGIC_EXTERNAL_DRAWBACKS
+					selected=program.drawback
+					localize=false
+				}}
+			{{/ifCond}}
+			</select>
+			<div>
+				<h3>{{localize "SHADOWDARK.nano_effect"}}
+			</h3>
+			</div>
+			<select name="program.effect"
+					data-action='program-effect'
+					data-id="{{program.id}}"
+					id="program-effect"
+					{{#unless hasLevels}}style="grid-column: 2 / 5"{{/unless}}
+			>
+			{{selectOptions
+				effectOptions
+				selected=program.effect
+				localize=false
+			}}
+			</select>
+			{{#if hasLevels}}
+			<div>
+				<h3>{{localize "SHADOWDARK.nano_effect_levels"}}
+			</h3>
+			</div>
+			<select name="program.effectLevels"
+					data-action='program-effectLevels'
+					data-id="{{program.id}}"
+					id="program-effectLevels"
+			>
+				{{selectOptions
+					effectLevelList
+					selected=program.effectLevels
+					localize=false
+				}}
+			</select>
+			{{/if}}
+			<hr style="grid-column: 1 / 5" >
+			<section data-group="primary" style="grid-column: 1 / 5">
+				<div class="SD-banner">{{localize 'SHADOWDARK.item.description'}}</div>
+				{{#if editable}}
+				<prose-mirror
+					name="program.description"
+					button="true"
+					editable="{{editable}}"
+					toggled="false"
+					value="{{program.description}}">
+					{{{descriptionHTML}}}
+				</prose-mirror>
+				{{else}}
+				{{{descriptionHTML}}}
+				{{/if}}
+			</section>
+		</div>
+	</section>
+</section>

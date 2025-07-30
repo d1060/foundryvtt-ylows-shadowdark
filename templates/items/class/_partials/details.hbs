@@ -1,0 +1,101 @@
+<div>
+	<h3>{{localize 'SHADOWDARK.class.hit_points.label'}}</h3>
+	<input
+		name="system.hitPoints"
+		type="text"
+		value="{{item.system.hitPoints}}"
+	/>
+</div>
+{{#if showSpells}}
+<div>
+	<h3>{{localize "SHADOWDARK.class.spellcasting_class.label"}}</h3>
+	<select name="system.spellcasting.class">
+		<option
+			value="__not_spellcaster__"
+			{{#ifEq system.spellcasting.class "__not_spellcaster__"}}
+				selected
+			{{/ifEq}}
+		>
+			&mdash;
+		</option>
+		<option
+			value=""
+			{{#ifEq system.spellcasting.class ""}}
+				selected
+			{{/ifEq}}
+		>
+			(Class Name)
+		</option>
+		{{selectOptions
+			spellcastingClasses
+			selected=system.spellcasting.class
+			localize=false
+		}}
+	</select>
+</div>
+
+<div>
+	<h3>{{localize "SHADOWDARK.class.spellcasting_ability.label"}}</h3>
+	<select name="system.spellcasting.ability">
+		<option value="">&mdash;</option>
+		{{selectOptions
+			config.ABILITIES_LONG
+			selected=system.spellcasting.ability
+			localize=false
+		}}
+	</select>
+</div>
+{{/if}}
+<div>
+	<h3>{{localize "SHADOWDARK.class.talents_table.label"}}</h3>
+	<select name="system.classTalentTable">
+		<option value="">&mdash;</option>
+		{{selectOptions
+			classTalentTables
+			selected=system.classTalentTable
+			localize=false
+		}}
+	</select>
+</div>
+
+<div>
+	<h3>{{localize "SHADOWDARK.class.technique_table.label"}}</h3>
+	<select name="system.classTechniqueTable">
+		<option value="">&mdash;</option>
+		{{selectOptions
+			classTechniqueTables
+			selected=system.classTechniqueTable
+			localize=false
+		}}
+	</select>
+</div>
+
+<div>
+	<h3>
+		{{localize 'SHADOWDARK.sheet.actor.alignment'}}
+	</h3>
+	<select name="system.alignment">
+		<option
+			value=""
+			{{#ifEq system.alignment ""}}
+				selected
+			{{/ifEq}}
+		>
+			&mdash;
+		</option>
+		{{selectOptions config.ALIGNMENTS
+			selected=system.alignment
+			localize=false
+		}}
+	</select>
+</div>
+{{#if showSpells}}
+<div>
+	<h3>{{localize 'SHADOWDARK.class.spellcasting.base_difficulty.label'}}</h3>
+	{{numberInput
+		item.system.spellcasting.baseDifficulty
+		name="system.spellcasting.baseDifficulty"
+		placeholder="10"
+	}}
+</div>
+{{/if}}

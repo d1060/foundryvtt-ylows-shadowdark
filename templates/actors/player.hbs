@@ -1,0 +1,97 @@
+<section class="{{cssClass}} flexcol" autocomplete="off">
+	<header class="SD-header">
+		<img
+			class="portrait"
+			src="{{ actor.img }}"
+			data-edit="img"
+			name="player.img"
+			data-image-id
+			data-action="editImage"
+			data-tooltip="{{ actor.name }}"
+			height="{{imgHeight}}"
+			width="{{imgWidth}}"
+		/>
+		<div class="shadowdark-logo">
+			<span>ShadowDark</span>
+		</div>
+		<div class="SD-title">
+			<input
+				name="name"
+				type="text"
+				value="{{ actor.name }}"
+				placeholder="{{localize 'SHADOWDARK.sheet.actor.placeholder.name'}}"
+			/>
+		</div>
+	</header>
+
+	<nav class="SD-nav tabs" aria-roledescription="{{localize "SHEETS.FormNavLabel"}}">
+		{{#each tabs as |tab|}}
+		<a data-action="tab" data-group="{{tab.group}}" data-tab="{{tab.id}}"
+			{{#if tab.cssClass}}class="{{tab.cssClass}}"{{/if}}
+			{{#if tab.tooltip}}data-tooltip="{{tab.tooltip}}"{{/if}}>
+			{{#if tab.icon}}<i class="{{tab.icon}}" inert></i>{{/if}}
+			{{#if tab.label}}<span>{{localize tab.label}}</span>{{/if}}
+		</a>
+		{{/each}}
+	</nav>
+
+	{{!-- <nav class="SD-nav flex0" data-group="primary">
+
+		<a class="navigation-tab" data-tab="details">
+			{{localize "SHADOWDARK.sheet.player.tab.details"}}
+		</a>
+
+		<a class="navigation-tab active" data-tab="abilities">
+			{{localize "SHADOWDARK.sheet.player.tab.abilities"}}
+		</a>
+
+		{{#if showSpellsTab}}
+			<a class="navigation-tab" data-tab="spells">
+				{{localize "SHADOWDARK.sheet.player.tab.spells"}}
+			</a>
+		{{/if}}
+
+		{{#if showSeirizianMagic}}
+			<a class="navigation-tab" data-tab="spells">
+				{{localize "SHADOWDARK.sheet.player.tab.seirizianMagic"}}
+			</a>
+		{{/if}}
+
+		{{#if showBritannianMagic}}
+		{{#ifCond knownRunes '>' 0}}
+			<a class="navigation-tab" data-tab="spells">
+				{{localize "SHADOWDARK.sheet.player.tab.britannianMagic"}}
+			</a>
+		{{/ifCond}}
+		{{/if}}
+
+		<a class="navigation-tab" data-tab="inventory">
+			{{localize "SHADOWDARK.sheet.player.tab.inventory"}}
+		</a>
+
+		<a class="navigation-tab" data-tab="talents">
+			{{localize "SHADOWDARK.sheet.player.tab.talents"}}
+		</a>
+
+
+
+		<a class="navigation-tab" data-tab="notes">
+			{{localize "SHADOWDARK.sheet.player.tab.notes"}}
+		</a>
+
+		<a class="navigation-tab" data-tab="effects">
+			{{localize "SHADOWDARK.sheet.item.tab.effects"}}
+		</a>
+
+	</nav> --}}
+
+	{{!-- <section class="SD-content-body flex1">
+		{{> actors/player/details }}
+		{{> actors/player/abilities }}
+		{{> actors/player/spells }}
+		{{> actors/player/talents }}
+		{{> actors/player/inventory }}
+		{{> actors/_partials/effects }}
+		{{> actors/player/notes }}
+	</section> --}}
+</section>

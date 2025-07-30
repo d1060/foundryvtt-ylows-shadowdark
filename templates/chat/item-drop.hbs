@@ -1,0 +1,26 @@
+<div
+	class="shadowdark chat-card light-source-card"
+	data-actor-id="{{data.actor.id}}"
+	{{#if tokenId}}
+		data-token-id="{{tokenId}}"
+	{{/if}}
+>
+	<header class="card-header flexrow">
+		<img
+			src="{{item.img}}"
+			{{#if picked_up}}
+				data-tooltip="{{name}} {{localize 'SHADOWDARK.chat.item.picked_up'}}"
+			{{else}}
+				data-tooltip="{{name}} {{localize 'SHADOWDARK.chat.item.dropped'}}"
+			{{/if}}
+		/>
+		<h3 class="light-source-name">
+			{{name}}
+			{{#if picked_up}}
+				{{localize "SHADOWDARK.chat.item.picked_up"}}
+			{{else}}
+				{{localize "SHADOWDARK.chat.item.dropped"}}
+			{{/if}}
+		</h3>
+	</header>
+</div>
