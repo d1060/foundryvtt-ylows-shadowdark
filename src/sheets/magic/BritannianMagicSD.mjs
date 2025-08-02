@@ -418,6 +418,7 @@ export default class BritannianMagicSD {
         let range = shadowdark.apps.BritannianSpellSD.getSpellRange(spell);
         let duration = shadowdark.apps.BritannianSpellSD.getSpellDuration(spell);
         let damage = shadowdark.apps.BritannianSpellSD.getSpellDamage(spell);
+        let healing = spell.effect.isHealing;
         let resistance = shadowdark.apps.BritannianSpellSD.getSpellResistance(spell);
         let creature = shadowdark.apps.BritannianSpellSD.getSpellCreature(spell);
 
@@ -437,8 +438,10 @@ export default class BritannianMagicSD {
 
         lines.push(openDiv + game.i18n.localize("SHADOWDARK.item.spell_duration") + " " + (UtilitySD.isObject(duration) ? 'instant' : duration) + "." + closeDiv);
         
-        if (damage)
+        if (damage && !healing)
             lines.push(openDiv + game.i18n.localize("SHADOWDARK.item.damage") + " " + damage + "." + closeDiv);
+        if (damage && healing)
+            lines.push(openDiv + game.i18n.localize("SHADOWDARK.item.healing") + " " + damage + "." + closeDiv);
 
         if (resistance)
             lines.push(openDiv + game.i18n.localize("SHADOWDARK.item.talent_resistedBy") + " " + resistance + "." + closeDiv);

@@ -860,6 +860,8 @@ SHADOWDARK.PREDEFINED_EFFECTS = {
 	// system.bonuses.accelerateTime
 	// system.penalties.loseRune
 	// system.bonuses.abilityBonus
+	// system.bonuses.bladedWeaponDamage
+	// system.bonuses.noArmorStealthPenalty
 };
 
 SHADOWDARK.VARIABLE_DURATIONS = [

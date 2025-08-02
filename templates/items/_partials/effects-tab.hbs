@@ -2,5 +2,6 @@
 	<div class="grid-1-columns">
 		{{> _partials/predefined-effects-selector}}
 		{{> items/_partials/effects/active-effects-list}}
+		{{#if showEffectChanges}}{{> items/_partials/effects/effect-increases}}{{/if}}
 	</div>
 </section>

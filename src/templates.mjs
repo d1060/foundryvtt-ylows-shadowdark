@@ -101,6 +101,7 @@ export default function() {
 		"systems/shadowdark/templates/items/_partials/effects-tab.hbs",
 		"systems/shadowdark/templates/items/_partials/effects/active-effect.hbs",
 		"systems/shadowdark/templates/items/_partials/effects/active-effects-list.hbs",
+		"systems/shadowdark/templates/items/_partials/effects/effect-increases.hbs",
 		"systems/shadowdark/templates/items/_partials/header.hbs",
 		"systems/shadowdark/templates/items/_partials/item-properties/ammunition.hbs",
 		"systems/shadowdark/templates/items/_partials/item-properties/equipped.hbs",

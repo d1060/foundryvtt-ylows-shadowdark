@@ -1,0 +1,26 @@
+<div class="SD-banner">
+	{{localize "SHADOWDARK.sheet.item.tab.effectIncreases"}}
+</div>
+
+<div class="effect-increases-area">
+    <div></div>
+    <div>{{localize "SHADOWDARK.sheet.item.tab.effectIncreaseBy"}}</div>
+    <input id="effect-change-by"
+        class="effect-input"
+        data-effect-id="{{../effect.id}}"
+        name="system.change_effect_by"
+        placeholder="0"
+        type="number"
+        class="small-text"
+        value="{{system.change_effect_by}}" >
+
+    <div></div>
+    <div>{{localize "SHADOWDARK.sheet.item.tab.effectIncreaseEach"}}</div>
+    <select name="system.change_effect_each" class="effect-input" />
+        <option value="1"{{#if (eq system.change_effect_each '1')}} selected{{/if}}>{{localize 'SHADOWDARK.item.damage_increase_step_1'}}</option>
+        <option value="2"{{#if (eq system.change_effect_each '2')}} selected{{/if}}>{{localize 'SHADOWDARK.item.damage_increase_step_2'}}</option>
+        <option value="3"{{#if (eq system.change_effect_each '3')}} selected{{/if}}>{{localize 'SHADOWDARK.item.damage_increase_step_3'}}</option>
+        <option value="4"{{#if (eq system.change_effect_each '4')}} selected{{/if}}>{{localize 'SHADOWDARK.item.damage_increase_step_4'}}</option>
+        <option value="5"{{#if (eq system.change_effect_each '5')}} selected{{/if}}>{{localize 'SHADOWDARK.item.damage_increase_step_5'}}</option>
+    </select>
+</div>

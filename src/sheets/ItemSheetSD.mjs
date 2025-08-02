@@ -117,8 +117,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 				break;
 			case "armor":
 				tabs.tabs.push({ id: 'armorDetails', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.details', cssClass: "navigation-tab active" })
-				if (this.item.system.magicItem)
-					tabs.tabs.push({ id: 'effects', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.effects', cssClass: "navigation-tab" })
+				this.assertVariableTab('effects', tabs, this.item.system.magicItem);
 				tabs.tabs.push({ id: 'description', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.description', cssClass: "navigation-tab" })
 				tabs.tabs.push({ id: 'source', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.source', cssClass: "navigation-tab" })
 				break;
@@ -129,10 +128,8 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 				break;
 			case "basic":
 				tabs.tabs.push({ id: 'basicDetails', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.details', cssClass: "navigation-tab active" })
-				if (this.item.system.magicItem)
-					tabs.tabs.push({ id: 'effects', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.effects', cssClass: "navigation-tab" })
-				if (this.item.system.light.isSource)
-					tabs.tabs.push({ id: 'light', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.light', cssClass: "navigation-tab" })
+				this.assertVariableTab('effects', tabs, this.item.system.magicItem);
+				this.assertVariableTab('light', tabs, this.item.system.light.isSource);
 				tabs.tabs.push({ id: 'description', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.description', cssClass: "navigation-tab" })
 				tabs.tabs.push({ id: 'source', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.source', cssClass: "navigation-tab" })
 				break;
@@ -150,8 +147,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			case "class":
 				tabs.tabs.push({ id: 'classDetails', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.details', cssClass: "navigation-tab active" })
 				tabs.tabs.push({ id: 'titles', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.titles', cssClass: "navigation-tab" })
-				if (this.item.system?.spellcasting?.class !== "__not_spellcaster__")
-					tabs.tabs.push({ id: 'spellsKnown', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.spellsknown', cssClass: "navigation-tab" })
+				this.assertVariableTab('spellsKnown', tabs, this.item.system?.spellcasting?.class !== "__not_spellcaster__");
 				tabs.tabs.push({ id: 'description', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.description', cssClass: "navigation-tab" })
 				tabs.tabs.push({ id: 'source', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.source', cssClass: "navigation-tab" })
 				break;
@@ -173,6 +169,12 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 				break;
 			case "language":
 				tabs.tabs.push({ id: 'languageDetails', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.details', cssClass: "navigation-tab active" })
+				tabs.tabs.push({ id: 'description', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.description', cssClass: "navigation-tab" })
+				tabs.tabs.push({ id: 'source', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.source', cssClass: "navigation-tab" })
+				break;
+			case "magic-power":
+				tabs.tabs.push({ id: 'magicPowerDetails', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.details', cssClass: "navigation-tab active" })
+				tabs.tabs.push({ id: 'effects', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.effects', cssClass: "navigation-tab" })
 				tabs.tabs.push({ id: 'description', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.description', cssClass: "navigation-tab" })
 				tabs.tabs.push({ id: 'source', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.source', cssClass: "navigation-tab" })
 				break;
@@ -212,12 +214,6 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 				tabs.tabs.push({ id: 'description', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.description', cssClass: "navigation-tab" })
 				tabs.tabs.push({ id: 'source', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.source', cssClass: "navigation-tab" })
 				break;
-			case "magic-power":
-				tabs.tabs.push({ id: 'magicPowerDetails', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.details', cssClass: "navigation-tab active" })
-				tabs.tabs.push({ id: 'effects', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.effects', cssClass: "navigation-tab" })
-				tabs.tabs.push({ id: 'description', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.description', cssClass: "navigation-tab" })
-				tabs.tabs.push({ id: 'source', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.source', cssClass: "navigation-tab" })
-				break;
 			case "scroll":
 				tabs.tabs.push({ id: 'scrollDetails', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.details', cssClass: "navigation-tab active" })
 				tabs.tabs.push({ id: 'description', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.description', cssClass: "navigation-tab" })
@@ -242,13 +238,27 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 				break;
 			case "weapon":
 				tabs.tabs.push({ id: 'weaponDetails', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.details', cssClass: "navigation-tab active" })
-				if (this.item.system.magicItem)
-					tabs.tabs.push({ id: 'effects', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.effects', cssClass: "navigation-tab" })
+				this.assertVariableTab('effects', tabs, this.item.system.magicItem);
 				tabs.tabs.push({ id: 'description', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.description', cssClass: "navigation-tab" })
 				tabs.tabs.push({ id: 'source', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.source', cssClass: "navigation-tab" })
 				break;
 		}
 		return tabs;
+	}
+
+	assertVariableTab(tabId, tabs, toggleProperty) {
+		if (toggleProperty)
+		{
+			const effectsTab = { id: tabId, group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.' + tabId, cssClass: "navigation-tab" };
+			tabs.tabs.push(effectsTab)
+			if (this.tabs && !this.tabs[tabId])
+				this.tabs[tabId] = effectsTab;
+		}
+		else
+		{
+			if (this.tabs && this.tabs[tabId])
+				delete this.tabs[tabId];
+		}
 	}
 
 	async getTitle() {
@@ -633,14 +643,14 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		switch (partId)
 		{
 			case "tabs":
+				const tabsArray = this._getTabsConfig('sheet').tabs;
+				let newTabs = tabsArray.reduce((acc, tab) => {
+					acc[tab.id] = tab;
+					return acc;
+				}, {});
 				if (!this.tabs)
-				{
-					const tabsArray = this._getTabsConfig('sheet').tabs;
-					this.tabs = tabsArray.reduce((acc, tab) => {
-						acc[tab.id] = tab;
-						return acc;
-					}, {});
-				}
+					this.tabs = newTabs;
+
 				context.tabs = this.tabs;
 				break;
 			case "ancestryDetails":
@@ -657,7 +667,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			case "class":
 				await this.getSheetDataForClassItem(context);
 				break;
-			case "effect":
+			case "effectDetails":
 				await this.getSheetDataForEffectItem(context);
 				break;
 			case "npcAttack":
@@ -849,6 +859,9 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 	async getSheetDataForEffectItem(context) {
 		context.variableDuration = CONFIG.SHADOWDARK.VARIABLE_DURATIONS
 			.includes(context.item.system.duration.type);
+
+		if (context.item.typeSlug === 'magic-power' && context.item.effects && (context.item.effects.contents ?? []).length > 0)
+			context.showEffectChanges = true;
 	}
 
 

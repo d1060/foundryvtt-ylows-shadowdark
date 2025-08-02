@@ -41,7 +41,7 @@
         {{#if spell.duration}}<div class="parameter-description">{{localize "SHADOWDARK.item.spell_duration"}} {{spell.duration}}</div>{{/if}}
         {{#if spell.effect.range}}<div class="parameter-description">{{localize "SHADOWDARK.britannian_spell.range"}} {{spell.effect.range}}</div>{{/if}}
         {{#if spell.creature}}<div class="parameter-description selected-creature">{{localize "SHADOWDARK.britannian_spell.creature"}} <img class="BritannianSpell-EffectImage" style="border: 0; height: 20px" src="{{spell.creature.img}}"> <a class="content-link uuid-link" data-link data-type="Actor" data-uuid="{{spell.creatureUuid}}" data-tooltip="{{spell.creature.description}}">{{spell.creature.name}}</a></div>{{/if}}
-        {{#if spell.damage}}<div class="parameter-description">{{localize "SHADOWDARK.item.damage"}} {{spell.damage}}</div>{{/if}}
+        {{#if spell.damage}}<div class="parameter-description">{{#if spell.effect.isHealing}}{{localize "SHADOWDARK.item.healing"}}{{else}}{{localize "SHADOWDARK.item.damage"}}{{/if}} {{spell.damage}}</div>{{/if}}
         {{#if hasInWord}}
         <div class="modifier-word-selection">
             <span>{{localize 'SHADOWDARK.britannian_spell.inWordEffect'}}</span>

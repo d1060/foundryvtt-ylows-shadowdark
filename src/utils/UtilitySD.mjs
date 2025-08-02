@@ -527,7 +527,11 @@ export default class UtilitySD {
 
     static multiplyDamage(damage, factor) {
 		if (!damage.includes('d'))
-			return damage;
+		{
+			let damageInt = parseInt(damage);
+			damageInt *= factor;
+			return damageInt;
+		}
 		if (factor <= 0)
 			return '';
 
@@ -538,8 +542,11 @@ export default class UtilitySD {
 	}
 
 	static addDamageDie(damage, numdie) {
-		if (!damage.includes('d'))
-			return damage;
+		if (typeof damage !== 'string' || !damage.includes('d'))
+		{
+			let damageInt = parseInt(damage);
+			return damageInt + numdie;
+		}
 		if (numdie <= 0)
 			return damage;
 
@@ -550,7 +557,7 @@ export default class UtilitySD {
 	}
 
 	static enhanceDamageDie(damage, increases) {
-		if (!damage.includes('d'))
+		if (typeof damage !== 'string' || !damage.includes('d'))
 			return damage;
 		if (increases <= 0)
 			return damage;
@@ -572,28 +579,36 @@ export default class UtilitySD {
 	}
 
     static addDamage(damage1, damage2) {
-		if (!damage1.includes('d') && !damage2.includes('d'))
-			return '';
-		if (!damage1.includes('d'))
-			return damage2;
-		if (!damage2.includes('d'))
-			return damage1;
-
-		const parts1 = damage1.split('d');
-		const parts2 = damage2.split('d');
-
-		const numDice1 = parseInt(parts1[0]);
-		const numDice2 = parseInt(parts2[0]);
-
-		const dieType1 = parseInt(parts1[1]);
-		const dieType2 = parseInt(parts2[1]);
-
-		if (dieType1 === dieType2)
+		if (typeof damage1 === 'string' && damage1.includes('d') && typeof damage2 === 'string' && damage2.includes('d'))
 		{
-			parts1[0] = numDice1 + numDice2;
-			return parts1.join('d');
+			const parts1 = damage1.split('d');
+			const parts2 = damage2.split('d');
+
+			const numDice1 = parseInt(parts1[0]);
+			const numDice2 = parseInt(parts2[0]);
+
+			const dieType1 = parseInt(parts1[1]);
+			const dieType2 = parseInt(parts2[1]);
+
+			if (dieType1 === dieType2)
+			{
+				parts1[0] = numDice1 + numDice2;
+				return parts1.join('d');
+			}
+			return damage1 + '+' + damage2;
 		}
-		return damage1 + '+' + damage2;
+		else if (typeof damage1 === 'string' && damage1.includes('d'))
+		{
+			return damage1 + '+' + damage2;
+		}
+		else if (typeof damage2 === 'string' && damage2.includes('d'))
+		{
+			return damage2 + '+' + damage1;
+		}
+
+		let damageInt1 = parseInt(damage1);
+		let damageInt2 = parseInt(damage2);
+		return damageInt1 + damageInt2;
 	}
 
 	static isObject(value) {

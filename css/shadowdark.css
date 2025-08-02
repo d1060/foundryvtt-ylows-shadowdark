@@ -2465,3 +2465,14 @@ picture {
   line-height: 20px;
   height: 22px;
 }
+.shadowdark.sheet .effect-increases-area .effect-input {
+  text-align: center;
+  font-size: 13px;
+  height: 18px;
+}
+
+.shadowdark.sheet .effect-increases-area {
+  display: grid;
+  column-gap: 5px;
+  grid-template-columns: 30px 85px 100px 165px 65px 100px;
+}

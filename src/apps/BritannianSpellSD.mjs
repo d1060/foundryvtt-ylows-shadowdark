@@ -692,13 +692,21 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
     static getSpellDamage(spell) {
         if (spell.effect.damage)
         {
+            let damage = spell.effect.damage;
+            if (damage.startsWith('-'))
+            {
+                spell.effect.isHealing = true;
+                damage = damage.replace('-', '');
+            }
+
             const spellCircle = BritannianSpellSD.spellCircle(spell);
             let extraLevels = spellCircle;
             if (spell.effect.powerLevel != "*")
                 extraLevels = spellCircle - parseInt(spell.effect.powerLevel ?? '0');
 
-            let damage = spell.effect.damage;
-            const damageIncrease = spell.effect.damage_increase;
+            let damageIncrease = spell.effect.damage_increase;
+            if (spell.effect.isHealing)
+                damageIncrease = damageIncrease.replace('-', '');
             const damage_increase_step = parseInt(spell.effect.damage_increase_step);
             let increases = Math.floor(extraLevels / damage_increase_step);
             increases += this.getDamageIncreasesByWord(spell);
@@ -741,10 +749,6 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             return resistance;
         }
         return null;
-    }
-
-    static getSpellHealing(spell) {
-
     }
 
     static getSpellCreature(spell) {
