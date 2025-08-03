@@ -15,7 +15,7 @@ export default class LootSD extends HandlebarsApplicationMixin(ApplicationV2) {
     	tag: "form",
 		classes: ["app", "window-app", "shadowdark", 'themed', 'theme-light'],
 		position: {
-    		width: 800,
+    		width: "auto",
     		height: "auto"
   		},
 		window: {
@@ -146,12 +146,25 @@ export default class LootSD extends HandlebarsApplicationMixin(ApplicationV2) {
 		event.dataTransfer.setData("text/plain", JSON.stringify(
 			{
 				type: "Item",
-				uuid: uuid,
-				isLootItem: lootItem.isLootItem,
-				name: lootItem.name,
-				lootDescription: lootItem.lootDescription,
-				lootProperties: lootItem.lootProperties,
-				magic_charges: lootItem.magic_charges,
+				data: {
+					type: lootItem.type,
+					img: lootItem.img,
+					uuid: uuid,
+					isLootItem: lootItem.isLootItem,
+					name: lootItem.name,
+					system: {
+						description: lootItem.lootDescription,
+						fromLoot: {
+							uuid: uuid,
+							description: lootItem.lootDescription,
+							properties: lootItem.lootProperties,
+							magic_charges: lootItem.magic_charges,
+						}
+					},
+					lootDescription: lootItem.lootDescription,
+					lootProperties: lootItem.lootProperties,
+					magic_charges: lootItem.magic_charges,
+				}
 			}));
 
 		//super._onDragStart(event);

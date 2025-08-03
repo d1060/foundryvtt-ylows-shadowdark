@@ -741,13 +741,12 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 
 	/** @override */
 	async _prepareContext(options) {
-		const context = await super._prepareContext(options);
-
-		let loadingDialog;
 		if (this.firstLoad) {
 			this.firstLoad = false;
-			loadingDialog = await new shadowdark.apps.LoadingSD().render(true);
+			this.loadingDialog = await new shadowdark.apps.LoadingSD().render(true);
 		}
+
+		const context = await super._prepareContext(options);
 
 		context.item = this.item;
 
@@ -782,8 +781,6 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			await this[itemTypeFunctionName](context);
 		}
 
-		if (loadingDialog) await loadingDialog.close({force: true});
-		
 		if (!this.item.system.requirements || this.item.system.requirements.length === 0)
 			context.requirementsChosen = false;
 		else
@@ -792,6 +789,15 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		return context;
 	}
 
+	async _onFirstRender(context, options)
+	{
+		// loading is finished, pull down the loading screen
+		if (this.loadingDialog)
+		{
+			this.loadingDialog.close({force: true});
+			this.loadingDialog = null;
+		} 
+	}
 
 	// ------------------------------------------------------------------------
 	// Type-specific methods are used to gather any additional data necessary
@@ -857,8 +863,9 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 
 
 	async getSheetDataForEffectItem(context) {
-		context.variableDuration = CONFIG.SHADOWDARK.VARIABLE_DURATIONS
-			.includes(context.item.system.duration.type);
+		if (context.item.system.duration)
+			context.variableDuration = CONFIG.SHADOWDARK.VARIABLE_DURATIONS
+				.includes(context.item.system.duration.type);
 
 		if (context.item.typeSlug === 'magic-power' && context.item.effects && (context.item.effects.contents ?? []).length > 0)
 			context.showEffectChanges = true;
@@ -999,10 +1006,14 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		const fp = new foundry.applications.apps.FilePicker({
 			type: "image",
 			current: current,
-			callback: (path) => this.document.update({ [field]: path })
+			callback: (path) => {
+				this.item[field] = path;
+				this.document.update({ [field]: path });
+				this.render();
+			}
 		});
 
-		fp.render(true);
+		await fp.render(true);
 	}
 
 	/**
@@ -1381,7 +1392,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			default:
 				break;
 		}
-		//this.render(true);
+		this.render();
 	}
 
 	_onTalentTypeProperties(event) {

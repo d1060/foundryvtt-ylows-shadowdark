@@ -237,7 +237,10 @@ export default class ActorSD extends Actor {
 			);
 		}
 		else {
-			return this.system.abilities[ability].mod;
+			if (!this.system || !this.system.abilities || !this.system.abilities[ability])
+				return 0;
+
+			return this.system.abilities[ability].mod ?? 0;
 		}
 	}
 
@@ -2212,7 +2215,7 @@ export default class ActorSD extends Actor {
 	}
 
 	async setRollDamage(data, options, damageMultiplier) {
-		if (!data.item.system.damage.value) data.item.system.damage.value = options.baseDamage;
+		data.item.system.damage.value = options.baseDamage;
 
 		let baseDamage = options.baseDamage;
 		let dualWeapon = '';
@@ -2270,6 +2273,9 @@ export default class ActorSD extends Actor {
 		if (options.handedness === '2h')
 			damageDie = data.item.system.damage.twoHanded;
 		if (damageDie == null) damageDie = 'd' + baseDamageDieType;
+		let damageDieParts = damageDie.split('d');
+		if (damageDieParts.length > 1)
+			damageDie = 'd' + damageDieParts[1];
 
 		// Improve the base damage die if this weapon has the relevant property
 		const weaponDamageDieImprovementByProperty = this.system.bonuses?.weaponDamageDieImprovementByProperty ?? [];

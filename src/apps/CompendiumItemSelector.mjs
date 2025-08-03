@@ -80,7 +80,7 @@ export default class CompendiumItemSelector extends HandlebarsApplicationMixin(A
 			this._autoCloseWhenRendered();
 		}
 
-		await loadingDialog.close({force: true});
+		loadingDialog.close({force: true});
 	}
 
 	async decorateName(item) {

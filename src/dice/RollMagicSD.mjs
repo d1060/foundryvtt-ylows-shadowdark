@@ -54,6 +54,7 @@ export default class RollMagicSD extends HandlebarsApplicationMixin(ApplicationV
 		context.rollMode =  this.rollMode;
 		context.data = this.data;
 		context.targetName = this.targetName;
+		context.isSpell = this.params.isSpell;
 
 		return context;
 	}
@@ -198,6 +199,8 @@ export default class RollMagicSD extends HandlebarsApplicationMixin(ApplicationV
 		this.params.title = this.title;
 
 		var rollResult = await CONFIG.DiceSD.Roll(this.rollParts, this.data, event.currentTarget, advantage, this.params);
+		if (!rollResult.power)
+			rollResult.power = this.params.power;
 		this.close();
 		if (this.callback)
 			this.callback(rollResult);

@@ -160,7 +160,7 @@ export default class RollSD extends Roll {
 			}
 		}
 		
-		if (data.auraMagic || data.abyssalMagic || data.mistMagic || data.nanoMagic)
+		if (data.auraMagic || data.abyssalMagic || data.mistMagic || data.nanoMagic || data.rollType.includes('-magic'))
 		{
 			var damage = data.damage;
 			if (damage && (typeof damage === 'string' || damage instanceof String) && damage.includes("d"))
@@ -744,7 +744,14 @@ export default class RollSD extends Roll {
 		let numDice = parseInt(damageParts[0]);
 
 		let damageDie1H = data.item.system.damage.oneHanded ?? false;
+		let damageDieParts1H = damageDie1H.split('d');
+		if (damageDieParts1H.length > 1)
+			damageDie1H = 'd' + damageDieParts1H[1];
+
 		let damageDie2H = data.item.system.damage.twoHanded ?? false;
+		let damageDieParts2H = damageDie2H.split('d');
+		if (damageDieParts2H.length > 1)
+			damageDie2H = 'd' + damageDieParts2H[1];
 
 		// Improve the base damage die if this weapon has the relevant property
 		const weaponDamageDieImprovementByProperty =

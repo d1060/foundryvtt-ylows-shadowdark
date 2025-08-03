@@ -192,7 +192,8 @@
 				"description": "",
 				"source": {
 					"title": ""
-				}
+				},
+				"fromLoot": {}
 			},
 			"languageChoices": {
 				"languages": {

@@ -4,6 +4,7 @@ import * as select from "../apps/CompendiumItemSelectors/_module.mjs";
 const { HandlebarsApplicationMixin } = foundry.applications.api
 const { ActorSheetV2 } = foundry.applications.sheets
 export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV2) {
+	firstLoad = true;
 
 	constructor(object) {
 		super(object);
@@ -38,6 +39,11 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 
 	/** @override */
 	async _prepareContext(options) {
+		if (this.firstLoad) {
+			this.firstLoad = false;
+			this.loadingDialog = await new shadowdark.apps.LoadingSD().render(true);
+		}
+
 		const source = this.actor.toObject();
 		const actorData = this.actor.toObject(false);
 
@@ -87,6 +93,12 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
       		parentClassHooks: false,
       		fixed: true,
     	});
+
+		if (this.loadingDialog)
+		{
+			this.loadingDialog.close({force: true});
+			this.loadingDialog = null;
+		}
 	}
 
 	_getActorOverrides() {
@@ -183,7 +195,12 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 	}
 
 	async _effectDropNotAllowed(data) {
-		const item = await fromUuid(data.uuid);
+		var item = data;
+		if (data.uuid)
+		{
+			let uuidItem = await fromUuid(data.uuid);
+			if (uuidItem) item = uuidItem;
+		}
 
 		if (item.type === "Effect") {
 			if (item.system.duration.type === "rounds" && !game.combat) {
@@ -212,8 +229,7 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 	async _onDropItem(event, data) {
 		if (await this._effectDropNotAllowed(data)) return false;
 
-		await super._onDropItem(event, data);
-		const newItem = this.actor.getEmbeddedDocument(data.documentName, data.id);
+		const newItem = await super._onDropItem(event, data);
 
 		return [newItem];
 	}
@@ -225,7 +241,11 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 		const fp = new foundry.applications.apps.FilePicker({
 			type: "image",
 			current: current,
-			callback: (path) => this.document.update({ [field]: path })
+			callback: (path) => {
+				this.actor[field] = path;
+				this.document.update({ [field]: path });
+				this.render();
+			}
 		});
 
 		fp.render(true);

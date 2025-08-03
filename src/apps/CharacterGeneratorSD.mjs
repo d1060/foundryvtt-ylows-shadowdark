@@ -233,7 +233,7 @@ export default class CharacterGeneratorSD extends HandlebarsApplicationMixin(App
 			this.firstrun = false;
 
 			// Put up a loading screen as compendium searching can take a while
-			const loadingDialog = await new shadowdark.apps.LoadingSD().render(true);
+			this.loadingDialog = await new shadowdark.apps.LoadingSD().render(true);
 
 			// Initialize Alignment
 			this.formData.alignments = CONFIG.SHADOWDARK.ALIGNMENTS;
@@ -304,15 +304,20 @@ export default class CharacterGeneratorSD extends HandlebarsApplicationMixin(App
 				this.formData.actor.system.class = "";
 				await this._loadAncestry(this.formData.actor.system.ancestry, true);
 			}
-
-			// loading is finished, pull down the loading screen
-			await loadingDialog.close({force: true});
 		}
 
-		// format talents
 		return this.formData;
 	}
 
+	async _onFirstRender(context, options)
+	{
+		// loading is finished, pull down the loading screen
+		if (this.loadingDialog)
+		{
+			this.loadingDialog.close({force: true});
+			this.loadingDialog = null;
+		} 
+	}
 
 	_addAncestryTalent(uuid) {
 		let talentObj = this.formData.ancestryTalents.choice.find(x => x.uuid === uuid);

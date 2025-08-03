@@ -12,6 +12,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
     setOptions(options) {
         this.actor = options.actor;
         this.type = options.type;
+        this.castType = options.spell ? 'written' : 'freecast'; 
         this.spell = options.spell ?? { runes: options.actor.system.britannian_magic.selected_runes, uuid: UtilitySD.generateUUID() };
     }
 
@@ -33,7 +34,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             selectRune: this.#onSelectRune,
             selectEffect: this.#onSelectEffect,
             selectCreature: this.#onSelectCreature,
-            castSpell: this.#castSpell,
+			castBritannianSpell: this.#castSpell,
             scribepell: this.#scribepell,
 		},
 		form: {
@@ -376,6 +377,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
     static async #castSpell(event, target) {
         BritannianMagicSD.unselectAllRunes(this.actor);
         this.close();
+        BritannianMagicSD._onCastSpell(event, this.actor, this.actor.sheet, target, this.castType, this.spell);
     }
 
     static async #scribepell(event, target) {
@@ -447,12 +449,21 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
     }
 
     async getAvailableEffects() {
+
+        let selectedExclusiveRunes = [];
+        for (let exclusiveRune of BritannianMagicSD.exclusiveRunes)
+        {
+            if (this.actor.system.britannian_magic.selected_runes.some(r => r.uuid === exclusiveRune.uuid))
+                selectedExclusiveRunes.push(exclusiveRune);
+        }
+
         let allMagicEffects = await shadowdark.compendiums.britannianMagicEffects();
         let availableEffects = [];
         for (let effectUuid of allMagicEffects)
         {
             let effect = await fromUuid(effectUuid);
             let hasAllRunes = true;
+            let effectRequiredExclusiveRunes = [];
             for (let rune of effect.system.runes)
             {
                 if (!this.actor.system.britannian_magic.selected_runes.some(r => r.uuid === rune))
@@ -460,9 +471,25 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
                     hasAllRunes = false;
                     break;
                 }
+                if (BritannianMagicSD.exclusiveRunes.some(r => r.uuid === rune))
+                    effectRequiredExclusiveRunes.push(rune);
             }
             if (!hasAllRunes)
                 continue;
+            if (effectRequiredExclusiveRunes.length > 0 || selectedExclusiveRunes.length > 0)
+            {
+                let hasAllExclusiveRunes = true;
+                for (let exclusiveRune of selectedExclusiveRunes)
+                {
+                    if (!effectRequiredExclusiveRunes.some(r => r === exclusiveRune.uuid))
+                    {
+                        hasAllExclusiveRunes = false;
+                        break;
+                    }
+                }
+                if (!hasAllExclusiveRunes)
+                    continue;
+            }
 
             if (/^\d+$/.test(effect.system.powerLevel))
             {

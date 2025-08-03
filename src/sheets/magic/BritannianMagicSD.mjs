@@ -29,6 +29,11 @@ export default class BritannianMagicSD {
         {uuid: 'britannian-rune-ylem', name: 'ylem'},
         {uuid: 'britannian-rune-zu', name: 'zu'}];
 
+    static exclusiveRunes = [ // Exclusive runed prevent effects from being available unless the user speficically selected them.
+        {uuid: 'britannian-rune-an', name: 'an'},
+        {uuid: 'britannian-rune-bet', name: 'bet'},
+    ];
+
 	static async addEventListeners(sheet) {
 		if (!game.settings.get("shadowdark", "use_britannianRuneMagic"))
 			return;
@@ -338,12 +343,78 @@ export default class BritannianMagicSD {
         await this.britannianSpell.render(true);
 	}
 
-	static async _onCastWrittenSpell(event, actor, sheet, target) {
+	static async _onCastSpell(event, actor, sheet, target, type, spell) {
         const spellUuid = target.dataset.spellUuid;
         const spellbook = await actor.equippedSpellBook();
-        if (!spellbook) return;
-        const spell = spellbook.system.spells.find(s => s.uuid == spellUuid);
+        if (!spellbook && type != 'freecast') return;
+        if (!spell && type != 'freecast')
+            spell = spellbook.system.spells.find(s => s.uuid == spellUuid);
+
         if (!spell) return;
+
+        let castingBonus = actor.system.abilities.int.mod;
+        if (actor.system.bonuses.spellcastingCheckBonus)
+            castingBonus += actor.system.bonuses.spellcastingCheckBonus;
+
+        let spellDC = 9 + shadowdark.apps.BritannianSpellSD.spellCircle(spell);
+		const options = {
+            isSpell: true,
+			magicCoreLevel: castingBonus,
+            spellDC,
+            target: spellDC,
+			magicType: 'britannian-magic',
+            spellName: spell.name,
+            powerLevel: shadowdark.apps.BritannianSpellSD.spellCircle(spell),
+            duration_desc: spell.duration ?? 'Instant',
+            advantage: 0,
+            power: spell,
+            callback: type == 'freecast' ? this._freeCastCallback :  this._writtenCastCallback,
+		};
+		
+		actor.rollMagic(castingBonus, options);
+    }
+
+    static async _freeCastCallback(result) {
+		const resultMargin = result.rolls.main.roll._total - result.spellDC;
+        if (resultMargin < 0)
+        {
+            const spell = result.power;
+            const actor = result.actor;
+            if (!spell || !actor)
+                return;
+            for (let spellRune of spell.runes ?? [])
+            {
+                for (let i = 0; i < actor.system.britannian_magic.runes.length; i++)
+                {
+                    if (actor.system.britannian_magic.runes[i].uuid === spellRune.uuid)
+                        actor.system.britannian_magic.runes[i].lost = true;
+                }
+            }
+			actor.update({"system.britannian_magic": actor.system.britannian_magic});
+        }
+    }
+    
+    static async _writtenCastCallback(result) {
+		const resultMargin = result.rolls.main.roll._total - result.spellDC;
+        if (resultMargin < 0)
+        {
+            const spell = result.power;
+            const actor = result.actor;
+            if (!spell || !actor)
+                return;
+            const spellbook = await actor.equippedSpellBook();
+            if (!spellbook) return;
+            
+            const writtenSpell = spellbook.system.spells.find(s => s.uuid == spell.uuid);
+            if (!writtenSpell) return;
+            writtenSpell.lost = true;
+            await actor.updateEmbeddedDocuments("Item", [
+                {
+                    "_id": spellbook.id,
+                    "system.spells": spellbook.system.spells
+                },
+            ]);
+        }
     }
 
 	static async _onEditWrittenSpell(event, actor, sheet, target) {

@@ -94,6 +94,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			britannianSpellbookRightFlip: this.#onFlipSpellBookRight,
 			castBritannianMagic: this.#onCastBritannianMagic,
 			writeBritannianMagic: this.#onWriteBritannianMagic,
+			castBritannianSpell: this.#onCastBritannianSpell,
 			castWrittenSpell: this.#onCastWrittenSpell,
 			editWrittenSpell: this.#onEditWrittenSpell,
 			eraseWrittenSpell: this.#onEraseWrittenSpell,
@@ -378,7 +379,17 @@ export default class PlayerSheetSD extends ActorSheetSD {
 	 * @returns {Promise<any>}
 	 */
 	async _onDropItemSD(event, data) {
-		var item = await fromUuid(data.uuid);
+		var item = data;
+		if (data.uuid)
+		{
+			let uuidItem = await fromUuid(data.uuid);
+			if (uuidItem) item = uuidItem;
+		}
+		else if (data.system.fromLoot?.uuid)
+		{
+			let uuidItem = await fromUuid(data.system.fromLoot?.uuid);
+			if (uuidItem) item = uuidItem;
+		}
 
 		if (item.type === "Spell") return this._createItemFromSpellDialog(item);
 
@@ -467,9 +478,8 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			);
 		}
 		else {
-			var newItems = await super._onDropItem(event, data);
-			//var newItem = newItems.find(i => i.uuid == );
-			if (newItems.length > 0 && data.isLootItem)
+			var newItems = await super._onDropItem(event, item);
+			if (newItems.length > 0 && data.system.fromLoot.description)
 				await this._updateLootItem(newItems[0], data);
 		}
 	}
@@ -477,26 +487,28 @@ export default class PlayerSheetSD extends ActorSheetSD {
 	async _updateLootItem(item, data) {
 		item.name = data.name;
 		item.update({"name": data.name});
-		if (data.lootDescription)
-			item.system.description += data.lootDescription;
-		item.update({"system.description": item.system.description});
-		if (data.magic_charges && data.magic_charges > 0)
+		if (data.system.fromLoot.description)
 		{
-			item.system.max_magic_charges = data.magic_charges;
+			item.system.description += data.system.fromLoot.description;
+			item.update({"system.description": item.system.description});
+		}
+		if (data.system.fromLoot.magic_charges && data.system.fromLoot.magic_charges > 0)
+		{
+			item.system.max_magic_charges = data.system.fromLoot.magic_charges;
 			item.update({"system.max_magic_charges": item.system.max_magic_charges});
 		}
-		if (data.lootProperties)
+		if (data.system.fromLoot.properties)
 		{ 
 			if (data.type === "Weapon" || data.type === "Armor")
 			{
-				for (let property of data.lootProperties)
+				for (let property of data.system.fromLoot.properties)
 				{
 					await item.addProperty(property.uuid);
 				}
 			}
 			else
 			{
-				for (let property of data.lootProperties)
+				for (let property of data.system.fromLoot.properties)
 				{
 					const effectData = [
 						{
@@ -1590,8 +1602,12 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		BritannianMagicSD._onWriteBritannianMagic(event, this.actor, this, target);
 	}
 
+	static async #onCastBritannianSpell(event, target) {
+		BritannianMagicSD._onCastSpell(event, this.actor, this, target, 'freecast');
+	}
+
 	static async #onCastWrittenSpell(event, target) {
-		BritannianMagicSD._onCastWrittenSpell(event, this.actor, this, target);
+		BritannianMagicSD._onCastSpell(event, this.actor, this, target, 'written');
 	}
 
 	static async #onEditWrittenSpell(event, target) {

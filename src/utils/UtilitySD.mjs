@@ -599,11 +599,19 @@ export default class UtilitySD {
 		}
 		else if (typeof damage1 === 'string' && damage1.includes('d'))
 		{
-			return damage1 + '+' + damage2;
+			let damageInt2 = parseInt(damage2);
+			if (damageInt2 > 0)
+				return damage1 + '+' + damage2;
+			else
+				return damage1;
 		}
 		else if (typeof damage2 === 'string' && damage2.includes('d'))
 		{
-			return damage2 + '+' + damage1;
+			let damageInt1 = parseInt(damage1);
+			if (damageInt1 > 0)
+				return damage2 + '+' + damage1;
+			else
+				return damage2;
 		}
 
 		let damageInt1 = parseInt(damage1);

@@ -2190,6 +2190,10 @@ picture {
   line-height: 21px;
 }
 
+.shadowdark-dialog .form-footer button span {
+  margin: auto;
+}
+
 .shadowdark-dialog .pc-backstab-class {
   display: grid;
   grid-template-columns: 1fr min-content;
@@ -2475,4 +2479,11 @@ picture {
   display: grid;
   column-gap: 5px;
   grid-template-columns: 30px 85px 100px 165px 65px 100px;
+}
+
+.application.sheet.roll-table-sheet {
+  background-color: rgba(11, 10, 19, 0.9);
+  background-image: url(/ui/denim075.png);
+  color: rgb(240, 240, 224);
+  justify-content: flex-start;
 }
