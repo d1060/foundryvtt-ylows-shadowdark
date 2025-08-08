@@ -4,6 +4,7 @@ async function addPickUpButton(hud, hudHTML, _hudData) {
 	const token = hud.object.document;
 	const actor = game.actors.get(hud.object.document.actorId);
 	// Check if token belongs to a Light actor
+	if (!actor) return;
 	if (actor.type === "Light") return;
 	if (actor.type !== "Armor" && actor.type !== "Weapon" && actor.type !== "Potion" && actor.type !== "Basic" && actor.type !== "Gem" && actor.type !== "Scroll" && actor.type !== "Wand") return;
 
@@ -35,7 +36,7 @@ export const DropItemHooks = {
 		Hooks.on("renderTokenHUD", (app, html, data) => {
 			addPickUpButton(app, html, data);
 		});
-
+		
 		Hooks.on("dropCanvasData", async (canvas, data) => {
 
 			// Create the item on the actor if it was an effect
@@ -61,6 +62,8 @@ export const DropItemHooks = {
 								scaleX: 0.5,
 								scaleY: 0.5,
 							},
+							name: item.name,
+							displayName: 50,
 						},
 						ownership: { default: 3 }, // Everyone is owner
 					};

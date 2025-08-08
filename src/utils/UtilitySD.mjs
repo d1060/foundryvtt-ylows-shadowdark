@@ -15,6 +15,28 @@ export default class UtilitySD {
 			return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
 		});
 	}
+
+	static toDom(value, asHtml = false) {
+		const isJQ = value instanceof jQuery;
+
+		const node = isJQ ? value[0] ?? null
+							: value instanceof Node ? value
+							: null;
+
+		if (!node) return value;
+
+		return asHtml ? node.outerHTML : node;
+	}
+
+	static isNumeric(str) {
+		if (typeof str !== 'string' || str.length === 0) return false;
+
+		for (let i = 0, len = str.length; i < len; ++i) {
+			const code = str.charCodeAt(i) - 48;
+			if (code >>> 0 > 9) return false;
+		}
+		return true;
+	}
 	
 	// Checks that the current user has permissions to create Actors
 	//

@@ -2,6 +2,8 @@ export default function() {
 	const partials = [
 		"systems/shadowdark/templates/_partials/predefined-effects-selector.hbs",
 		"systems/shadowdark/templates/actors/_partials/effects.hbs",
+		"systems/shadowdark/templates/actors/_partials/effects/active-britannian-spell.hbs",
+		"systems/shadowdark/templates/actors/_partials/effects/active-britannian-spells.hbs",
 		"systems/shadowdark/templates/actors/_partials/effects/active-effect.hbs",
 		"systems/shadowdark/templates/actors/_partials/effects/active-effects.hbs",
 		"systems/shadowdark/templates/actors/_partials/effects/effects-and-conditions.hbs",

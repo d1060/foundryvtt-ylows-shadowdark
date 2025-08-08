@@ -49,7 +49,11 @@
 {{#if data.damage}}
 		<div class="form-group" style="display: grid; grid-column-gap: 3px; grid-template-columns: 170px 1fr;">
 			<label>
-				{{localize "SHADOWDARK.item.damage"}}
+				{{#if data.isHealing}}
+					{{localize "SHADOWDARK.item.healing"}}
+				{{else}}
+					{{localize "SHADOWDARK.item.damage"}}
+				{{/if}}
 			</label>
 			<input type="text" name="data.damage" value="{{data.damage}}" placeholder="0">
 		</div>

@@ -1,0 +1,37 @@
+<div style="height:8px"></div>
+{{#> ui/sd-hideable-section
+	sectionId="activeSpells"
+	sectionTitle=(localize "SHADOWDARK.app.active_spells.title")
+}}
+	<ol class="SD-list">
+		<li class="header">
+			<a
+				class="spell-control"
+				data-action="castBritannianMagic"
+				style="padding:4px; width: 24px;"
+			>
+				<i class="fa-solid fa-square-plus"></i>
+			</a>
+
+			<h3 class="spell-name">
+				{{localize "SHADOWDARK.item.spell_name"}}
+			</h3>
+
+			<h3 class="spell-runes">
+				{{localize "SHADOWDARK.item.spell_runes"}}
+			</h3>
+
+			<h3 class="spell-duration">
+				{{localize "SHADOWDARK.item.spell_duration"}}
+			</h3>
+
+			<div class="actions"></div>
+		</li>
+
+		{{#each activeSpells as |spell|}}
+			{{> actors/_partials/effects/active-britannian-spell
+				spell=spell
+			}}
+		{{/each}}
+	</ol>
+{{/ui/sd-hideable-section}}

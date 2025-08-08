@@ -30,6 +30,7 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 
 	_hiddenSectionsLut = {
 		activeEffects: true,
+		activeSpells: true,
 	};
 
 	// Emulate a itom drop as it was on the sheet, when dropped on the canvas

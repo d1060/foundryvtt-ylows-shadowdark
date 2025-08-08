@@ -4,6 +4,7 @@ async function addTorchButton(hud, hudHTML, _hudData) {
 	const token = hud.object.document;
 	const actor = game.actors.get(hud.object.document.actorId);
 	// Check if token belongs to a Light actor
+	if (!actor) return;
 	if (actor.type !== "Light") return;
 
 	// Add button to HUD

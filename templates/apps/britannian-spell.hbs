@@ -1,6 +1,11 @@
 <section class="britannian-spell">
     <div class="parchment-content">
-        {{#if spellReady}}<div class="cast-spell" data-action="castBritannianSpell" data-spell-uuid="spell.uuid"></div>{{#if canScribeSpells}}<div class="scribe-spell {{#unless hasEquippedSpellbook}}disabled{{/unless}}" {{#if hasEquippedSpellbook}}data-action="scribepell"{{else}}data-tooltip="{{localize 'SHADOWDARK.britannian_spell.noSpellbook'}}"{{/if}}></div>{{/if}}{{/if}}
+        {{#if spellReady}}
+            <div class="cast-spell {{#if spellBlocked}}disabled{{/if}}" {{#unless spellBlocked}}data-action="castBritannianSpell"{{else}}data-tooltip="{{localize 'SHADOWDARK.britannian_spell.alreadySustaining'}}"{{/unless}} data-spell-uuid="spell.uuid"></div>
+        {{#if canScribeSpells}}
+            <div class="scribe-spell {{#unless hasEquippedSpellbook}}disabled{{/unless}}" {{#if hasEquippedSpellbook}}data-action="scribepell"{{else}}data-tooltip="{{localize 'SHADOWDARK.britannian_spell.noSpellbook'}}"{{/if}}></div>
+        {{/if}}
+        {{/if}}
         <div style="display: flex; justify-content: center; padding-top: 10px; gap: 6px;">
             {{#each runes as |rune|}}
             <div class="selected-rune" data-action="increaseRune" data-rune="{{rune.name}}">

@@ -209,6 +209,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
         }
 
         context.spellReady = await this.isSpellReady(context);
+        context.spellBlocked = await this.isSustainedSpellWhileConcentrating(context);
         context.hasEquippedSpellbook = (await this.actor.equippedSpellBook()) != null;
 
         return context;
@@ -640,6 +641,22 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             return false;
 
         return true;
+    }
+
+    async isSustainedSpellWhileConcentrating(context) {
+        context.isSustainingASpell = false;
+        for (let active_spell of this.actor.system.britannian_magic.active_spells ?? [])
+        {
+            if (active_spell.duration === 'sustained')
+            {
+                context.isSustainingASpell = true;
+                break;
+            }
+        }
+
+        if (this.spell.effect?.duration === 'sustained' && context.isSustainingASpell)
+            return true;
+        return false;
     }
 
     static spellCircle(spell) {

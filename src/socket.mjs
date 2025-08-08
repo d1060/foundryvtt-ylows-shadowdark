@@ -1,3 +1,5 @@
+import BritannianMagicSD from "./sheets/magic/BritannianMagicSD.mjs";
+
 export default function listenOnSocket() {
 
 	game.socket.on("system.shadowdark", event => {
@@ -78,6 +80,30 @@ export default function listenOnSocket() {
 			if (!token) return;
 
 			CONFIG.DiceSD.applyDamageToToken(token._object, parseInt(event.data.damage));
+		}
+
+		if (event.type === "addSpellEffecstToActor" && game.user.isGM) {
+			var token = null;
+			for (const scene of game.scenes) {
+				token = scene.tokens.find(t => t.id === event.data.tokenId);
+				if (token)
+					break;
+			}
+			if (!token) return;
+
+			BritannianMagicSD.applyEffectsToToken(token, event.data.caster, event.data.effects, event.data.spellUuid);
+		}
+
+		if (event.type === "removeSpellEffecstFromActor" && game.user.isGM) {
+			var token = null;
+			for (const scene of game.scenes) {
+				token = scene.tokens.find(t => t.actor.uuid === event.data.tokenId);
+				if (token)
+					break;
+			}
+			if (!token) return;
+
+			BritannianMagicSD.removeEffectsFromToken(token.actor, event.data.caster, event.data.effects, event.data.spellUuid);
 		}
 
 		if (event.type === "showImage") {

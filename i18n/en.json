@@ -27,6 +27,7 @@
   "SHADOWDARK.ancestry.talents.prompt": "Select Talent...",
   "SHADOWDARK.level.talents.label": "Fixed Level Talents",
   "SHADOWDARK.level.talents.prompt": "Select Talent...",
+  "SHADOWDARK.app.active_spells.title": "Active Spells",
   "SHADOWDARK.app.active_effects.title": "Active Effects",
   "SHADOWDARK.app.gem_bag.sell_all": "Sell All Gems",
   "SHADOWDARK.app.gem_bag.title": "Gem Bag",
@@ -627,6 +628,7 @@
   "SHADOWDARK.item.source": "Source",
   "SHADOWDARK.item.spell_caster_classes": "Caster Classes",
   "SHADOWDARK.item.spell_class": "Spell Class",
+  "SHADOWDARK.item.spell_runes": "Runes",
   "SHADOWDARK.item.spell_duration": "Duration",
   "SHADOWDARK.item.spell_name": "Spell Name",
   "SHADOWDARK.item.spell_range": "Range",
@@ -799,6 +801,7 @@
   "SHADOWDARK.roll.disadvantage_title": "{title} with Disadvantage",
   "SHADOWDARK.roll.disadvantage": "Disadvantage",
   "SHADOWDARK.roll.failure": "Failure! ({value})",
+  "SHADOWDARK.roll.healing": "Healing Roll",
   "SHADOWDARK.roll.normal": "Normal",
   "SHADOWDARK.roll.one_handed_damage": "One-handed Damage",
   "SHADOWDARK.roll.spell_casting_check": "Spellcasting Check",
@@ -887,6 +890,7 @@
   "SHADOWDARK.sheet.general.active_effects.edit_effect.tooltip": "Edit Effect",
   "SHADOWDARK.sheet.general.active_effects.copy_effect.tooltip": "Copy Effect",
   "SHADOWDARK.sheet.general.active_effects.source.title": "Source",
+  "SHADOWDARK.sheet.general.active_spells.delete_spell.tooltip": "Cancel Spell",
   "SHADOWDARK.sheet.general.show_portrait.of": "Portrait of ",
   "SHADOWDARK.sheet.general.active_effects.toggle_effect.tooltip": "Toggle Effect",
   "SHADOWDARK.sheet.general.add": "Add",
@@ -1340,6 +1344,7 @@
   "SHADOWDARK.britannian_spell.editSpell": "Edit Spell",
   "SHADOWDARK.britannian_spell.eraseSpell": "Erase Spell",
   "SHADOWDARK.britannian_spell.recoverSpell": "Recover Spell",
+  "SHADOWDARK.britannian_spell.recoverRune": "Recover Rune",
   "SHADOWDARK.britannian_spell.chooseEffect": "Available Spell Effects:",
   "SHADOWDARK.britannian_spell.chooseAnimal": "Choose a Creature:",
   "SHADOWDARK.britannian_spell.spellDC": "Spell DC:",
@@ -1352,5 +1357,6 @@
   "SHADOWDARK.britannian_spell.inWordEffect": "'In' word effect: ",
   "SHADOWDARK.britannian_spell.vasWordEffect": "'Vas' word effect: ",
   "SHADOWDARK.britannian_spell.noSpellbook": "You can't scribe spells without an equipped spellbook.",
-  "SHADOWDARK.britannian_spell.eraseWrittenSpell": "Erase Spell: "
+  "SHADOWDARK.britannian_spell.eraseWrittenSpell": "Erase Spell: ",
+  "SHADOWDARK.britannian_spell.alreadySustaining": "You can't cast a sustained spell while already sustaining another spell."
 }

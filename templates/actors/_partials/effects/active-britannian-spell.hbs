@@ -1,0 +1,35 @@
+<li
+	class="spell"
+	data-spell-id="{{spell.id}}"
+>
+	<div class="spell-image">
+		<img src="{{spell.effect.img}}" />
+	</div>
+
+	<div class="spell-name">
+		{{spell.name}}
+	</div>
+
+	<div class="spell-runes">
+		{{spell.runicName}}
+	</div>
+
+	<div class="spell-duration">
+		{{#ifEq spell.duration "permanent" }}
+			<i class="fas fa-infinity"></i>
+		{{else}}
+			{{spell.duration}}
+		{{/ifEq}}
+	</div>
+
+	<div class="actions">
+		<a
+			class="spell-control"
+			data-action="cancelActiveBritannianSpell"
+			data-tooltip="{{localize 'SHADOWDARK.sheet.general.active_spells.delete_spell.tooltip'}}"
+			data-spell-uuid="{{spell.uuid}}"
+		>
+			<i class="fas fa-trash"></i>
+		</a>
+	</div>
+</li>

@@ -9,7 +9,7 @@ export default class RollMagicSD extends HandlebarsApplicationMixin(ApplicationV
 		this.target = params.data.target;
 		this.rollParts = params.parts;
 		this.targetName = params.targetName;
-		this.power = params.data.power;
+		this.power = params.data.power ?? params.power;
 		this.params = params;
 		this.chatCardTemplate = "systems/shadowdark/templates/chat/magic-card.hbs";
 	}

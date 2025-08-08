@@ -2,6 +2,7 @@ async function addTempHpBar(hud, hudHTML, _hudData) {
 	const token = hud.object.document;
 	const actor = game.actors.get(hud.object.document.actorId);
 	// Check if token belongs to a Light actor
+	if (!actor) return;
 	if (actor.type !== "Player") return;
 	if (!actor.system.attributes.hp.temp) return;
 

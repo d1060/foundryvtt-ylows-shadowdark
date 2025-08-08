@@ -360,7 +360,7 @@ export default class ActorSD extends Actor {
 	async applyDamage(damageAmount, multiplier) {
 		const amountToApply = Math.floor(parseInt(damageAmount) * multiplier);
 		let leftoverDamage = amountToApply;
-		if (this.system.attributes.hp.temp)
+		if (this.system.attributes.hp.temp && damageAmount > 0)
 		{
 			const currentHpValue = parseInt(this.system.attributes.hp.temp);
 			const actualDamage = amountToApply <= currentHpValue ? amountToApply : currentHpValue;
@@ -2409,6 +2409,7 @@ export default class ActorSD extends Actor {
 			failureTolerance: params.failureTolerance,
 			memoryProtection: params.memoryProtection,
 			spellDC: params.spellDC,
+			isHealing: params.isHealing,
 			damage: params.damage,
 			duration: params.duration,
 			duration_amount: params.duration_amount,

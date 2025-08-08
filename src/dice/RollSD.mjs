@@ -211,12 +211,17 @@ export default class RollSD extends Roll {
 
 			for (var token of tokens)
 			{
-				if (data.extraFireDamage) damageTotal -= data.extraFireDamage;
+				if (!data.isHealing)
+				{
+					if (data.extraFireDamage) damageTotal -= data.extraFireDamage;
 
-				if (result.actor && (result.item || result.power) && token.actor)
-					damageTotal = await this.checkDamageModifiersByType(result.actor, result.item, result.power, result?.rolls?.main, token.actor, damageTotal);
+					if (result.actor && (result.item || result.power) && token.actor)
+						damageTotal = await this.checkDamageModifiersByType(result.actor, result.item, result.power, result?.rolls?.main, token.actor, damageTotal);
 
-				if (data.extraFireDamage) damageTotal = await this.addExtraDamageByType(data.extraFireDamage, 'fire', token.actor, damageTotal);
+					if (data.extraFireDamage) damageTotal = await this.addExtraDamageByType(data.extraFireDamage, 'fire', token.actor, damageTotal);
+				}
+				else
+					damageTotal = -damageTotal;
 
 				//shadowdark.debug(`Applying damage of ${damageTotal} to ${token.actor.name}`);
 
@@ -415,7 +420,10 @@ export default class RollSD extends Roll {
 
 	static applyDamageToToken(token, damage)
 	{
-		token.actor.applyDamage(damage, 1);
+		if (damage < 0)
+			token.actor.applyHealing(-damage, 1);
+		else
+			token.actor.applyDamage(damage, 1);
 		
 		if (token.actor.type == "NPC" && token.actor.system.attributes.hp.value <= 0 && !token.document.hidden)
 		{
@@ -1390,7 +1398,7 @@ export default class RollSD extends Roll {
 			isWeapon: false,
 			isMagic: false,
 			isFocusRoll: options.isFocusRoll,
-			damageRollName: data.rolls.damage2 ? game.i18n.localize("SHADOWDARK.roll.damages") : game.i18n.localize("SHADOWDARK.roll.damage"),
+			damageRollName: data.rolls.damage2 ? game.i18n.localize("SHADOWDARK.roll.damages") : (data.isHealing ? game.i18n.localize("SHADOWDARK.roll.healing") : game.i18n.localize("SHADOWDARK.roll.damage")),
 			isRoll: true,
 			isNPC: data.actor?.type === "NPC",
 			targetDC: options.target ?? false,
@@ -1420,7 +1428,7 @@ export default class RollSD extends Roll {
 
 			templateData.propertyNames = propertyNames;
 		}
-		if ((data.auraMagic && data.damage) || (data.abyssalMagic && data.damage) || (data.mistMagic && data.damage) || (data.nanoMagic && data.damage))
+		if ((data.auraMagic && data.damage) || (data.abyssalMagic && data.damage) || (data.mistMagic && data.damage) || (data.nanoMagic && data.damage) || (data.rollType.includes('-magic') && data.damage))
 			templateData.isMagicWithDamage = true;
 
 		return templateData;
@@ -1505,6 +1513,7 @@ export default class RollSD extends Roll {
 
 		if (options.chatMessage !== false) {
 			ChatMessage.applyRollMode(chatData, options.rollMode);
+			chatData.content = UtilitySD.toDom(chatData.content);
 			ChatMessage.create(chatData);
 		}
 

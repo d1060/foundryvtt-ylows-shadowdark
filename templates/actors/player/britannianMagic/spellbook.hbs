@@ -25,13 +25,15 @@
         <div class="spellbook-content">
             {{#each runes as |rune|}}
                 {{#if rune.oddLayout}}
-                    <div class="{{rune.style}} {{#if rune.learned}}visible{{/if}}{{#if rune.lost}} disabled{{/if}}" {{#unless rune.learned}}{{#if ../canLearnRunes}}onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=0" data-action="learnRune" {{/if}}{{else}}data-action="selectRune" data-tooltip="{{localize rune.tooltip type='Rune Magic'}}"{{/unless}} data-rune="{{rune.name}}">
+                    <div class="{{rune.style}} {{#if rune.learned}}visible{{/if}}{{#if rune.lost}} disabled{{/if}}" {{#unless rune.learned}}{{#if ../canLearnRunes}}onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=0" data-action="learnRune" {{/if}}{{else}}{{#unless rune.lost}}data-action="selectRune" {{/unless}}data-tooltip="{{localize rune.tooltip type='Rune Magic'}}"{{/unless}} data-rune="{{rune.name}}">
                         <img class="magic-rune {{rune.runeStyle}}{{#if rune.lost}} disabled{{/if}}" src="/systems/shadowdark/assets/icons/Britannia/Rune-{{rune.titleName}}{{#if rune.selected}}-selected{{/if}}.png">
                         <h2{{#if rune.lost}} class="disabled"{{/if}}>{{rune.titleName}}</h2>
                         <span{{#if rune.lost}} class="disabled"{{/if}}>{{localize rune.meaning}}</span>
+                        {{#if rune.lost}}<img style="width: 20px; height: 20px; border: 0; pointer-events: auto;" data-action="recoverRune" data-rune="{{rune.name}}" data-tooltip="{{localize 'SHADOWDARK.britannian_spell.recoverRune'}}" src="/systems/shadowdark/assets/icons/feather.png">{{else}}<div></div>{{/if}}
                     </div>
                 {{else}}
-                    <div class="{{rune.style}} {{#if rune.learned}}visible{{/if}}{{#if rune.lost}} disabled{{/if}}" {{#unless rune.learned}}{{#if ../canLearnRunes}}onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=0" data-action="learnRune" {{/if}}{{else}}data-action="selectRune" data-tooltip="{{localize rune.tooltip type='Rune Magic'}}"{{/unless}} data-rune="{{rune.name}}">
+                    <div class="{{rune.style}} {{#if rune.learned}}visible{{/if}}{{#if rune.lost}} disabled{{/if}}" {{#unless rune.learned}}{{#if ../canLearnRunes}}onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=0" data-action="learnRune" {{/if}}{{else}}{{#unless rune.lost}}data-action="selectRune" {{/unless}}data-tooltip="{{localize rune.tooltip type='Rune Magic'}}"{{/unless}} data-rune="{{rune.name}}">
+                        {{#if rune.lost}}<img style="width: 20px; height: 20px; border: 0; pointer-events: auto;" data-action="recoverRune" data-rune="{{rune.name}}" data-tooltip="{{localize 'SHADOWDARK.britannian_spell.recoverRune'}}" src="/systems/shadowdark/assets/icons/feather.png">{{else}}<div></div>{{/if}}
                         <span{{#if rune.lost}} class="disabled"{{/if}}>{{localize rune.meaning}}</span>
                         <h2>{{#if rune.lost}} class="disabled"{{/if}}{{rune.titleName}}</h2>
                         <img class="magic-rune {{rune.runeStyle}}{{#if rune.lost}} disabled{{/if}}" src="/systems/shadowdark/assets/icons/Britannia/Rune-{{rune.titleName}}{{#if rune.selected}}-selected{{/if}}.png">
@@ -46,19 +48,19 @@
                     <div style="display: grid; grid-template-columns: auto 1fr 20px;">
                         <div style="display: flex;" data-tooltip="{{spell.runicName}}">
                             {{#each spell.runes as |rune|}}
-                                <img class="spell-magic-rune{{#if spell.lost}} disabled{{/if}}" {{#unless spell.lost}}data-action="castWrittenSpell" data-spell-uuid="{{spell.uuid}}{{/unless}}" src="/systems/shadowdark/assets/icons/Britannia/Rune-{{rune.titleName}}.png">
+                                <img class="spell-magic-rune{{#if spell.unavailable}} disabled{{/if}}" {{#unless spell.unavailable}}data-action="castWrittenSpell" data-spell-uuid="{{spell.uuid}}{{/unless}}" src="/systems/shadowdark/assets/icons/Britannia/Rune-{{rune.titleName}}.png">
                             {{/each}}
                         </div>
-                        <div class="spell-header-title{{#if spell.lost}} disabled{{/if}}" data-action="editWrittenSpell" data-spell-uuid="{{spell.uuid}}" data-tooltip="{{{spell.sanitizedDescription}}}">{{spell.name}}</div>
+                        <div class="spell-header-title{{#if spell.unavailable}} disabled{{/if}}" data-action="editWrittenSpell" data-spell-uuid="{{spell.uuid}}" data-tooltip="{{{spell.sanitizedDescription}}}">{{spell.name}}</div>
                         <div style="display: flex; gap: 2px;">
                             {{#if spell.lost}}
-                            <img style="width: 20px; height: 20px; border: 0; z-index: 1;" data-action="recoverWrittenSpell" data-spell-uuid="{{spell.uuid}}" data-tooltip="{{localize 'SHADOWDARK.britannian_spell.recoverSpell'}}" src="/systems/shadowdark/assets/icons/feather.png">
+                            <img style="width: 20px; height: 20px; border: 0; pointer-events: auto;" data-action="recoverWrittenSpell" data-spell-uuid="{{spell.uuid}}" data-tooltip="{{localize 'SHADOWDARK.britannian_spell.recoverSpell'}}" src="/systems/shadowdark/assets/icons/feather.png">
                             {{else}}
-                            <img style="width: 20px; height: 20px; border: 0; z-index: 1;" data-action="eraseWrittenSpell" data-spell-uuid="{{spell.uuid}}" data-tooltip="{{localize 'SHADOWDARK.britannian_spell.eraseSpell'}}" src="/systems/shadowdark/assets/icons/torn-page.png">
+                            <img style="width: 20px; height: 20px; border: 0; pointer-events: auto;" data-action="eraseWrittenSpell" data-spell-uuid="{{spell.uuid}}" data-tooltip="{{localize 'SHADOWDARK.britannian_spell.eraseSpell'}}" src="/systems/shadowdark/assets/icons/torn-page.png">
                             {{/if}}
                         </div>
                     </div>
-                    <div class="britannian-spell-parameter-line{{#if spell.lost}} disabled{{/if}}">
+                    <div class="britannian-spell-parameter-line{{#if spell.unavailable}} disabled{{/if}}">
                     {{#each spell.parameterLines as |line|}}
                         {{{line}}}
                     {{/each}}

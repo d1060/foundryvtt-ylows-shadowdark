@@ -688,6 +688,7 @@ export default class ActiveEffectsSD {
 				id: effect.id,
 				img: effect.img,
 				name: effect.name,
+				casterName: effect.system.casterName,
 				sourceName: effect.parent?.name ?? "Unknown",
 			};
 

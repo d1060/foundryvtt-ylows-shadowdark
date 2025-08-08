@@ -98,6 +98,9 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			castWrittenSpell: this.#onCastWrittenSpell,
 			editWrittenSpell: this.#onEditWrittenSpell,
 			eraseWrittenSpell: this.#onEraseWrittenSpell,
+			recoverRune: this.#onRecoverRune,
+			recoverWrittenSpell: this.#onRecoverWrittenSpell,
+			cancelActiveBritannianSpell: this.#onCancelActiveBritannianSpell
 		},
   	}
 
@@ -294,6 +297,9 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			case "notes":
 				break;
 			case "effects":
+				context.showBritannianMagic = game.settings.get("shadowdark", "use_britannianRuneMagic");
+				if (context.showBritannianMagic)
+					await BritannianMagicSD.prepareBritannianMagicActiveSpells(context, this.actor);
 				break;
 		}
 
@@ -1616,5 +1622,14 @@ export default class PlayerSheetSD extends ActorSheetSD {
 
 	static async #onEraseWrittenSpell(event, target) {
 		BritannianMagicSD._onEraseSpell(event, this.actor, this, target);
+	}
+	static async #onRecoverRune(event, target) {
+		BritannianMagicSD._onRecoverRune(event, this.actor, this, target);
+	}
+	static async #onRecoverWrittenSpell(event, target) {
+		BritannianMagicSD._onRecoverSpell(event, this.actor, this, target);
+	}
+	static async #onCancelActiveBritannianSpell(event, target) {
+		BritannianMagicSD._onCancelSpell(event, this.actor, this, target);
 	}
 }

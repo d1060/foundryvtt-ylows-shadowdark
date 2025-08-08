@@ -945,7 +945,8 @@ section.effect-panel .effect-item .effect-info .tags .talent {
   color: black;
 }
 .shadowdark .SD-list > li .item-image,
-.shadowdark .SD-list > li .effect-image {
+.shadowdark .SD-list > li .effect-image,
+.shadowdark .SD-list > li .spell-image {
   display: inline-block;
   width: 24px;
   height: 24px;
@@ -955,13 +956,21 @@ section.effect-panel .effect-item .effect-info .tags .talent {
   margin-right: 8px;
 }
 .shadowdark .SD-list > li .item-image:hover,
-.shadowdark .SD-list > li .effect-image:hover {
+.shadowdark .SD-list > li .effect-image:hover,
+.shadowdark .SD-list > li .spell-image:hover {
   background: none !important;
   color: white;
 }
+
 .shadowdark .SD-list > li .item-name,
-.shadowdark .SD-list > li .effect-name {
+.shadowdark .SD-list > li .effect-name,
+.shadowdark .SD-list > li .spell-name {
   flex: 2;
+  overflow: hidden;
+  align-items: center;
+}
+.shadowdark .SD-list > li .spell-runes {
+  flex: 1;
   overflow: hidden;
   align-items: center;
 }
@@ -1468,7 +1477,8 @@ picture {
   justify-content: flex-end;
 }
 .shadowdark.sheet.player .effect-duration,
-.shadowdark.sheet.npc .effect-duration {
+.shadowdark.sheet.npc .effect-duration,
+.shadowdark.sheet.npc .spell-duration {
   flex: 0 0 120px;
   display: flex;
   flex-direction: row;
@@ -1625,7 +1635,7 @@ picture {
   font-family: "Old Newspaper Font";
   display: grid;
   grid-column-gap: 5px;
-  grid-template-columns: 32px 45px 1fr;
+  grid-template-columns: 32px 45px 1fr 32px;
   opacity: 0;
 }
 .shadowdark.sheet.player .britannian-spellbook .britannian-rune-left h2,
@@ -1639,7 +1649,7 @@ picture {
   text-align: right;
   display: grid;
   grid-column-gap: 5px;
-  grid-template-columns: 1fr 45px 32px;
+  grid-template-columns: 32px 1fr 45px 32px;
   opacity: 0;
 }
 .shadowdark.sheet.player .britannian-spellbook .britannian-rune-right h2,
@@ -1653,7 +1663,7 @@ picture {
   text-align: right;
   display: grid;
   grid-column-gap: 5px;
-  grid-template-columns: 1fr 45px 32px;
+  grid-template-columns: 32px 1fr 45px 32px;
   opacity: 0;
 }
 .shadowdark.sheet.player .britannian-spellbook .britannian-rune-right-end h2,
@@ -1689,7 +1699,7 @@ picture {
   height: 128px;
   top: 555px;
   left: 335px;
-  z-index: 10;
+  pointer-events: auto;
 }
 .shadowdark.sheet.player .write-britannian-magic,
 .shadowdark.sheet.npc .write-britannian-magic {
@@ -1700,7 +1710,7 @@ picture {
   height: 128px;
   top: 570px;
   left: 346px;
-  z-index: 10;
+  pointer-events: auto;
 }
 .shadowdark.sheet.player .britannian-spellbook-left-flip,
 .shadowdark.sheet.npc .britannian-spellbook-left-flip {
@@ -2400,7 +2410,7 @@ picture {
   height: 64px;
   bottom: 0px;
   left: 0px;
-  z-index: 10;
+  pointer-events: auto;
 }
 .shadowdark .britannian-spell .scribe-spell {
   background-image: url("/systems/shadowdark/assets/Britannia/scribe-spell.png");
@@ -2410,7 +2420,7 @@ picture {
   height: 64px;
   bottom: 0px;
   right: 0px;
-  z-index: 10;
+  pointer-events: auto;
 }
 .shadowdark .britannian-spellbook .spellbook-content {
   display: grid;
