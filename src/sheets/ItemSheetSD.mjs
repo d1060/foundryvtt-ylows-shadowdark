@@ -20,7 +20,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 	/** @inheritdoc */
 	static DEFAULT_OPTIONS = {
     	tag: "form",
-		classes: ["app", "window-app", "shadowdark", "sheet", "item", 'themed', 'theme-light'],
+		classes: ["window-app", "shadowdark", "sheet", "item", 'themed', 'theme-light'],
 		scrollY: ["section.SD-content-body"],
 		position: {
     		width: 665,
