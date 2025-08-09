@@ -1,4 +1,5 @@
 import UtilitySD from "../utils/UtilitySD.mjs";
+import BritannianMagicSD from "../sheets/magic/BritannianMagicSD.mjs";
 
 export default class RollSD extends Roll {
 
@@ -246,7 +247,7 @@ export default class RollSD extends Roll {
 				}
 				else
 				{
-					this.applyDamageToToken(token, damageTotal);
+					await this.applyDamageToToken(token, damageTotal);
 				}
 
 				if (token.actor?.system?.bonuses?.automaticDamageOnCloseAttack && options.attackType === 'melee')
@@ -254,7 +255,7 @@ export default class RollSD extends Roll {
 					var actorToken = token.scene.tokens.find(t => t.actor?.id === data.actor.id);
 					if (actorToken)
 					{
-						this.applyDamageToToken(actorToken, token.actor?.system?.bonuses?.automaticDamageOnCloseAttack);
+						await this.applyDamageToToken(actorToken, token.actor?.system?.bonuses?.automaticDamageOnCloseAttack);
 					}
 				}
 
@@ -333,7 +334,7 @@ export default class RollSD extends Roll {
 						var actorToken = token.scene.tokens.find(t => t.actor?.id === data.actor.id);
 						if (actorToken)
 						{
-							this.applyDamageToToken(actorToken, damageResult.roll.total);
+							await this.applyDamageToToken(actorToken, damageResult.roll.total);
 						}
 					}
 					else
@@ -418,7 +419,7 @@ export default class RollSD extends Roll {
 		return damageTotal;
 	}
 
-	static applyDamageToToken(token, damage)
+	static async applyDamageToToken(token, damage)
 	{
 		if (damage < 0)
 			token.actor.applyHealing(-damage, 1);
@@ -432,7 +433,20 @@ export default class RollSD extends Roll {
 			let isHidden = token.document.hidden;
 			const tokens = token.controlled ? canvas.tokens.controlled : [token];
 			const updates = tokens.map(t => { return {_id: t.id, hidden: true};});
-			return canvas.scene.updateEmbeddedDocuments("Token", updates);
+			await canvas.scene.updateEmbeddedDocuments("Token", updates);
+		}
+
+		if (token.actor.system.attributes.hp.value <= 0 && token.actor.system.summonedBy)
+		{
+			await BritannianMagicSD.deleteTokenAndActor(token.id);
+			await BritannianMagicSD.removeActiveSpell(token.actor.system.summonedBy, token.actor.system.summonSpell);
+		}
+		if (token.actor.system.attributes.hp.value <= 0 && token.actor.system.shapeshiftedBy)
+		{
+			let casterToken = game.scenes.active.tokens.find(t => t.id === token.actor.system.shapeshiftedBy);
+            await BritannianMagicSD.endShapeShift(casterToken, token);
+			await BritannianMagicSD.deleteTokenAndActor(token.id);
+			await BritannianMagicSD.removeActiveSpell(casterToken.actor.id, token.actor.system.shapeshiftSpell);
 		}
 	}
 
@@ -1513,7 +1527,6 @@ export default class RollSD extends Roll {
 
 		if (options.chatMessage !== false) {
 			ChatMessage.applyRollMode(chatData, options.rollMode);
-			chatData.content = UtilitySD.toDom(chatData.content);
 			ChatMessage.create(chatData);
 		}
 

@@ -71,39 +71,33 @@ export default function listenOnSocket() {
 		}
 
 		if (event.type === "changeNpcActorHP" && game.user.isGM) {
-			var token = null;
-			for (const scene of game.scenes) {
-				token = scene.tokens.find(t => t.id === event.data.tokenId);
-				if (token)
-					break;
-			}
+			const token = game.scenes.active.tokens.find(t => t.id === event.data.tokenId);
 			if (!token) return;
 
 			CONFIG.DiceSD.applyDamageToToken(token._object, parseInt(event.data.damage));
 		}
 
 		if (event.type === "addSpellEffecstToActor" && game.user.isGM) {
-			var token = null;
-			for (const scene of game.scenes) {
-				token = scene.tokens.find(t => t.id === event.data.tokenId);
-				if (token)
-					break;
-			}
+			const token = game.scenes.active.tokens.find(t => t.id === event.data.tokenId);
 			if (!token) return;
+			const spell = event.data.caster.system.britannian_magic.active_spells.find(s => s.uuid === event.data.spellUuid);
 
-			BritannianMagicSD.applyEffectsToToken(token, event.data.caster, event.data.effects, event.data.spellUuid);
+			BritannianMagicSD.applyEffectsToToken(token, event.data.caster, event.data.effects, event.data.spellUuid, spell?.name);
 		}
 
 		if (event.type === "removeSpellEffecstFromActor" && game.user.isGM) {
-			var token = null;
-			for (const scene of game.scenes) {
-				token = scene.tokens.find(t => t.actor.uuid === event.data.tokenId);
-				if (token)
-					break;
-			}
+			const token = game.scenes.active.tokens.find(t => t.actor.uuid === event.data.tokenId);
 			if (!token) return;
 
 			BritannianMagicSD.removeEffectsFromToken(token.actor, event.data.caster, event.data.effects, event.data.spellUuid);
+		}
+
+		if (event.type === "createTokenAndActor" && game.user.isGM) {
+            BritannianMagicSD.createTokenAndActor(event.data.creatureUuid, event.data.actorId, event.data.spellUuid, event.data.isShapeshift);
+		}
+
+		if (event.type === "deleteTokenAndActor" && game.user.isGM) {
+            BritannianMagicSD.deleteTokenAndActor(event.data.tokenId);
 		}
 
 		if (event.type === "showImage") {

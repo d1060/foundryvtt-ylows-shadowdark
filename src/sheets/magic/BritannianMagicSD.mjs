@@ -376,7 +376,7 @@ export default class BritannianMagicSD {
         if (actor.system.bonuses.spellcastingCheckBonus)
             castingBonus += actor.system.bonuses.spellcastingCheckBonus;
 
-        let spellDC = 9 + shadowdark.apps.BritannianSpellSD.spellCircle(spell);
+        let spellDC = 9 + shadowdark.apps.BritannianSpellSD.fullSpellCircle(spell);
 		const options = {
             isSpell: true,
 			magicCoreLevel: castingBonus,
@@ -386,7 +386,7 @@ export default class BritannianMagicSD {
             damage: spell.damage,
 			magicType: 'britannian-magic',
             spellName: spell.name,
-            powerLevel: shadowdark.apps.BritannianSpellSD.spellCircle(spell),
+            powerLevel: shadowdark.apps.BritannianSpellSD.fullSpellCircle(spell),
             duration_desc: spell.duration ?? 'Instant',
             advantage: 0,
             power: spell,
@@ -422,6 +422,7 @@ export default class BritannianMagicSD {
                 await BritannianMagicSD._addActiveSpell(actor, spell, result);
                 actor.sheet.render(true);
             }
+            await BritannianMagicSD._doSummon(actor, spell, result);
             await BritannianMagicSD._applySpellToTargets(actor, spell, result);
         }
     }
@@ -455,6 +456,7 @@ export default class BritannianMagicSD {
                 await BritannianMagicSD._addActiveSpell(actor, spell, result);
                 actor.sheet.render(true);
             }
+            await BritannianMagicSD._doSummon(actor, spell, result);
             await BritannianMagicSD._applySpellToTargets(actor, spell, result);
         }
     }
@@ -502,7 +504,7 @@ export default class BritannianMagicSD {
                     }
                 );
             } else {
-                BritannianMagicSD.applyEffectsToToken(token, actor, effects, spell.uuid);
+                BritannianMagicSD.applyEffectsToToken(token, actor, effects, spell.uuid, spell.name);
             }
         }
     }
@@ -514,7 +516,7 @@ export default class BritannianMagicSD {
             {
                 const effectChangeBy = parseInt(compendiumEffect.system.change_effect_by);
                 const effectChangeEach = parseInt(compendiumEffect.system.change_effect_each ?? '1');
-                const spellCircle = shadowdark.apps.BritannianSpellSD.spellCircle(spell);
+                const spellCircle = shadowdark.apps.BritannianSpellSD.spellWbritordsCircle(spell);
                 const effectIncreases = effectChangeBy * Math.floor(spellCircle / effectChangeEach);
                 for (let change of effect.changes) {
                     if (UtilitySD.isNumeric(change.value))
@@ -527,7 +529,8 @@ export default class BritannianMagicSD {
         return effects;
     }
 
-    static async applyEffectsToToken(token, actor, effects, spellUuid) {
+    static async applyEffectsToToken(token, actor, effects, spellUuid, spellName) {
+        if (!token || !token.actor || token.actor.system.deleted) return;
         for (let effect of effects)
         {
             //effect.sourceName = effect.name + ' cast by ' + actor.name;
@@ -539,6 +542,7 @@ export default class BritannianMagicSD {
                 await token.actor.updateEmbeddedDocuments("ActiveEffect", [
                     {
                         "_id": newEffect._id,
+                        "name": spellName,
                         "system": newEffect.system,
                     },
                 ]);
@@ -558,12 +562,135 @@ export default class BritannianMagicSD {
             await targetActor.deleteEmbeddedDocuments("ActiveEffect", effectIds);
     }
 
+    static async createTokenAndActor(creatureUuid, casterId, spellUuid, isShapeshift) {
+        if (!creatureUuid) return
+        let creature = await fromUuid(creatureUuid);
+        if (!creature) return;
+
+        const casterToken = game.scenes.active.tokens.find(t => t.actor.id === casterId);
+        if (!casterToken) return;
+
+        const newActor = await Actor.create(creature);
+        newActor.prototypeToken.img = newActor.img;
+        await newActor.update({
+            ownership: casterToken.actor.ownership
+        });
+        if (!isShapeshift)
+        {
+            newActor.system.summonedBy = casterToken.actor.id;
+            newActor.system.summonSpell = spellUuid;
+        }
+        else
+        {
+            newActor.system.shapeshiftedBy = casterToken.id;
+            newActor.system.shapeshiftSpell = spellUuid;
+        }
+        await newActor.update({
+            system: newActor.system
+        });
+
+        let [x, y] = [casterToken.x, casterToken.y];
+        if (!isShapeshift) [x, y] = UtilitySD.findNearestFreeGridPosition(casterToken.x, casterToken.y);
+        if (isShapeshift) await canvas.scene.updateEmbeddedDocuments("Token", [{_id: casterToken.id, hidden: true}]);
+
+        const tokenData = newActor.prototypeToken.toObject();
+        tokenData.name = newActor.name;
+        tokenData.displayName = 50;
+        tokenData.disposition = 1;
+        tokenData.img = newActor.img;
+        tokenData.actorId = newActor.id;
+        tokenData.actor = newActor;
+        tokenData.hasPlayerOwner = true;
+        tokenData.x = x;
+        tokenData.y = y;
+        tokenData.hidden = false;
+        tokenData.vision = true;
+        tokenData.actorLink = true;
+
+        const [newToken] = await game.scenes.active.createEmbeddedDocuments("Token", [tokenData]);
+
+        let actorSpell = casterToken.actor.system.britannian_magic.active_spells.find(s => s.uuid === spellUuid);
+        if (!actorSpell) return;
+        
+        if (!actorSpell.target_tokens_uuids) actorSpell.target_tokens_uuids = [];
+        actorSpell.target_tokens_uuids.push(newActor.uuid);
+		await casterToken.actor.update({"system.britannian_magic": casterToken.actor.system.britannian_magic});
+
+        const effect = await fromUuid(actorSpell.effect.uuid);
+        if (effect)
+        {
+            var embeddedEffects = await effect.getEmbeddedCollection("ActiveEffect");
+            if ((actorSpell.duration ?? '').slugify() !== 'instant' && embeddedEffects.contents.length)
+            {
+                let effects = structuredClone(embeddedEffects.contents);
+                await BritannianMagicSD.applyEffectsToToken(newToken, casterToken.actor, effects, spellUuid, actorSpell.name);
+            }
+        }
+    }
+
+    static async deleteTokenAndActor(tokenId) {
+        const token = game.scenes.active.tokens.find(t => t.id === tokenId);
+        if (!token || !token.actor) return;
+        game.scenes.active.deleteEmbeddedDocuments("Token", [tokenId]);
+        if (token)
+        {
+            const actor = token.actor;
+            if (actor) actor.delete();
+        }
+        token.actor.system.deleted = true;
+    }
+
+    static async _doSummon(actor, spell, result) {
+        if (!spell.creatureUuid) return;
+        const [isSummon, isShapeshift] = await BritannianMagicSD.isSummonOrShapeShift(spell.effect.uuid);
+        if (!isSummon && !isShapeshift) return;
+
+        if (!game.user.isGM) {
+            game.socket.emit(
+                "system.shadowdark",
+                {
+                    type: "createTokenAndActor",
+                    data: {
+                        creatureUuid: spell.creatureUuid,
+                        actorId: actor.id,
+                        spellUuid: spell.uuid,
+                        isSummon,
+                        isShapeshift
+                    },
+                }
+            );
+        } else {
+            BritannianMagicSD.createTokenAndActor(spell.creatureUuid, actor.id, spell.uuid, isShapeshift);
+        }
+    }
+
+    static async isSummonOrShapeShift(spellUuuid) {
+        let isSummon = false;
+        let isShapeshift = false;
+
+        const spellEffect = await fromUuid(spellUuuid);
+   		var embeddedEffects = await spellEffect.getEmbeddedCollection("ActiveEffect");
+        for (let effect of embeddedEffects.contents) {
+            for (let change of effect.changes)
+            {
+                if (change.key === 'system.bonuses.summon')
+                    isSummon = true;
+                if (change.key === 'system.bonuses.shapeshifted')
+                    isShapeshift = true;
+            }
+        }
+        return [isSummon, isShapeshift];
+    }
+
 	static async _onEditWrittenSpell(event, actor, sheet, target) {
         const spellUuid = target.dataset.spellUuid;
         const spellbook = await actor.equippedSpellBook();
         if (!spellbook) return;
         const spell = spellbook.system.spells.find(s => s.uuid == spellUuid);
         if (!spell) return;
+
+        actor.system.britannian_magic.selected_runes = [];
+		await actor.update({"system.britannian_magic": actor.system.britannian_magic});
 
         let spellOptions = {actor: actor, type: 'write', spell: spell};
         if (!this.britannianSpell)
@@ -703,11 +830,12 @@ export default class BritannianMagicSD {
 
         let effect, embeddedEffects;
 
-        if (spell.effect)
-            effect = await fromUuid(spell.effect?.uuid);
-        if (effect)
-		    embeddedEffects = await effect.getEmbeddedCollection("ActiveEffect");
-        if (spell.target_tokens_uuids) {
+        if (spell.effect) effect = await fromUuid(spell.effect?.uuid);
+        if (effect) embeddedEffects = await effect.getEmbeddedCollection("ActiveEffect");
+        if (spell.creatureUuid && spell.target_tokens_uuids) {
+            BritannianMagicSD.checkCancelSummonOrShapeshiftSpell(effect, spell.target_tokens_uuids);
+        }
+        else if (spell.target_tokens_uuids) {
             for (let actorUuid of spell.target_tokens_uuids) {
                 let targetActor = await fromUuid(actorUuid);
                 if (!game.user.isGM) {
@@ -733,5 +861,74 @@ export default class BritannianMagicSD {
         actor.system.britannian_magic.active_spells.splice(spellIndex, 1);
     	actor.update({"system.britannian_magic": actor.system.britannian_magic});
         sheet.render(true);
+    }
+
+    static async removeActiveSpell(actorUuid, spellUuid) {
+        const actor = game.actors.get(actorUuid);
+        if (!actor) return;
+        let spell = (actor.system.britannian_magic.active_spells ?? []).find(s => s.uuid === spellUuid);
+        if (!spell) return;
+
+        var spellIndex = actor.system.britannian_magic.active_spells.indexOf(spell);
+        actor.system.britannian_magic.active_spells.splice(spellIndex, 1);
+    	actor.update({"system.britannian_magic": actor.system.britannian_magic});
+        actor.sheet?.render(true);
+    }
+
+    static async checkCancelSummonOrShapeshiftSpell(spellEffect, targets) {
+        for (let actorUuid of targets) {
+            let targetActor = await fromUuid(actorUuid);
+            await BritannianMagicSD.checkCancelSummonOrShapeshiftActor(targetActor);
+        }
+    }
+
+	static async checkCancelSummonOrShapeshiftActor(target) {
+        if (!target) return false;
+
+		let casterToken, casterSpell;
+
+		if (target.system.summonedBy) {
+			casterToken = game.scenes.active.tokens.find(t => t.actor.id === target.system.summonedBy);
+			casterSpell = casterToken.actor.system.britannian_magic.active_spells.find(s => s.uuid === target.system.summonSpell);
+		} else if (target.system.shapeshiftedBy) {
+			casterToken = game.scenes.active.tokens.find(t => t.id === target.system.shapeshiftedBy);
+			casterSpell = casterToken.actor.system.britannian_magic.active_spells.find(s => s.uuid === target.system.shapeshiftSpell);
+		}
+
+		if (!casterToken) return false;
+
+		let token = game.scenes.active.tokens.find(t => t.actor.id === target.id);
+		if (!token) return false;
+
+		if (target.system.summonedBy) {
+			await BritannianMagicSD.removeActiveSpell(token.actor.system.summonedBy, token.actor.system.summonSpell);
+		} else if (target.system.shapeshiftedBy) {
+			await BritannianMagicSD.removeActiveSpell(casterToken.actor.id, token.actor.system.shapeshiftSpell);
+            await BritannianMagicSD.endShapeShift(casterToken, token);
+		}
+
+        if (!game.user.isGM) {
+            game.socket.emit(
+                "system.shadowdark",
+                {
+                    type: "deleteTokenAndActor",
+                    data: {
+                        tokenId: token.id
+                    },
+                }
+            );
+        } else {
+            if (token)
+                await BritannianMagicSD.deleteTokenAndActor(token.id);
+        }
+
+        return true;
+	}
+
+    static async endShapeShift(casterToken, token) {
+		let tokenHPpercentage = token.actor.system.attributes.hp.value / token.actor.system.attributes.hp.max;
+
+        canvas.scene.updateEmbeddedDocuments("Token", [{_id: casterToken.id, hidden: false, x: token.x, y: token.y}]);
+        casterToken.actor.applyHPpercentage(tokenHPpercentage);
     }
 }

@@ -1,3 +1,5 @@
+import BritannianMagicSD from "../sheets/magic/BritannianMagicSD.mjs";
+
 export default class ActiveEffectsSD {
 
 	/**
@@ -624,7 +626,7 @@ export default class ActiveEffectsSD {
 					isTemporary: ActiveEffectsSD.copiedEffect?.isTemporary ?? false,
 				}]);
 
-				if (docs && docs[0]) docs[0].sheet.render(true);
+				if (docs && docs[0]) await docs[0].sheet.render(true);
 				break;
 			case "edit":
 				return effect.sheet.render(true);
@@ -636,30 +638,56 @@ export default class ActiveEffectsSD {
 				return foundry.applications.handlebars.renderTemplate(
 					"systems/shadowdark/templates/dialog/are-you-sure.hbs"
 				).then(html => {
-					new Dialog({
-						title: `${game.i18n.localize("SHADOWDARK.sheet.general.active_effects.delete_effect.tooltip")}`,
+					foundry.applications.api.DialogV2.wait({
+						classes: ["app", "shadowdark", "shadowdark-dialog", "window-app", 'themed', 'theme-light'],
+						window: {
+							resizable: false,
+							title: `${game.i18n.localize("SHADOWDARK.sheet.general.active_effects.delete_effect.tooltip")}`,
+						},
 						content: html,
-						buttons: {
-							Yes: {
-								icon: '<i class="fa fa-check"></i>',
+						buttons: [
+							{
+								action: 'Yes',
+								icon: "<i class=\"fa fa-check\"></i>",
 								label: `${game.i18n.localize("SHADOWDARK.dialog.general.yes")}`,
 								callback: async () => {
-									effect.delete();
+									let hasDeletetActor = await BritannianMagicSD.checkCancelSummonOrShapeshiftActor(effect.parent);
+									if (!hasDeletetActor) await effect.delete();
 								},
 							},
-							Cancel: {
-								icon: '<i class="fa fa-times"></i>',
+							{
+								action: 'Cancel',
+								icon: "<i class=\"fa fa-times\"></i>",
 								label: `${game.i18n.localize("SHADOWDARK.dialog.general.cancel")}`,
 							},
-						},
+						],
 						default: "Yes",
-					}).render(true);
+					});
+
+					// new Dialog({
+					// 	title: `${game.i18n.localize("SHADOWDARK.sheet.general.active_effects.delete_effect.tooltip")}`,
+					// 	content: html,
+					// 	buttons: {
+					// 		Yes: {
+					// 			icon: '<i class="fa fa-check"></i>',
+					// 			label: `${game.i18n.localize("SHADOWDARK.dialog.general.yes")}`,
+					// 			callback: async () => {
+					// 				effect.delete();
+					// 				owner.sheet?.render(true);
+					// 			},
+					// 		},
+					// 		Cancel: {
+					// 			icon: '<i class="fa fa-times"></i>',
+					// 			label: `${game.i18n.localize("SHADOWDARK.dialog.general.cancel")}`,
+					// 		},
+					// 	},
+					// 	default: "Yes",
+					// }).render(true);
 				});
 			case "toggle":
 				return effect.update({disabled: !effect.disabled});
 		}
 	}
-
 
 	/**
 	* Prepare the data structure for Active Effects which are currently applied

@@ -317,6 +317,7 @@ export default class CharacterGeneratorSD extends HandlebarsApplicationMixin(App
 			this.loadingDialog.close({force: true});
 			this.loadingDialog = null;
 		} 
+		await super._onFirstRender(context, options);
 	}
 
 	_addAncestryTalent(uuid) {

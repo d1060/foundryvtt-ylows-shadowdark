@@ -114,6 +114,9 @@ export default class ActorSD extends Actor {
 	}
 
 	async _npcRollHP(options={}) {
+		if (this.system.attributes.hp.max > 1 && this.system.attributes.hp.value > 1 && this.system.attributes.hp.max === this.system.attributes.hp.value)
+			return;
+			
 		const data = {
 			rollType: "hp",
 			actor: this,
@@ -408,6 +411,14 @@ export default class ActorSD extends Actor {
 		// Ensures that we don't go above Max or below Zero
 		const newHpValue = Math.clamp(currentHpValue + amountToApply, 0, maxHpValue);
 
+		this.system.attributes.hp.value = newHpValue;
+		await this.update({"system.attributes.hp.value": newHpValue});
+	}
+
+	async applyHPpercentage(percentage) {
+		let newHpValue = this.system.attributes.hp.value;
+		newHpValue = Math.ceil(newHpValue * percentage);
+		if (newHpValue <= 0) newHpValue = 1;
 		this.system.attributes.hp.value = newHpValue;
 		await this.update({"system.attributes.hp.value": newHpValue});
 	}

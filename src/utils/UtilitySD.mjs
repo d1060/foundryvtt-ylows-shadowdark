@@ -372,9 +372,6 @@ export default class UtilitySD {
 					if (sceneToken._source.name.slugify() === token._source.name.slugify())
 					{
 						const distance = UtilitySD.distanceBetweenTokens(scene, token, sceneToken);
-						//var deltaX = (token.x - sceneToken.x) / scene.grid.sizeX;
-						//var deltaY = (token.y - sceneToken.y) / scene.grid.sizeY;
-						//var distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 						if (distance == 0) continue;
 						if (distance <= 1) {
 							groupedTokens.push(sceneToken);
@@ -392,6 +389,55 @@ export default class UtilitySD {
 		const deltaY = (token1.y - token2.y) / scene.grid.sizeY;
 		const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 		return distance;
+	}
+
+	static searchDeltas = [
+		[-0.5, -0.75],
+		[-1, 0],
+		[-0.5, 0.75],
+		[0.5, 0.75],
+		[1, 0],
+		[0.5, -0.75],
+	];
+
+	static findNearestFreeGridPosition(gx, gy) {
+		const gridSize = {x: canvas.grid.sizeX, y: canvas.grid.sizeY};
+
+		// Check if the grid cell is occupied by any token
+		function isOccupied(gx, gy) {
+			const rect = new PIXI.Rectangle(gx, gy, gridSize.x * 0.5, gridSize.y * 0.75);
+
+			return canvas.tokens.placeables.some(token =>
+				token.document.x < rect.right &&
+				token.document.x + token.document.width * gridSize.x > rect.left &&
+				token.document.y < rect.bottom &&
+				token.document.y + token.document.height * gridSize.y > rect.top
+			);
+		}
+
+		let radius = 1;
+		while (radius < 5)
+		{
+			let searchPoint = [radius, 0];
+			for (let a = 0; a < 6; a++) {
+				let searchDelta = UtilitySD.searchDeltas[a];
+				for (let s = 0; s < radius; s++) {
+					const nx = gx + searchPoint[0] * gridSize.x;
+					const ny = gy + searchPoint[1] * gridSize.y;
+
+					if (!isOccupied(nx, ny)) {
+						return [nx, ny];
+					}
+
+					searchPoint[0] += searchDelta[0];
+					searchPoint[1] += searchDelta[1];
+				}
+			}
+			radius++;
+		}
+
+		// No free space found
+		return [gx, gy];
 	}
 
 	static duplicateString(str, numDuplications) {

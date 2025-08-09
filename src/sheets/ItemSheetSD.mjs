@@ -797,6 +797,8 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			this.loadingDialog.close({force: true});
 			this.loadingDialog = null;
 		} 
+
+		await super._onFirstRender(context, options);
 	}
 
 	// ------------------------------------------------------------------------

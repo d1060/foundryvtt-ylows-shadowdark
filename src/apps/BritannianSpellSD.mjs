@@ -76,7 +76,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             context.castingBonus += this.actor.system.bonuses.spellcastingCheckBonus;
         if (context.castingBonus > 0) context.castingBonus = '+' + context.castingBonus;
 
-        if (BritannianSpellSD.spellCircle(this.spell) < this.actor.system.level.value)
+        if (BritannianSpellSD.fullSpellCircle(this.spell) < this.actor.system.level.value)
             context.canSelectRunes = true;
 
         context.availableRunes = [];
@@ -181,7 +181,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             context.availableEffects = await this.getAvailableEffects();
         }
 
-        context.selectedRunesCircle = BritannianSpellSD.spellCircle(this.spell);
+        context.selectedRunesCircle = BritannianSpellSD.fullSpellCircle(this.spell);
         if (context.selectedRunesCircle === 1) context.selectedRunesCircleOrdinal = "st";
         else if (context.selectedRunesCircle === 2) context.selectedRunesCircleOrdinal = "nd";
         else if (context.selectedRunesCircle === 3) context.selectedRunesCircleOrdinal = "rd";
@@ -237,7 +237,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
     }
 
     static async #onIncreaseRune(event, target) {
-        if (BritannianSpellSD.spellCircle(this.spell) >= this.actor.system.level.value)
+        if (BritannianSpellSD.fullSpellCircle(this.spell) >= this.actor.system.level.value)
             return;
         const rune = target.dataset.rune;
         var actorRune = this.actor.system.britannian_magic.selected_runes.find(r => r.name === rune);
@@ -251,6 +251,20 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             await this.applyEffect();
     		await this.actor.update({ "system.britannian_magic": this.actor.system.britannian_magic });
             await this.render(true);
+        }
+        else
+        {
+            var spellRune = this.spell.runes.find(r => r.name === rune);
+            if (spellRune)
+            {
+                if (!spellRune.increases) spellRune.increases = 1;
+                else spellRune.increases++;
+                if (spellRune.increases > 10) spellRune.increases = 10;
+
+                await this.applyEffect();
+                await this.actor.update({ "system.britannian_magic": this.actor.system.britannian_magic });
+                await this.render(true);
+            }
         }
     }
 
@@ -279,6 +293,22 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             await this.applyEffect();
     		await this.actor.update({ "system.britannian_magic": this.actor.system.britannian_magic });
             await this.render(true);
+        }
+        else
+        {
+            var spellRune = this.spell.runes.find(r => r.name === rune);
+            if (!spellRune.increases)
+            {
+                var index = this.spell.runes.indexOf(spellRune);
+                this.spell.runes.splice(index, 1);
+                spellRune.increases = 0;
+            }
+            else spellRune.increases--;
+
+            await this.applyEffect();
+    		await this.actor.update({ "system.britannian_magic": this.actor.system.britannian_magic });
+            await this.render(true);
+
         }
     }
 
@@ -495,7 +525,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             if (/^\d+$/.test(effect.system.powerLevel))
             {
                 let requiredLevel = parseInt(effect.system.powerLevel);
-                if (BritannianSpellSD.spellCircle(this.spell) < requiredLevel)
+                if (BritannianSpellSD.fullSpellCircle(this.spell) < requiredLevel)
                     continue;
             }
 
@@ -527,7 +557,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
                 continue;
 
             let requiredLevel = creature.system.level.value;
-            if (BritannianSpellSD.spellCircle(this.spell) < requiredLevel)
+            if (BritannianSpellSD.spellWordsCircle(this.spell) < requiredLevel)
                 continue;
 
             availableCreatures.push({
@@ -558,11 +588,6 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
                 }
             );
         }
-
-        const spellCircle = BritannianSpellSD.spellCircle(this.spell);
-        let extraLevels = spellCircle;
-        if (spell.effect.powerLevel != "*")
-            extraLevels = spellCircle - parseInt(spell.effect.powerLevel ?? '0');
 
         spell.duration = null;
         spell.resistance = null;
@@ -659,7 +684,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
         return false;
     }
 
-    static spellCircle(spell) {
+    static fullSpellCircle(spell) {
         if (!spell)
             return 0;
 
@@ -673,8 +698,28 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
         return selectedCircle;
     }
 
+    static spellWordsCircle(spell) {
+        if (!spell)
+            return 0;
+
+        var selectedCircle = 0;
+        for (var rune of spell.runes)
+        {
+            if (spell.effect.runes.some(r => r === rune.uuid))
+            {
+                if (['vas', 'in', 'kal'].includes(rune.name))
+                    continue;
+
+                selectedCircle++;
+                if (rune.increases)
+                    selectedCircle += rune.increases;
+            }
+        }
+        return selectedCircle;
+    }
+
     static getSpellCircle(spell) {
-        let selectedRunesCircle = BritannianSpellSD.spellCircle(spell);
+        let selectedRunesCircle = BritannianSpellSD.fullSpellCircle(spell);
         let selectedRunesCircleOrdinal = "th";
 
         if (selectedRunesCircle === 1) selectedRunesCircleOrdinal = "st";
@@ -743,7 +788,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
                 damage = damage.replace('-', '');
             }
 
-            const spellCircle = BritannianSpellSD.spellCircle(spell);
+            const spellCircle = BritannianSpellSD.spellWordsCircle(spell);
             let extraLevels = spellCircle;
             if (spell.effect.powerLevel != "*")
                 extraLevels = spellCircle - parseInt(spell.effect.powerLevel ?? '0');
@@ -767,7 +812,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
     static getSpellResistance(spell) {
         if (spell.effect.resistedBy)
         {
-            const spellCircle = BritannianSpellSD.spellCircle(spell);
+            const spellCircle = BritannianSpellSD.spellWordsCircle(spell);
             let extraLevels = spellCircle;
             if (spell.effect.powerLevel != "*")
                 extraLevels = spellCircle - parseInt(spell.effect.powerLevel ?? '0');
