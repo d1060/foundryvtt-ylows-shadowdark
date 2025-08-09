@@ -126,7 +126,15 @@ export default class BritannianMagicSD {
 
         context.canLearnRunes = false;
         if (context.knownRunes > context.learnedRunes)
+        {
             context.canLearnRunes = true;
+            context.availableRunesMessage = game.i18n.format(
+									"SHADOWDARK.britannian_spell.runesAvailable",
+									{
+										availableRunes: context.knownRunes - context.learnedRunes
+									}
+								);
+        }
 
         context.selectingRunes = actor.system.britannian_magic.selected_runes.length > 0;
         context.selectedRunes = actor.system.britannian_magic.selected_runes;
@@ -422,7 +430,7 @@ export default class BritannianMagicSD {
                 await BritannianMagicSD._addActiveSpell(actor, spell, result);
                 actor.sheet.render(true);
             }
-            await BritannianMagicSD._doSummon(actor, spell, result);
+            await BritannianMagicSD._doSummonOrShapeshift(actor, spell, result);
             await BritannianMagicSD._applySpellToTargets(actor, spell, result);
         }
     }
@@ -456,7 +464,7 @@ export default class BritannianMagicSD {
                 await BritannianMagicSD._addActiveSpell(actor, spell, result);
                 actor.sheet.render(true);
             }
-            await BritannianMagicSD._doSummon(actor, spell, result);
+            await BritannianMagicSD._doSummonOrShapeshift(actor, spell, result);
             await BritannianMagicSD._applySpellToTargets(actor, spell, result);
         }
     }
@@ -572,6 +580,12 @@ export default class BritannianMagicSD {
 
         const newActor = await Actor.create(creature);
         newActor.prototypeToken.img = newActor.img;
+        if (isShapeshift)
+        {
+            const playerHPpercentage = casterToken.actor.system.attributes.hp.value / casterToken.actor.system.attributes.hp.max;
+            const newActorHp = Math.ceil(newActor.system.attributes.hp.max * playerHPpercentage);
+            await newActor.update({"system.attributes.hp.value": newActorHp});
+        }
         await newActor.update({
             ownership: casterToken.actor.ownership
         });
@@ -640,7 +654,7 @@ export default class BritannianMagicSD {
         token.actor.system.deleted = true;
     }
 
-    static async _doSummon(actor, spell, result) {
+    static async _doSummonOrShapeshift(actor, spell, result) {
         if (!spell.creatureUuid) return;
         const [isSummon, isShapeshift] = await BritannianMagicSD.isSummonOrShapeShift(spell.effect.uuid);
         if (!isSummon && !isShapeshift) return;

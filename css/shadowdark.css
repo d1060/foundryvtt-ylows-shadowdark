@@ -1690,6 +1690,13 @@ picture {
   padding-left: 15px;
   padding-right: 15px;
 }
+.shadowdark .britannian-spellcasting-parchment-select-runes {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 0px;
+  font-family: "Old Newspaper Font";
+  font-size: 26px;
+}
 .shadowdark.sheet.player .cast-britannian-magic,
 .shadowdark.sheet.npc .cast-britannian-magic {
   background-image: url("/systems/shadowdark/assets/Britannia/Ultima-stroked-glow.png");
@@ -1884,7 +1891,6 @@ picture {
 }
 .shadowdark button {
   font-size: 1.1rem;
-  font-family: "Old Newspaper Font";
 }
 .shadowdark form button {
   font-family: var(--font-primary);
@@ -1947,23 +1953,10 @@ picture {
 .shadowdark header button {
   background: rgba(255, 255, 255, 0);
   border: 0;
-  font-size: 0px;
   background-size: 24px 24px;
   width: 24px;
   height: 24px;
   opacity: 0.75;
-}
-.shadowdark header .fa-xmark {
-  background-image: url("/systems/shadowdark/assets/icons/close-button-white-clear.png");
-}
-.shadowdark header .fa-passport {
-  background-image: url("/systems/shadowdark/assets/icons/passport.png");
-}
-.shadowdark header .fa-ellipsis-vertical {
-  background-image: url("/systems/shadowdark/assets/icons/ellipsis-vertical.png");
-}
-.shadowdark header .popout-module-button {
-  background-image: url("/systems/shadowdark/assets/icons/pop-out.png");
 }
 .shadowdark header button:hover {
   opacity: 1;

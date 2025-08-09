@@ -114,7 +114,7 @@ export default class ActorSD extends Actor {
 	}
 
 	async _npcRollHP(options={}) {
-		if (this.system.attributes.hp.max > 1 && this.system.attributes.hp.value > 1 && this.system.attributes.hp.max === this.system.attributes.hp.value)
+		if ((this.system.attributes.hp.max > 1 && this.system.attributes.hp.value > 1 && this.system.attributes.hp.max === this.system.attributes.hp.value) || (this.system.shapeshiftedBy))
 			return;
 			
 		const data = {
@@ -416,7 +416,7 @@ export default class ActorSD extends Actor {
 	}
 
 	async applyHPpercentage(percentage) {
-		let newHpValue = this.system.attributes.hp.value;
+		let newHpValue = this.system.attributes.hp.max;
 		newHpValue = Math.ceil(newHpValue * percentage);
 		if (newHpValue <= 0) newHpValue = 1;
 		this.system.attributes.hp.value = newHpValue;

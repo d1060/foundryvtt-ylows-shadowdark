@@ -1,23 +1,27 @@
 {{#ifCond knownRunes '>' 0}}
 {{#if canGoToPreviousPage}}
-<div class="britannian-spellbook-left-flip" data-action="britannianSpellbookLeftFlip" ></div>
+    <div class="britannian-spellbook-left-flip" data-action="britannianSpellbookLeftFlip" ></div>
 {{/if}}
 {{#if canGoToNextPage}}
-<div class="britannian-spellbook-right-flip" data-action="britannianSpellbookRightFlip" ></div>
+    <div class="britannian-spellbook-right-flip" data-action="britannianSpellbookRightFlip" ></div>
 {{/if}}
 {{#if selectingRunes}}
-{{#if readyToCast}}
-<div class="cast-britannian-magic" data-action="castBritannianMagic" data-tooltip="{{localize 'SHADOWDARK.britannian_rune.cast'}}"></div>
-{{/if}}
-{{#if readyToWrite}}
-<div class="write-britannian-magic" data-action="writeBritannianMagic" data-tooltip="{{localize 'SHADOWDARK.britannian_rune.write'}}"></div>
-{{/if}}
-<div class="britannian-spellcasting-parchment" style="grid-template-columns:{{#each selectedRunes as |selectedRune|}} 1fr{{/each}};">
-{{#each selectedRunes as |selectedRune|}}
-<div class="selected-rune" data-action="increaseRune" data-rune="{{selectedRune.name}}"><h2>{{selectedRune.titleName}}</h2>{{#if selectedRune.increases}}<img style="border: 0; margin-top: 4px; margin-left: 2px;" src="/systems/shadowdark/assets/icons/Britannia/{{selectedRune.increases}}-spell-increases.png">{{/if}}</div>
-{{/each}}
-<div style="grid-column: 1 / {{selectedRunesCount}}; margin-left: auto; margin-right: auto;">{{selectedRunesCircle}}<sup>{{selectedRunesCircleOrdinal}}</sup> {{localize "SHADOWDARK.britannian_spell.circleSpell"}}</div>
-</div>
+    {{#if readyToCast}}
+        <div class="cast-britannian-magic" data-action="castBritannianMagic" data-tooltip="{{localize 'SHADOWDARK.britannian_rune.cast'}}"></div>
+    {{/if}}
+    {{#if readyToWrite}}
+        <div class="write-britannian-magic" data-action="writeBritannianMagic" data-tooltip="{{localize 'SHADOWDARK.britannian_rune.write'}}"></div>
+    {{/if}}
+    <div class="britannian-spellcasting-parchment" style="grid-template-columns:{{#each selectedRunes as |selectedRune|}} 1fr{{/each}};">
+    {{#each selectedRunes as |selectedRune|}}
+        <div class="selected-rune" data-action="increaseRune" data-rune="{{selectedRune.name}}"><h2>{{selectedRune.titleName}}</h2>{{#if selectedRune.increases}}<img style="border: 0; margin-top: 4px; margin-left: 2px;" src="/systems/shadowdark/assets/icons/Britannia/{{selectedRune.increases}}-spell-increases.png">{{/if}}</div>
+    {{/each}}
+    <div style="grid-column: 1 / {{selectedRunesCount}}; margin-left: auto; margin-right: auto;">{{selectedRunesCircle}}<sup>{{selectedRunesCircleOrdinal}}</sup> {{localize "SHADOWDARK.britannian_spell.circleSpell"}}</div>
+    </div>
+{{else}}
+    {{#if canLearnRunes}}
+        <div class="britannian-spellcasting-parchment" style="grid-template-columns: 1fr;"><span class="britannian-spellcasting-parchment-select-runes">{{availableRunesMessage}}</span></div>
+    {{/if}}
 {{/if}}
 <div class="britannian-spellbook">
     <div style="height: 50px">&nbsp;</div>

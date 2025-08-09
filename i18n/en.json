@@ -1339,6 +1339,7 @@
   "SHADOWDARK.nano_blinded": "Blinded (disadvantage on all checks requiring vision)",
   "SHADOWDARK.nano_oncePerWeek": "Can only use this program for 1 day each week.",
   "SHADOWDARK.britannian_spell.title": "Britannian Spell",
+  "SHADOWDARK.britannian_spell.runesAvailable": "You can choose {availableRunes} more runes.",
   "SHADOWDARK.britannian_spell.circleSpell": "circle spell.",
   "SHADOWDARK.britannian_spell.editingTitle": "Editing Spell: ",
   "SHADOWDARK.britannian_spell.editSpell": "Edit Spell",
