@@ -75,6 +75,9 @@ export default class RollMagicSD extends HandlebarsApplicationMixin(ApplicationV
 			case "data.talentBonus":
 				await this._onChangeTalentBonus(event, formData);
 				break;
+			case "data.resistanceDC":
+				await this._onChangeResistanceDC(event, formData);
+				break;
 			case "data.damage":
 				await this._onChangeDamage(event, formData);
 				break;
@@ -119,6 +122,11 @@ export default class RollMagicSD extends HandlebarsApplicationMixin(ApplicationV
 	async _onChangeDamage(event, formData) {
 		const damage = event.target.value;
 		this.data.damage = damage;
+	}
+
+	async _onChangeResistanceDC(event, formData) {
+		const resistanceDC = parseInt(event.target.value);
+		this.data.resistanceDC = resistanceDC;
 	}
 
 	static increasePowerDamage(power, excessPower) {

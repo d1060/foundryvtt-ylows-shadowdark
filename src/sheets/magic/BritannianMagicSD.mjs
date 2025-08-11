@@ -152,16 +152,30 @@ export default class BritannianMagicSD {
         context.canGoToNextPage = false;
         context.readyToCast = false;
         context.readyToWrite = false;
-        context.isSustainingASpell = false;
+        context.blockedSustainedSpell = false;
+        context.blockedPermanentSpell = false;
 
+        let sustainedSpellsCount = 0;
+        let permanentSpellsCount = 0;
         for (let active_spell of actor.system.britannian_magic.active_spells ?? [])
         {
             if (active_spell.duration === 'sustained')
-            {
-                context.isSustainingASpell = true;
-                break;
-            }
+                sustainedSpellsCount++;
+            if (active_spell.duration === 'permanent')
+                permanentSpellsCount++;
         }
+        let sustainedSpellLimit = 1;
+        let permanentSpellLimit = 1;
+
+        if (actor.system.bonuses.focusMastery)
+            sustainedSpellLimit += actor.system.bonuses.focusMastery;
+        if (actor.system.bonuses.permanenceMastery)
+            permanentSpellLimit += actor.system.bonuses.permanenceMastery;
+
+        if (sustainedSpellsCount >= sustainedSpellLimit)
+            context.blockedSustainedSpell = true;
+        if (permanentSpellsCount >= permanentSpellLimit)
+            context.blockedPermanentSpell = true;
 
         let equippedSpellbook = await actor.equippedSpellBook();
 
@@ -201,11 +215,13 @@ export default class BritannianMagicSD {
                 });
 
                 spell.sanitizedDescription = UtilitySD.sanitizeHTML(spell.description);
-                spell.parameterLines = this.getSpellParametersLines(spell);
+                spell.parameterLines = await this.getSpellParametersLines(spell, actor);
                 spell.runicName = '';
                 spell.unavailable = false;
 
-                if (spell.duration === 'sustained' && context.isSustainingASpell)
+                if (spell.duration === 'sustained' && context.blockedSustainedSpell)
+                    spell.unavailable = true;
+                if (spell.duration === 'permanent' && context.blockedPermanentSpell)
                     spell.unavailable = true;
                 if (spell.lost)
                     spell.unavailable = true;
@@ -383,20 +399,36 @@ export default class BritannianMagicSD {
         let castingBonus = actor.system.abilities.int.mod;
         if (actor.system.bonuses.spellcastingCheckBonus)
             castingBonus += actor.system.bonuses.spellcastingCheckBonus;
+        if (actor.system.bonuses.runeMastery && spell.runes.find(r => r.name == actor.system.bonuses.runeMastery.slugify()))
+        {
+            castingBonus++;
+            castingBonus += Math.floor(actor.system.level.value / 2);
+        }
 
-        let spellDC = 9 + shadowdark.apps.BritannianSpellSD.fullSpellCircle(spell);
+        let advantage = 0;
+        let advantageTooltip = null;
+        if (actor.system.bonuses.empoweredRunecasting && spell.runes.find(r => r.name == actor.system.bonuses.empoweredRunecasting))
+        {
+            advantage = 1;
+            advantageTooltip = game.i18n.format("SHADOWDARK.britannian_spell.empoweredRunecasting", { rune: actor.system.bonuses.empoweredRunecasting } );
+        }
+
+        let spellDC = 9 + shadowdark.apps.BritannianSpellSD.fullSpellCircle(spell, actor);
 		const options = {
             isSpell: true,
 			magicCoreLevel: castingBonus,
             spellDC,
             target: spellDC,
+            resistedBy: spell.effect.resistedBy,
+            resistanceDC: shadowdark.apps.BritannianSpellSD.getSpellResistanceDC(spell, actor),
             isHealing: spell.effect.isHealing,
             damage: spell.damage,
 			magicType: 'britannian-magic',
             spellName: spell.name,
-            powerLevel: shadowdark.apps.BritannianSpellSD.fullSpellCircle(spell),
+            powerLevel: shadowdark.apps.BritannianSpellSD.fullSpellCircle(spell, actor),
             duration_desc: spell.duration ?? 'Instant',
-            advantage: 0,
+            advantage,
+            advantageTooltip,
             power: spell,
             callback: type == 'freecast' ? this._freeCastCallback :  this._writtenCastCallback,
 		};
@@ -405,7 +437,9 @@ export default class BritannianMagicSD {
     }
 
     static async _freeCastCallback(result) {
-		const resultMargin = result.rolls.main.roll._total - result.spellDC;
+		let resultMargin = result.rolls.main.roll._total - result.spellDC;
+        if (result.rolls.main.critical === "success") resultMargin = 20;
+        if (result.rolls.main.critical === "failure") resultMargin = -20;
         const actor = result.actor;
         const spell = result.power;
 
@@ -425,18 +459,20 @@ export default class BritannianMagicSD {
         }
         else
         {
-            if ((spell.duration ?? 'instant').slugify() != 'instant')
+            let appliedEffect = await BritannianMagicSD._applySpellToTargets(actor, spell, result);
+            if (appliedEffect && (spell.duration ?? 'instant').slugify() != 'instant')
             {
+                await BritannianMagicSD._doSummonOrShapeshift(actor, spell, result);
                 await BritannianMagicSD._addActiveSpell(actor, spell, result);
                 actor.sheet.render(true);
             }
-            await BritannianMagicSD._doSummonOrShapeshift(actor, spell, result);
-            await BritannianMagicSD._applySpellToTargets(actor, spell, result);
         }
     }
     
     static async _writtenCastCallback(result) {
-		const resultMargin = result.rolls.main.roll._total - result.spellDC;
+		let resultMargin = result.rolls.main.roll._total - result.spellDC;
+        if (result.rolls.main.critical === "success") resultMargin = 20;
+        if (result.rolls.main.critical === "failure") resultMargin = -20;
         const actor = result.actor;
         const spell = result.power;
 
@@ -459,13 +495,13 @@ export default class BritannianMagicSD {
         }
         else
         {
-            if ((spell.duration ?? 'instant').slugify() != 'instant')
+            let appliedEffect = await BritannianMagicSD._applySpellToTargets(actor, spell, result);
+            if (appliedEffect && (spell.duration ?? 'instant').slugify() != 'instant')
             {
+                await BritannianMagicSD._doSummonOrShapeshift(actor, spell, result);
                 await BritannianMagicSD._addActiveSpell(actor, spell, result);
                 actor.sheet.render(true);
             }
-            await BritannianMagicSD._doSummonOrShapeshift(actor, spell, result);
-            await BritannianMagicSD._applySpellToTargets(actor, spell, result);
         }
     }
 
@@ -483,21 +519,31 @@ export default class BritannianMagicSD {
     }
 
     static async _applySpellToTargets(actor, spell, result) {
-        if (!actor || !spell) return;
+        if (!actor || !spell) return true;
         var tokens = result.targetTokens ?? [];
+        if (!tokens.length) return true;
 
         const effect = await fromUuid(spell.effect.uuid);
-        if (!effect) return;
+        if (!effect) return true;
 
 		var embeddedEffects = await effect.getEmbeddedCollection("ActiveEffect");
 
         if ((spell.duration ?? '').slugify() === 'instant' || !embeddedEffects.contents.length)
-            return;
+            return true;
 
         let effects = structuredClone(embeddedEffects.contents);
-        effects = await BritannianMagicSD.applyEffectsByLevel(spell, effects);
+        effects = await BritannianMagicSD.applyEffectsByLevel(spell, effect, effects);
 
+        let atLeastOneEffectApplied = false;
         for (var token of tokens) {
+
+            if (spell.effect.resistedBy) {
+                let resistanceRoll = result.resistanceRolls.find(r => r.main.roll.data.actor.id === token.actor.id);
+                if (resistanceRoll && (resistanceRoll.main.success.value || resistanceRoll.main.critical === "success"))
+                    continue;
+            }
+            atLeastOneEffectApplied = true;
+
             if (!game.user.isGM) {
                 game.socket.emit(
                     "system.shadowdark",
@@ -515,26 +561,38 @@ export default class BritannianMagicSD {
                 BritannianMagicSD.applyEffectsToToken(token, actor, effects, spell.uuid, spell.name);
             }
         }
+        return atLeastOneEffectApplied;
     }
 
-    static async applyEffectsByLevel(spell, effects) {
-        for (let effect of effects) {
-            let compendiumEffect = await fromUuid(effect.origin);
-            if (compendiumEffect.system.change_effect_by)
-            {
-                const effectChangeBy = parseInt(compendiumEffect.system.change_effect_by);
-                const effectChangeEach = parseInt(compendiumEffect.system.change_effect_each ?? '1');
-                const spellCircle = shadowdark.apps.BritannianSpellSD.spellWbritordsCircle(spell);
+    static async applyEffectsByLevel(spell, effect, effects) {
+        for (let activeEffect of effects) {
+            if (effect.system.change_effect_by) {
+                const effectChangeBy = parseInt(effect.system.change_effect_by);
+                const effectChangeEach = parseInt(effect.system.change_effect_each ?? '1');
+                const spellCircle = shadowdark.apps.BritannianSpellSD.spellWordsCircle(spell);
                 const effectIncreases = effectChangeBy * Math.floor(spellCircle / effectChangeEach);
-                for (let change of effect.changes) {
+                for (let change of activeEffect.changes) {
                     if (UtilitySD.isNumeric(change.value))
-                    {
                         change.value = parseInt(change.value) + effectIncreases;
-                    }
+                    if ((change.key === 'system.bonuses.abilityBonus' || change.key === 'system.penalties.abilityPenalty') && spell.ability)
+                        change.key = this.getChangeKeyByAbility(change.key, spell.ability);
                 }
             }
         }
         return effects;
+    }
+
+    static getChangeKeyByAbility(key, ability) {
+        switch (ability)
+        {
+            case 'str': return 'system.abilities.str.bonus';
+            case 'dex': return 'system.abilities.dex.bonus';
+            case 'con': return 'system.abilities.con.bonus';
+            case 'cha': return 'system.abilities.cha.bonus';
+            case 'wis': return 'system.abilities.wis.bonus';
+            case 'int': return 'system.abilities.int.bonus';
+        }
+        return '';
     }
 
     static async applyEffectsToToken(token, actor, effects, spellUuid, spellName) {
@@ -765,22 +823,23 @@ export default class BritannianMagicSD {
 		});
 	}
 
-    static getSpellParametersLines(spell) {
+    static async getSpellParametersLines(spell, actor) {
         let area = shadowdark.apps.BritannianSpellSD.getSpellArea(spell);
         let targets = shadowdark.apps.BritannianSpellSD.getSpellTargets(spell);
         let range = shadowdark.apps.BritannianSpellSD.getSpellRange(spell);
         let duration = shadowdark.apps.BritannianSpellSD.getSpellDuration(spell);
         let damage = shadowdark.apps.BritannianSpellSD.getSpellDamage(spell);
         let healing = spell.effect.isHealing;
-        let resistance = shadowdark.apps.BritannianSpellSD.getSpellResistance(spell);
+        let resistance = shadowdark.apps.BritannianSpellSD.getSpellResistance(spell, actor);
         let creature = shadowdark.apps.BritannianSpellSD.getSpellCreature(spell);
+        let abilityModifier = await shadowdark.apps.BritannianSpellSD.getSpellAbilityModifier(spell);
 
         let lines = [];
 
         let openDiv = '<div class="britannian-spell-parameter">';
         let closeDiv = '</div>';
 
-        lines.push(openDiv + shadowdark.apps.BritannianSpellSD.getSpellCircle(spell) + closeDiv);
+        lines.push(openDiv + shadowdark.apps.BritannianSpellSD.getSpellCircle(spell, actor) + closeDiv);
 
         if (area)
             lines.push(openDiv + game.i18n.localize("SHADOWDARK.britannian_spell.area") + " " + area + "." + closeDiv);
@@ -788,6 +847,12 @@ export default class BritannianMagicSD {
             lines.push(openDiv + game.i18n.localize("SHADOWDARK.britannian_spell.targets") + " " + targets + "." + closeDiv);
 
         lines.push(openDiv + game.i18n.localize("SHADOWDARK.britannian_spell.range") + " " + range + "." + closeDiv);
+
+        if (abilityModifier)
+        {
+            let sign = abilityModifier > 0 ? '+' : '';
+            lines.push(openDiv + UtilitySD.capitalize(spell.ability) + ' ' + sign + abilityModifier + closeDiv);
+        }
 
         lines.push(openDiv + game.i18n.localize("SHADOWDARK.item.spell_duration") + " " + (UtilitySD.isObject(duration) ? 'instant' : duration) + "." + closeDiv);
         

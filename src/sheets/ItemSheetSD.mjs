@@ -49,15 +49,6 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			removeSuffix: this.#onRemoveSuffix,
 			selectItem: this.#onItemSelection,
 			manageActiveEffect: this.#manageActiveEffect
-
-			//html.find(".item-property-list.talent-type").click(
-			//	event => this._onTalentTypeProperties(event)
-			//);
-
-			//html.find(".item-property-list.magic-type").click(
-			//	event => this._onMagicItemTypeProperties(event)
-			//);
-
 		},
 		dragDrop: [{dropSelector: ".items"}],
  	}
@@ -1031,7 +1022,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		event.stopPropagation();
 
 		const deleteUuid = target.dataset.uuid;
-		const choicesKey = target.dataset.name;
+		const choicesKey = target.dataset.name ?? target.dataset.choicesKey;
 
 		// handles cases where choicesKey is nested property.
 		const currentChoices = choicesKey

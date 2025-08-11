@@ -1,4 +1,5 @@
 import BritannianMagicSD from "../sheets/magic/BritannianMagicSD.mjs";
+import UtilitySD from "../utils/UtilitySD.mjs";
 
 export default class ActiveEffectsSD {
 
@@ -14,12 +15,17 @@ export default class ActiveEffectsSD {
 		const parameters = Array.isArray(effectParameters)
 			? effectParameters
 			: [effectParameters];
+		let allOptionsEmpty = true;
 		for (const parameter of parameters) {
 			parameter.label = await game.i18n.localize(
 				`SHADOWDARK.dialog.effect.choice.${parameter.type}`
 			);
 			parameter.uuid = foundry.utils.randomID();
+			if (parameter.options.length)
+				allOptionsEmpty = false;
 		}
+		if (allOptionsEmpty)
+			return [null, null];
 
 		const content = await foundry.applications.handlebars.renderTemplate(
 			"systems/shadowdark/templates/dialog/effect-list-choice.hbs",
@@ -494,6 +500,58 @@ export default class ActiveEffectsSD {
 
 			const options = shadowdark.config.ABILITIES_LONG;
 
+			const chosen = await this.askEffectInput({name, type, options});
+			return chosen[type] ?? [value];
+		}
+		else if (key === "runeMastery") {
+			const type = "rune";
+			const options = BritannianMagicSD.runes.map(r => UtilitySD.capitalize(r.name));
+			const chosen = await this.askEffectInput({name, type, options});
+			const chosenRune = chosen[type][1];
+			return [chosenRune.slugify(), chosenRune] ?? [value];
+		}
+		else if (key === "empoweredRunecasting") {
+			const type = "rune";
+			const options = [];
+			for (let rune of BritannianMagicSD.runes)
+			{
+				if (rune.name === 'in' || rune.name === 'vas' || rune.name === 'kal')
+					continue;
+				if (!actor.system.britannian_magic || !actor.system.britannian_magic.runes)
+					continue;
+				if (actor.system.britannian_magic.runes.some(r => r.name === rune.name && r.learned))
+					options.push(UtilitySD.capitalize(rune.name));
+			}
+
+			const chosen = await this.askEffectInput({name, type, options});
+			const chosenRune = chosen[type][1];
+			return [chosenRune.slugify(), chosenRune] ?? [value];
+		}
+		else if (key === "runeSpecialist") {
+			const type = "rune";
+			const options = [];
+			for (let rune of BritannianMagicSD.runes)
+			{
+				if (!actor.system.britannian_magic || !actor.system.britannian_magic.runes)
+					continue;
+				if (actor.system.britannian_magic.runes.some(r => r.name === rune.name && r.learned))
+					options.push(UtilitySD.capitalize(rune.name));
+			}
+
+			const chosen = await this.askEffectInput({name, type, options});
+			const chosenRune = chosen[type][1];
+			return [chosenRune.slugify(), chosenRune] ?? [value];
+		}
+		else if (key === "spellPenetration") {
+			const type = "resistanceType";
+			const options = {};
+			if (!actor.system.bonuses.spellPenetration) actor.system.bonuses.spellPenetration = [];
+			else if (!Array.isArray(actor.system.bonuses.spellPenetration)) actor.system.bonuses.spellPenetration = [actor.system.bonuses.spellPenetration];
+
+			if (!actor.system.bonuses.spellPenetration.some(b => b === 'CON'))
+				options['con'] = 'CON';
+			if (!actor.system.bonuses.spellPenetration.some(b => b === 'WIS'))
+				options['wis'] = 'WIS';
 			const chosen = await this.askEffectInput({name, type, options});
 			return chosen[type] ?? [value];
 		}

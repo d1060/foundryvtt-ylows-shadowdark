@@ -133,7 +133,8 @@
 				"weaponDamageExtraDieImprovementByProperty": [],
 				"weaponMastery": [],
 				"resistance": [],
-				"immunity": []
+				"immunity": [],
+				"spellPenetration": []
 			},
 			"britannian_magic": {
                 "runes": [],

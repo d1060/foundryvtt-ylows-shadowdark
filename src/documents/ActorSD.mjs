@@ -2426,9 +2426,12 @@ export default class ActorSD extends Actor {
 			duration_amount: params.duration_amount,
 			duration_desc: params.duration_desc,
 			advantage: params.advantage,
+			advantageTooltip : params.advantageTooltip,
 			target: params.target,
 			variableLevelEffects: params.variableLevelEffects,
 			power: power,
+            resistedBy: params.resistedBy ? params.resistedBy.toUpperCase() : null,
+            resistanceDC: params.resistanceDC,
 			effectiveLevel: params.effectiveLevel,
 			item: null,
 		};

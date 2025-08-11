@@ -47,6 +47,23 @@
         {{#if spell.effect.range}}<div class="parameter-description">{{localize "SHADOWDARK.britannian_spell.range"}} {{spell.effect.range}}</div>{{/if}}
         {{#if spell.creature}}<div class="parameter-description selected-creature">{{localize "SHADOWDARK.britannian_spell.creature"}} <img class="BritannianSpell-EffectImage" style="border: 0; height: 20px" src="{{spell.creature.img}}"> <a class="content-link uuid-link" data-link data-type="Actor" data-uuid="{{spell.creatureUuid}}" data-tooltip="{{spell.creature.description}}">{{spell.creature.name}}</a></div>{{/if}}
         {{#if spell.damage}}<div class="parameter-description">{{#if spell.effect.isHealing}}{{localize "SHADOWDARK.item.healing"}}{{else}}{{localize "SHADOWDARK.item.damage"}}{{/if}} {{spell.damage}}</div>{{/if}}
+        {{#if shouldSelectAbility}}
+        <div class="modifier-word-selection">
+            <span>{{localize 'SHADOWDARK.britannian_spell.affectedAbility'}}</span>
+            <div>
+                <select name="spell.ability" >
+                    <option value="">&mdash;</option>
+                    {{selectOptions
+                        config.ABILITIES_LONG
+                        selected=ability
+                        localize=true
+                    }}
+                </select>
+            </div>
+        </div>
+        {{else}}
+            {{#if spell.ability}}<div class="parameter-description">{{localize "SHADOWDARK.britannian_spell.affectedAbility"}} {{spell.ability}} {{abilityModifierSign}}{{spell.abilityModifier}}</div>{{/if}}
+        {{/if}}
         {{#if hasInWord}}
         <div class="modifier-word-selection">
             <span>{{localize 'SHADOWDARK.britannian_spell.inWordEffect'}}</span>

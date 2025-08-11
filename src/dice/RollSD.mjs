@@ -160,7 +160,7 @@ export default class RollSD extends Roll {
 				}
 			}
 		}
-		
+
 		if (data.auraMagic || data.abyssalMagic || data.mistMagic || data.nanoMagic || data.rollType.includes('-magic'))
 		{
 			var damage = data.damage;
@@ -195,8 +195,49 @@ export default class RollSD extends Roll {
 		if (await data.item?.isExplosive())
 			data.actor?.reduceQuantity(data.item, 1);
 
+		if ((result.rolls?.main?.success?.value || result?.rolls?.main?.critical === "success") && data.resistedBy)
+		{
+			var tokens = [];
+			if (options.targetToken)
+				tokens.push(options.targetToken);
+			if (data.targetTokens)
+				tokens.push(...data.targetTokens);
+			
+			result.resistanceRolls = [];
+			for (let token of tokens) {
+				if (token.actor)
+				{
+					let resistanceRoll = await this.rollResistance(token, data);
+					result.resistanceRolls.push(resistanceRoll);
+				}
+			}
+		}
+
 		await this._applyDamageToTargets(result, options, data);
 		return result;
+	}
+
+	static async rollResistance(token, data) {
+		const resistanceAbility = data.resistedBy.toLowerCase();
+		let target = data.resistanceDC ?? 10;
+		let abilityBonus = token.actor.system.abilities[resistanceAbility].mod;
+		let adv = 0;
+		
+		const resistanceData = {
+			target,
+			abilityBonus,
+			actor: token.actor,
+			tokenId: token.id,
+		}
+		const resistanceOptions = {
+			target,
+			title: game.i18n.format("SHADOWDARK.dialog.resistanceRoll", { name: token.actor.name, ability: data.resistedBy})
+		}
+		resistanceData.rolls = {
+			main: await this._rollAdvantage([(game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20"), '@abilityBonus'], resistanceData, adv)
+		};
+		const result = await this._renderRoll(resistanceData, adv, resistanceOptions);
+		return result.rolls;
 	}
 	
 	static async _applyDamageToTargets(result, options, data) {
@@ -1442,7 +1483,7 @@ export default class RollSD extends Roll {
 
 			templateData.propertyNames = propertyNames;
 		}
-		if ((data.auraMagic && data.damage) || (data.abyssalMagic && data.damage) || (data.mistMagic && data.damage) || (data.nanoMagic && data.damage) || (data.rollType.includes('-magic') && data.damage))
+		if ((data.auraMagic && data.damage) || (data.abyssalMagic && data.damage) || (data.mistMagic && data.damage) || (data.nanoMagic && data.damage) || (data.rollType?.includes('-magic') && data.damage))
 			templateData.isMagicWithDamage = true;
 
 		return templateData;

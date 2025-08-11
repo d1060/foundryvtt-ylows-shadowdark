@@ -192,6 +192,8 @@
   "SHADOWDARK.chat.hp_roll.apply_to_max": "Add to Max HP",
   "SHADOWDARK.chat.item_roll.double_numerical": "Double any one numerical value!",
   "SHADOWDARK.chat.item_roll.mishap": "Roll on the appropriate Mishap table!",
+  "SHADOWDARK.chat.item_roll.resistedBy": "Resisted By:",
+  "SHADOWDARK.chat.item_roll.vs": "vs",
   "SHADOWDARK.chat.item_roll.title_vs": "Attack roll with {name} vs {target}",
   "SHADOWDARK.chat.item_roll.title": "Attack roll with {name}",
   "SHADOWDARK.chat.item_roll.target": "Target DC",
@@ -309,6 +311,8 @@
   "SHADOWDARK.dialog.effect.choices.title": "Effect Parameters",
   "SHADOWDARK.dialog.effect.choice.rangedWeapon": "Choose a Ranged Weapon",
   "SHADOWDARK.dialog.effect.choice.proficiency": "Choose a new Combat Proficiency",
+  "SHADOWDARK.dialog.effect.choice.resistanceType": "Choose a Resistance Type",
+  "SHADOWDARK.dialog.effect.choice.rune": "Choose a Rune",
   "SHADOWDARK.dialog.general.are_you_sure": "Are you sure?",
   "SHADOWDARK.dialog.general.cancel": "Cancel",
   "SHADOWDARK.dialog.general.no": "No",
@@ -344,6 +348,7 @@
   "SHADOWDARK.dialog.light_source.pick_up.title": "Select actor to give lightsource",
   "SHADOWDARK.dialog.roll_mode_label": "Rolling Mode",
   "SHADOWDARK.dialog.roll": "Roll",
+  "SHADOWDARK.dialog.resistanceRoll": "{name} resists with {ability}",
   "SHADOWDARK.dialog.scroll.learn_spell_class_warning": "WARNING: This spell is not of the same class as the character, are you sure you wish to try and learn it?",
   "SHADOWDARK.dialog.scroll.wrong_class_confirm": "Confirm Learn Spell",
   "SHADOWDARK.dialog.select_ancestry.prompt": "Select Ancestry...",
@@ -1355,9 +1360,11 @@
   "SHADOWDARK.britannian_spell.area" : "Area: ",
   "SHADOWDARK.britannian_spell.range" : "Range: ",
   "SHADOWDARK.britannian_spell.creature": "Creature: ",
+  "SHADOWDARK.britannian_spell.affectedAbility": "Ability:",
   "SHADOWDARK.britannian_spell.inWordEffect": "'In' word effect: ",
   "SHADOWDARK.britannian_spell.vasWordEffect": "'Vas' word effect: ",
   "SHADOWDARK.britannian_spell.noSpellbook": "You can't scribe spells without an equipped spellbook.",
   "SHADOWDARK.britannian_spell.eraseWrittenSpell": "Erase Spell: ",
-  "SHADOWDARK.britannian_spell.alreadySustaining": "You can't cast a sustained spell while already sustaining another spell."
+  "SHADOWDARK.britannian_spell.alreadySustaining": "You can't cast a sustained spell while already sustaining another spell.",
+  "SHADOWDARK.britannian_spell.empoweredRunecasting": "You have Empowered Runecasting for {rune}."
 }

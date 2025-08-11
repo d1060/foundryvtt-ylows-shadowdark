@@ -200,6 +200,10 @@ SHADOWDARK.EFFECT_ASK_INPUT = [
 	"system.bonuses.armorProficiency",
 	"system.bonuses.abilityCheckBonus",
 	"system.bonuses.abilityCheckBoost",
+	"system.bonuses.runeMastery",
+	"system.bonuses.empoweredRunecasting",
+	"system.bonuses.runeSpecialist",
+	"system.bonuses.spellPenetration",
 ];
 
 SHADOWDARK.EFFECT_CATEGORIES = {
@@ -804,6 +808,11 @@ SHADOWDARK.PREDEFINED_EFFECTS = {
 	//system.bonuses.unarmoredStealthBonus
 	//system.bonuses.homogeneous Slashing, piercing or bludgeoning attacks only deal 1 point of damage, unless they are magical.
 	//system.bonuses.shieldWall  +1 to AC when close to another ally with this feature.
+	//system.bonuses.runeMastery
+	//system.bonuses.empoweredRunecasting
+	//system.bonuses.runeSpecialist
+	//system.bonuses.focusMastery
+	//system.bonuses.permanenceMastery
 
 	//TODO:
 	//system.bonuses.injector On hit, injects a random drug on the target. Roll DC 12 CON. On a failure, roll 1d6:

@@ -1769,6 +1769,7 @@ picture {
 .shadowdark.item .effect-list-changes input[type=text] {
   text-align: center;
   font-size: 13px;
+  height: 20px;
 }
 .shadowdark.item .properties-list {
   height: 26px;
@@ -2291,6 +2292,10 @@ picture {
   background-size: 100% 100%;
   background-position: unset;
   background-repeat: no-repeat;
+  height: 100%;
+  backdrop-filter: none;
+  justify-content: flex-start;
+  line-height: normal;
 }
 
 .shadowdark input.select-runes {
@@ -2381,8 +2386,15 @@ picture {
   width: 18px;
   height: 18px;
 }
+.shadowdark .britannian-spell .modifier-word-selection input[type=checkbox]::before {
+  content: unset;
+}
 .shadowdark .britannian-spell .modifier-word-selection input[type=checkbox]:checked {
+  appearance: none;
   border: none;
+}
+.shadowdark .britannian-spell .modifier-word-selection input[type=checkbox]:checked::before {
+  content: unset;
 }
 .shadowdark .britannian-spell .modifier-word-selection input[type=checkbox]:checked::after {
   content: "✔";

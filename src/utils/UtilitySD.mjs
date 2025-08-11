@@ -695,6 +695,15 @@ export default class UtilitySD {
 		);
 	}
 
+	static capitalize(str) {
+		if (typeof str !== 'string' || str.length === 0) return str;
+		const c0 = str.charCodeAt(0);
+		if (c0 >= 97 && c0 <= 122) {
+			return String.fromCharCode(c0 - 32) + str.slice(1);
+		}
+		return str;
+	}
+
 	static sanitizeHTML(content) {
 		let sanitized =  foundry.applications.ux.TextEditor.implementation.decodeHTML(content);
 		sanitized = sanitized.replace(/\[\[/g, "");

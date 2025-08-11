@@ -19,7 +19,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
    	/** @inheritdoc */
 	static DEFAULT_OPTIONS = {
     	tag: "form",
-		classes: ["app", "window-app", "shadowdark", 'themed', 'theme-light'],
+		classes: ["window-app", "shadowdark", 'themed', 'theme-light'],
 		position: {
     		width: 600,
     		height: 800
@@ -70,13 +70,19 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             editable: game.user.isGM || this.actor.isOwner,
             castingBonus: this.actor.system.abilities.int.mod,
             canScribeSpells: this.actor.system.bonuses.canScribeSpells,
+            config: CONFIG.SHADOWDARK,
 		};
 
         if (this.actor.system.bonuses.spellcastingCheckBonus)
             context.castingBonus += this.actor.system.bonuses.spellcastingCheckBonus;
+        if (this.actor.system.bonuses.runeMastery && this.spell.runes.find(r => r.name == this.actor.system.bonuses.runeMastery.slugify()))
+        {
+            context.castingBonus++;
+            context.castingBonus += Math.floor(this.actor.system.level.value / 2);
+        }
         if (context.castingBonus > 0) context.castingBonus = '+' + context.castingBonus;
 
-        if (BritannianSpellSD.fullSpellCircle(this.spell) < this.actor.system.level.value)
+        if (BritannianSpellSD.fullSpellCircle(this.spell, this.actor) < this.actor.system.level.value)
             context.canSelectRunes = true;
 
         context.availableRunes = [];
@@ -181,7 +187,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             context.availableEffects = await this.getAvailableEffects();
         }
 
-        context.selectedRunesCircle = BritannianSpellSD.fullSpellCircle(this.spell);
+        context.selectedRunesCircle = BritannianSpellSD.fullSpellCircle(this.spell, this.actor);
         if (context.selectedRunesCircle === 1) context.selectedRunesCircleOrdinal = "st";
         else if (context.selectedRunesCircle === 2) context.selectedRunesCircleOrdinal = "nd";
         else if (context.selectedRunesCircle === 3) context.selectedRunesCircleOrdinal = "rd";
@@ -206,7 +212,15 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
                 context.shouldSummonAnimal = true
                 context.availableCreatures = await this.getAvailableCreatures();
             }
+            if (context.selectedEffect.name.includes("Ability)") && !this.spell.ability)
+            {
+                context.shouldSelectAbility = true
+            }
         }
+
+        context.abilityModifierSign = '';
+        if (this.spell.abilityModifier && this.spell.abilityModifier > 0)
+            context.abilityModifierSign = '+';
 
         context.spellReady = await this.isSpellReady(context);
         context.spellBlocked = await this.isSustainedSpellWhileConcentrating(context);
@@ -237,7 +251,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
     }
 
     static async #onIncreaseRune(event, target) {
-        if (BritannianSpellSD.fullSpellCircle(this.spell) >= this.actor.system.level.value)
+        if (BritannianSpellSD.fullSpellCircle(this.spell, this.actor) >= this.actor.system.level.value)
             return;
         const rune = target.dataset.rune;
         var actorRune = this.actor.system.britannian_magic.selected_runes.find(r => r.name === rune);
@@ -320,6 +334,13 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
                 await BritannianMagicSD.selectRune(this.actor, event.target.value);
                 this.spell.runes = this.actor.system.britannian_magic.selected_runes;
                 await this.applyEffect();
+                break;
+            case 'spell.ability':
+                this.spell.ability = event.target.value;
+                this.spell.abilityModifier = 0;
+                if (/\(.*?\)/.test(this.spell.name)) {
+                    this.spell.name = this.spell.name.replace(/\(.*?\)/, UtilitySD.capitalize(this.spell.ability));
+                }
                 break;
             case 'spell.name':
                 this.spell.name = event.target.value;
@@ -415,7 +436,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
         let spellbook = await this.actor.equippedSpellBook();
         if (!spellbook.system.spells) spellbook.system.spells = [];
 
-        const spellIndex = spellbook.system.spells.indexOf(s => s.uuid === this.spell.uuid);
+        const spellIndex = spellbook.system.spells.indexOf(this.spell);
 
         if (spellIndex == -1)
             spellbook.system.spells.push(this.spell);
@@ -525,7 +546,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             if (/^\d+$/.test(effect.system.powerLevel))
             {
                 let requiredLevel = parseInt(effect.system.powerLevel);
-                if (BritannianSpellSD.fullSpellCircle(this.spell) < requiredLevel)
+                if (BritannianSpellSD.fullSpellCircle(this.spell, this.actor) < requiredLevel)
                     continue;
             }
 
@@ -599,6 +620,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
         spell.effect.range = BritannianSpellSD.getSpellRange(spell);
         spell.area = BritannianSpellSD.getSpellArea(spell);
         spell.targets = BritannianSpellSD.getSpellTargets(spell);
+        spell.abilityModifier = await BritannianSpellSD.getSpellAbilityModifier(spell);
     }
 
     static increaseDurationByWord(spell, duration)
@@ -664,27 +686,48 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             return false;
         if ((context.selectedEffect.name.includes("Animal)") || context.selectedEffect.name.includes("Creature)") || context.selectedEffect.name.includes("Horde)")) && !this.spell.creature)
             return false;
+        if (context.selectedEffect.name.includes("Ability)") && !this.spell.ability)
+            return false;
 
         return true;
     }
 
     async isSustainedSpellWhileConcentrating(context) {
-        context.isSustainingASpell = false;
+        if ((this.spell.effect?.duration !== 'sustained' && this.spell.effect?.duration !== 'permanent'))
+            return false;
+
+        context.blockedSustainedSpell = false;
+        context.blockedPermanentSpell = false;
+
+        let sustainedSpellsCount = 0;
+        let permanentSpellsCount = 0;
         for (let active_spell of this.actor.system.britannian_magic.active_spells ?? [])
         {
             if (active_spell.duration === 'sustained')
-            {
-                context.isSustainingASpell = true;
-                break;
-            }
+                sustainedSpellsCount++;
+            if (active_spell.duration === 'permanent')
+                permanentSpellsCount++;
         }
+        let sustainedSpellLimit = 1;
+        let permanentSpellLimit = 1;
 
-        if (this.spell.effect?.duration === 'sustained' && context.isSustainingASpell)
-            return true;
-        return false;
+        if (this.actor.system.bonuses.focusMastery)
+            sustainedSpellLimit += this.actor.system.bonuses.focusMastery;
+        if (this.actor.system.bonuses.permanenceMastery)
+            permanentSpellLimit += this.actor.system.bonuses.permanenceMastery;
+
+        if (sustainedSpellsCount >= sustainedSpellLimit)
+            context.blockedSustainedSpell = true;
+        if (permanentSpellsCount >= permanentSpellLimit)
+            context.blockedPermanentSpell = true;
+
+        if (this.spell.effect?.duration !== 'sustained')
+            return context.blockedSustainedSpell;
+
+        return context.blockedPermanentSpell;
     }
 
-    static fullSpellCircle(spell) {
+    static fullSpellCircle(spell, actor) {
         if (!spell)
             return 0;
 
@@ -695,6 +738,9 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             if (rune.increases)
                 selectedCircle += rune.increases;
         }
+        if (actor.system.bonuses.runeSpecialist && actor.system.britannian_magic && actor.system.britannian_magic.runes && actor.system.britannian_magic.runes.some(r => r.name === actor.system.bonuses.runeSpecialist && r.learned))
+            selectedCircle--;
+        if (selectedCircle <= 0) selectedCircle = 1;
         return selectedCircle;
     }
 
@@ -718,8 +764,8 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
         return selectedCircle;
     }
 
-    static getSpellCircle(spell) {
-        let selectedRunesCircle = BritannianSpellSD.fullSpellCircle(spell);
+    static getSpellCircle(spell, actor) {
+        let selectedRunesCircle = BritannianSpellSD.fullSpellCircle(spell, actor);
         let selectedRunesCircleOrdinal = "th";
 
         if (selectedRunesCircle === 1) selectedRunesCircleOrdinal = "st";
@@ -738,6 +784,24 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             return spell.effect.targets + (spell.targetIncreases ?? 0);
 
         return null;
+    }
+
+    static async getSpellAbilityModifier(spell) {
+        let abilityModifier = 0;
+        if (spell.ability)
+        {
+            let effect = await fromUuid(spell.effect.uuid);
+            if (effect)
+            {
+                const effectChangeBy = parseInt(effect.system.change_effect_by ?? '0');
+                const effectChangeEach = parseInt(effect.system.change_effect_each ?? '1');
+                const spellCircle = BritannianSpellSD.spellWordsCircle(spell);
+                const effectIncreases = effectChangeBy * Math.floor(spellCircle / effectChangeEach);
+
+                abilityModifier = effectIncreases;
+            }
+        }
+        return abilityModifier;
     }
 
     static getSpellArea(spell) {
@@ -809,35 +873,48 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
         return null;
     }
 
-    static getSpellResistance(spell) {
+    static getSpellResistance(spell, actor) {
         if (spell.effect.resistedBy)
         {
-            const spellCircle = BritannianSpellSD.spellWordsCircle(spell);
-            let extraLevels = spellCircle;
-            if (spell.effect.powerLevel != "*")
-                extraLevels = spellCircle - parseInt(spell.effect.powerLevel ?? '0');
-            else
-                extraLevels = spellCircle - 1;
-
             let resistance = spell.effect.resistedBy;
             resistance = resistance.charAt(0).toUpperCase() + resistance.slice(1);
-            if (spell.effect.resistance_penalty)
-            {
-                let totalPenalty = parseInt(spell.effect.resistance_penalty);
-                if (spell.effect.resistance_penalty_step === 'per_extra_level')
-                {
-                    totalPenalty = parseInt(spell.effect.resistance_penalty) * extraLevels;
-                }
-                else if (spell.effect.resistance_penalty_step === 'per_level')
-                {
-                    totalPenalty = parseInt(spell.effect.resistance_penalty) * spellCircle;
-                }
-                const dc = 10 - totalPenalty;
-                resistance += ' vs ' + dc;
-            }
+            resistance += ' vs ' + this.getSpellResistanceDC(spell, actor);
             return resistance;
         }
         return null;
+    }
+
+    static getSpellResistanceDC(spell, actor) {
+        const spellCircle = BritannianSpellSD.spellWordsCircle(spell);
+        let extraLevels = spellCircle;
+        if (spell.effect.powerLevel != "*")
+            extraLevels = spellCircle - parseInt(spell.effect.powerLevel ?? '0');
+        else
+            extraLevels = spellCircle - 1;
+
+        let dc = 10;
+        if (spell.effect.resistance_penalty)
+        {
+            let totalPenalty = parseInt(spell.effect.resistance_penalty);
+            if (spell.effect.resistance_penalty_step === 'per_extra_level')
+            {
+                totalPenalty = parseInt(spell.effect.resistance_penalty) * extraLevels;
+            }
+            else if (spell.effect.resistance_penalty_step === 'per_level')
+            {
+                totalPenalty = parseInt(spell.effect.resistance_penalty) * spellCircle;
+            }
+            dc = 10 - totalPenalty;
+        }
+        if (actor.system.bonuses.spellPenetration && spell.effect.resistedBy) {
+            if (!Array.isArray(actor.system.bonuses.spellPenetration)) actor.system.bonuses.spellPenetration = [actor.system.bonuses.spellPenetration];
+            for (let penetration of actor.system.bonuses.spellPenetration)
+            {
+                if (penetration === spell.effect.resistedBy)
+                    dc++;
+            }
+        }
+        return dc;
     }
 
     static getSpellCreature(spell) {
