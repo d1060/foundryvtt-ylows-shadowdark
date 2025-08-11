@@ -295,6 +295,15 @@ export default class MetalMagicSD {
 			}
 		}
 	}
+
+	static async _onDropManifestedToken(token) {
+		if (token.actor.system.magic.metalCore.altToken && token.actor.system.magic.metalCore.altToken !== CONST.DEFAULT_TOKEN && token.actor.system.magic.manifestedMetalCore)
+		{
+			const imgToShow = token.actor.system.magic.metalCore.altToken;
+			token.texture.src = imgToShow;
+			canvas.scene.updateEmbeddedDocuments("Token", [{_id: token.id, texture: token.texture}]);
+		}
+	}
 	
 	static async _embedMetalMagicPower(actor, power) {
 		for (var c = 0; c < (power.quantity ? power.quantity : 1); c++)
