@@ -13,6 +13,7 @@ export default class MetalMagicSD {
 		context.allMetalMagicPowers = await shadowdark.compendiums.metalMagicPowers();
 		context.unknownMetalMagicPowers = [];
 		context.knownMetalMagicPowersCount = context.metalMagicPowers.length;
+		context.metalMagicAltToken = actor.system.magic.metalCore.altToken ?? CONST.DEFAULT_TOKEN;
 		
 		var effectiveMetalCore = context.magicCoreLevel;
 		for (var talent of context.knownMetalMagicTalents)
@@ -227,6 +228,23 @@ export default class MetalMagicSD {
 			}
 		}
 	}
+
+	static async _onPickMetalAltToken(actor, event, target) {
+		const field = target.dataset.field || "img";
+		const current = actor.system.magic.metalCore.altToken ?? CONST.DEFAULT_TOKEN;;
+
+		const fp = new foundry.applications.apps.FilePicker({
+			type: "image",
+			current: current,
+			callback: (path) => {
+				actor.system.magic.metalCore.altToken = path;
+				actor.update({ "system.magic.metalCore": actor.system.magic.metalCore });
+				actor.sheet.render();
+			}
+		});
+
+		fp.render(true);
+	}
 	
 	static async _onManifestMetalCore(actor, event, target) {
 		if (!actor.system?.magic)
@@ -263,6 +281,17 @@ export default class MetalMagicSD {
 			for (var power of actor.system?.magic?.metalMagicPowers)
 			{
 				await this._removeEmbeddedMetalMagicPower(actor, power, embeddedItems);
+			}
+		}
+
+		if (actor.system.magic.metalCore.altToken && actor.system.magic.metalCore.altToken !== CONST.DEFAULT_TOKEN)
+		{
+			const imgToShow = actor.system.magic.manifestedMetalCore ? actor.system.magic.metalCore.altToken : actor.img;
+			const token = canvas.scene.tokens.find(t => t.actor?.id === actor.id);
+			if (token)
+			{
+				token.texture.src = imgToShow;
+		        canvas.scene.updateEmbeddedDocuments("Token", [{_id: token.id, texture: token.texture}]);
 			}
 		}
 	}

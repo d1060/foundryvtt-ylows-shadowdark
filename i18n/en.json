@@ -1140,6 +1140,8 @@
   "SHADOWDARK.aura_resetAuralPower": "Reset Core",
   "SHADOWDARK.aura_resetAuralPower_tooltip": "Reset Aural Core.",
   "SHADOWDARK.aura_redundantPatternways": "Redundant Patternways:",
+  "SHADOWDARK.metal_transformedToken": "Alt. Token:",
+  "SHADOWDARK.metal_transformedToken_Tooltip": "When you manifest your metal core, your token image will be replaced for this one.",
   "SHADOWDARK.metal_talents_label": "Talents",
   "SHADOWDARK.metal_core_label": "Metal Core",
   "SHADOWDARK.metal_powers": "Metal Magic Powers",

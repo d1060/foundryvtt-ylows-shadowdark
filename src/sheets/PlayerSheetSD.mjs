@@ -80,6 +80,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			removeMetalPower: this.#onRemoveMetalPower,
 			increaseMetalPowerAmount: this.#onIncreaseMetalPower,
 			decreaseMetalPowerAmount: this.#onDecreaseMetalPower,
+			pickMetalAltToken: this.#onPickMetalAltToken,
 			manifestMetalCore: this.#onManifestMetalCore,
 			mistUpdateCorruption: this.#onChangeMistCorruption,
 			selectAbyssalPower: this.#onSelectAbyssalPower,
@@ -1554,6 +1555,10 @@ export default class PlayerSheetSD extends ActorSheetSD {
 
 	static async #onDecreaseMetalPower(event, target) {
 		MetalMagicSD._onDecreaseMetalPower(this.actor, event, target);
+	}
+
+	static async #onPickMetalAltToken(event, target) {
+		MetalMagicSD._onPickMetalAltToken(this.actor, event, target);
 	}
 
 	static async #onManifestMetalCore(event, target) {

@@ -114,6 +114,8 @@ export default class ActorSD extends Actor {
 	}
 
 	async _npcRollHP(options={}) {
+		if (!this.system || !this.system.attributes || !this.system.attributes.hp)
+			return;
 		if ((this.system.attributes.hp.max > 1 && this.system.attributes.hp.value > 1 && this.system.attributes.hp.max === this.system.attributes.hp.value) || (this.system.shapeshiftedBy))
 			return;
 			
@@ -2503,51 +2505,53 @@ export default class ActorSD extends Actor {
 		
 		if (power && power.system?.resistedBy && game.settings.get("shadowdark", "enableTargeting"))
 		{
-			if (!params.targetToken && game.user.targets.size > 0)
-			{
-				for (const target of game.user.targets.values())
-				{
-					var targetAbilityValue = 0;
-					if (power.system.resistedBy === "ac")
-					{
-						targetAbilityValue = target.actor.system.attributes.ac.value;
+			if (!data.resistedBy)
+				data.resistedBy = power.system?.resistedBy;
+			// if (!params.targetToken && game.user.targets.size > 0)
+			// {
+			// 	for (const target of game.user.targets.values())
+			// 	{
+			// 		var targetAbilityValue = 0;
+			// 		if (power.system.resistedBy === "ac")
+			// 		{
+			// 			targetAbilityValue = target.actor.system.attributes.ac.value;
 						
-						if (this.system.bonuses?.opponentACpenalty)
-							targetAbilityValue -= this.system.bonuses?.opponentACpenalty;
-					}
-					else
-					{
-						if (target.actor.type === "NPC")
-							targetAbilityValue = target.actor.system.abilities[power.system.resistedBy].mod * 2 + 10;
-						else
-							targetAbilityValue = target.actor.system.abilities[power.system.resistedBy].total;
-					}
+			// 			if (this.system.bonuses?.opponentACpenalty)
+			// 				targetAbilityValue -= this.system.bonuses?.opponentACpenalty;
+			// 		}
+			// 		else
+			// 		{
+			// 			if (target.actor.type === "NPC")
+			// 				targetAbilityValue = target.actor.system.abilities[power.system.resistedBy].mod * 2 + 10;
+			// 			else
+			// 				targetAbilityValue = target.actor.system.abilities[power.system.resistedBy].total;
+			// 		}
 
-					if (!params.target || targetAbilityValue > params.target)
-						params.target = targetAbilityValue;
+			// 		if (!params.target || targetAbilityValue > params.target)
+			// 			params.target = targetAbilityValue;
 					
-					if (params.target < params.spellDC) params.target = params.spellDC;
-				}
-			}
-			else if (params.targetToken)
-			{
-				params.target = 0;
-				if (power.system.resistedBy === "ac")
-				{
-					params.target = params.targetToken.actor.system.attributes.ac.value;
-					if (this.system.bonuses?.opponentACpenalty)
-						params.target -= this.system.bonuses?.opponentACpenalty;
-				}
-				else
-				{
-					if (params.targetToken.actor.type === "NPC")
-						params.target = params.targetToken.actor.system.abilities[power.system.resistedBy].mod * 2 + 10;
-					else
-						params.target = params.targetToken.actor.system.abilities[power.system.resistedBy].total;
-				}
+			// 		if (params.target < params.spellDC) params.target = params.spellDC;
+			// 	}
+			// }
+			// else if (params.targetToken)
+			// {
+			// 	params.target = 0;
+			// 	if (power.system.resistedBy === "ac")
+			// 	{
+			// 		params.target = params.targetToken.actor.system.attributes.ac.value;
+			// 		if (this.system.bonuses?.opponentACpenalty)
+			// 			params.target -= this.system.bonuses?.opponentACpenalty;
+			// 	}
+			// 	else
+			// 	{
+			// 		if (params.targetToken.actor.type === "NPC")
+			// 			params.target = params.targetToken.actor.system.abilities[power.system.resistedBy].mod * 2 + 10;
+			// 		else
+			// 			params.target = params.targetToken.actor.system.abilities[power.system.resistedBy].total;
+			// 	}
 				
-				if (params.target < params.spellDC) params.target = params.spellDC;
-			}
+			// 	if (params.target < params.spellDC) params.target = params.spellDC;
+			// }
 		}
 		
 		if (!params.targetToken && game.user.targets.size > 0)

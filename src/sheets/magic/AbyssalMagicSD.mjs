@@ -226,6 +226,8 @@ export default class AbyssalMagicSD {
 			magicCoreLevel,
 			damage,
 			duration,
+			resistedBy: power.system.resistedBy,
+			target: 10,
 		};
 
 		if (options.duration.includes("-"))

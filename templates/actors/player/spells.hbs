@@ -189,7 +189,7 @@
 	{{/if}}
 
 	{{#if showSeirizianMagic}}
-	<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 1fr 56px{{#if anyProgramLost}} 130px{{/if}}{{#if auralPowerLost}} 80px{{/if}}{{#if abyssalPowerLost}} 100px{{/if}};">
+	<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 1fr 56px{{#if showMetalMagic}} 80px{{/if}}{{#if anyProgramLost}} 130px{{/if}}{{#if auralPowerLost}} 80px{{/if}}{{#if abyssalPowerLost}} 100px{{/if}};">
 		<div>
 			<h3>{{localize "SHADOWDARK.sheet.item.tab.serizianMagicType"}}</h3>
 			<select name="system.magic.type"
@@ -232,6 +232,12 @@
 				{{magicCoreLevel}}
 			</a>
 		</div>
+		{{#if showMetalMagic}}
+		<div>
+			<h3>{{localize "SHADOWDARK.metal_transformedToken"}}</h3>
+			<a data-action="pickMetalAltToken" ><img style="border: 0px; margin: auto; height: 28px;" src="{{metalMagicAltToken}}" data-tooltip="{{localize "SHADOWDARK.metal_transformedToken_Tooltip"}}"></a>
+		</div>
+		{{/if}}
 		{{#if anyProgramLost}}
 		<div>
 			<div>

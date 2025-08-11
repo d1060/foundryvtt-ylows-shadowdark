@@ -207,7 +207,7 @@ export default class RollSD extends Roll {
 			for (let token of tokens) {
 				if (token.actor)
 				{
-					let resistanceRoll = await this.rollResistance(token, data);
+					let resistanceRoll = await this.rollResistance(token, data, result.rolls.main);
 					result.resistanceRolls.push(resistanceRoll);
 				}
 			}
@@ -217,9 +217,9 @@ export default class RollSD extends Roll {
 		return result;
 	}
 
-	static async rollResistance(token, data) {
+	static async rollResistance(token, data, mainRoll) {
 		const resistanceAbility = data.resistedBy.toLowerCase();
-		let target = data.resistanceDC ?? 10;
+		let target = data.resistanceDC ?? mainRoll.roll.total;
 		let abilityBonus = token.actor.system.abilities[resistanceAbility].mod;
 		let adv = 0;
 		
@@ -253,6 +253,12 @@ export default class RollSD extends Roll {
 
 			for (var token of tokens)
 			{
+				let resistanceRoll;
+				if (result.resistanceRolls)
+					resistanceRoll = result.resistanceRolls.find(r => r.main.roll.data?.actor?.id === token.actor?.id);
+				if (resistanceRoll && resistanceRoll.main.success.value)
+					continue;
+
 				if (!data.isHealing)
 				{
 					if (data.extraFireDamage) damageTotal -= data.extraFireDamage;
