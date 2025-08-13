@@ -1,3 +1,4 @@
+{{#if attacks.melee.length}}
 <div class="SD-box">
 	<div class="header">
 		<label>{{localize 'SHADOWDARK.sheet.player.melee_attacks'}}</label>
@@ -27,7 +28,9 @@
 		{{/each}}
 	</div>
 </div>
+{{/if}}
 
+{{#if attacks.ranged.length}}
 <div class="SD-box">
 	<div class="header">
 		<label>{{localize 'SHADOWDARK.sheet.player.ranged_attacks'}}</label>
@@ -56,4 +59,36 @@
 		{{/each}}
 	</div>
 </div>
+{{/if}}
+
+{{#if attacks.special.length}}
+<div class="SD-box">
+	<div class="header">
+		<label>{{localize 'SHADOWDARK.sheet.player.special_attacks'}}</label>
+		<span></span>
+	</div>
+	<div class="content">
+		{{#each attacks.special as |attack|}}
+			<div class="attack">
+				<a
+					class="rollable"
+					data-action="specialAttack"
+					data-attack-type="special"
+					data-needs-roll="{{attack.needsRoll}}"
+					data-base-damage="{{attack.baseDamage}}"
+					data-removes-effect-key="{{attack.removesEffectKey}}"
+				>
+					<i class="fa-solid fa-dice-d20"
+						data-action="specialAttack"
+						data-attack-type="special"
+						data-needs-roll="{{attack.needsRoll}}"
+						data-removes-effect-key="{{attack.removesEffectKey}}"
+						data-base-damage="{{attack.baseDamage}}"></i>
+					{{{attack.display}}}
+				</a>
+			</div>
+		{{/each}}
+	</div>
+</div>
+{{/if}}
 

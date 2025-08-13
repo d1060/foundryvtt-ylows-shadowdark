@@ -19,5 +19,11 @@ export const NPCHooks = {
 				token.actor._npcRollHP();
 			}
 		});
+
+		Hooks.on("updateToken", (token, changes, context, userId) => {
+			if ("x" in changes || "y" in changes) {
+   				if (token.actor.isBurning()) token.actor.burnOut();
+  			}
+		});
 	},
 };

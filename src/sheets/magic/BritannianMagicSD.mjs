@@ -197,7 +197,7 @@ export default class BritannianMagicSD {
             context.britannianSpells = [];
             const firstIndex = (context.page - 1) * 8;
             let lastIndex = context.page * 8;
-            if (lastIndex > allSpells.length)
+            if (lastIndex >= allSpells.length)
                 lastIndex = allSpells.length;
             else
                 context.canGoToNextPage = true;
@@ -528,7 +528,7 @@ export default class BritannianMagicSD {
 
 		var embeddedEffects = await effect.getEmbeddedCollection("ActiveEffect");
 
-        if ((spell.duration ?? '').slugify() === 'instant' || !embeddedEffects.contents.length)
+        if (!embeddedEffects.contents.length)
             return true;
 
         let effects = structuredClone(embeddedEffects.contents);
@@ -537,7 +537,7 @@ export default class BritannianMagicSD {
         let atLeastOneEffectApplied = false;
         for (var token of tokens) {
 
-            if (spell.effect.resistedBy) {
+            if (spell.effect.resistedBy && spell.effect.resistedBy !== 'ac') {
                 let resistanceRoll = result.resistanceRolls.find(r => r.main.roll.data.actor.id === token.actor.id);
                 if (resistanceRoll && (resistanceRoll.main.success.value || resistanceRoll.main.critical === "success"))
                     continue;

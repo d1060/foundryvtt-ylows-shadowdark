@@ -83,6 +83,7 @@
 		</div>
 {{/if}}
 {{#if data.resistedBy}}
+{{#unless (eq data.resistedBy 'AC')}}
 		<div class="form-group" style="display: grid; grid-column-gap: 3px; grid-template-columns: 170px 65px 1fr;">
 			<label>
 				{{localize "SHADOWDARK.chat.item_roll.resistedBy"}}
@@ -90,6 +91,7 @@
 			<div style="margin-top: auto; margin-bottom: auto;">{{data.resistedBy}} {{localize 'SHADOWDARK.chat.item_roll.vs'}}</div>
 			<div><input type="number" name="data.resistanceDC" value="{{data.resistanceDC}}" placeholder="0"></div>
 		</div>
+{{/unless}}
 {{/if}}
 		<hr />
 		<div class="form-group" style="display: grid; grid-column-gap: 3px; grid-template-columns: 170px 1fr;">

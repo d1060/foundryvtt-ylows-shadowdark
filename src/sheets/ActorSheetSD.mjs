@@ -21,6 +21,7 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 			selectItem: this.#onItemSelection,
 			showDetails: this.#showItemDetails,
 			itemAttack: this.#onRollAttack,
+			specialAttack: this.#onRollSpecial,
 			magicRoll: this.#onRollMagic,
 			toggleLost: this.#onToggleLost,
 			itemCreate: this.#onItemCreate,
@@ -472,6 +473,26 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 		}
 		
 		this.actor.rollAttack(itemId, options);
+	}
+
+	static async #onRollSpecial(event, target) {
+		const needsRoll = target.dataset.needsRoll;
+		const baseDamage = target.dataset.baseDamage;
+		const removesEffectKey = target.dataset.removesEffectKey;
+
+		if (removesEffectKey)
+		{
+			var effects = await this.actor.getEmbeddedCollection("ActiveEffect");
+			if (effects.contents.length)
+			{
+				let effect = effects.contents.find(e => e.changes.find(c => c.key === removesEffectKey));
+				if (effect) {
+					this.actor.deleteEmbeddedDocuments("ActiveEffect", [effect.id]);
+				}
+			}
+		}
+
+		this.render(true);
 	}
 	
 	static async #onRollMagic(event, target) {

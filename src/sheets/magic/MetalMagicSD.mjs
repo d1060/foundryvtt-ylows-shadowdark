@@ -286,10 +286,12 @@ export default class MetalMagicSD {
 
 		if (actor.system.magic.metalCore.altToken && actor.system.magic.metalCore.altToken !== CONST.DEFAULT_TOKEN)
 		{
-			const imgToShow = actor.system.magic.manifestedMetalCore ? actor.system.magic.metalCore.altToken : actor.img;
-			const token = canvas.scene.tokens.find(t => t.actor?.id === actor.id);
-			if (token)
+			const tokens = canvas.scene.tokens.filter(t => t.actor?.id === actor.id);
+			for (let token of tokens)
 			{
+				const imgToShow = actor.system.magic.manifestedMetalCore ? actor.system.magic.metalCore.altToken : actor.prototypeToken.texture.src;
+				if (!imgToShow || imgToShow === CONST.DEFAULT_TOKEN)
+					imgToShow = actor.img;
 				token.texture.src = imgToShow;
 		        canvas.scene.updateEmbeddedDocuments("Token", [{_id: token.id, texture: token.texture}]);
 			}

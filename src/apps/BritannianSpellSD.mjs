@@ -614,7 +614,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
         spell.resistance = null;
         spell.damage = null;
 
-        spell.resistance = BritannianSpellSD.getSpellResistance(spell);
+        spell.resistance = BritannianSpellSD.getSpellResistance(spell, this.actor);
         spell.duration = BritannianSpellSD.getSpellDuration(spell);
         spell.damage = BritannianSpellSD.getSpellDamage(spell);
         spell.effect.range = BritannianSpellSD.getSpellRange(spell);
@@ -906,7 +906,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             }
             dc = 10 - totalPenalty;
         }
-        if (actor.system.bonuses.spellPenetration && spell.effect.resistedBy) {
+        if (actor.system.bonuses.spellPenetration && spell.effect.resistedBy && spell.effect.resistedBy !== 'ac') {
             if (!Array.isArray(actor.system.bonuses.spellPenetration)) actor.system.bonuses.spellPenetration = [actor.system.bonuses.spellPenetration];
             for (let penetration of actor.system.bonuses.spellPenetration)
             {

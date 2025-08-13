@@ -1152,7 +1152,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			},
 		};
 
-		const attacks = {melee: [], ranged: []};
+		const attacks = {melee: [], ranged: [], special: []};
 
 		const allClassAbilities = {};
 
@@ -1338,6 +1338,16 @@ export default class PlayerSheetSD extends ActorSheetSD {
 					allClassAbilities[group] = [i];
 				}
 			}
+		}
+
+		if (this.actor.system.penalties?.burning)
+		{
+			attacks.special.push({
+				baseDamage: '',
+				needsRoll: false,
+				display: '<b style="font-size:16px">Douse Flames</b> take a moment to douse your flames.',
+				removesEffectKey: 'system.penalties.burning'
+			});
 		}
 
 		// Work out how many slots all these coins are taking up...

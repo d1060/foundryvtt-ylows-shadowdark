@@ -195,7 +195,7 @@ export default class RollSD extends Roll {
 		if (await data.item?.isExplosive())
 			data.actor?.reduceQuantity(data.item, 1);
 
-		if ((result.rolls?.main?.success?.value || result?.rolls?.main?.critical === "success") && data.resistedBy)
+		if ((result.rolls?.main?.success?.value || result?.rolls?.main?.critical === "success") && data.resistedBy && data.resistedBy.toLowerCase() !== 'ac')
 		{
 			var tokens = [];
 			if (options.targetToken)

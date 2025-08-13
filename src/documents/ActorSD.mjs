@@ -380,7 +380,15 @@ export default class ActorSD extends Actor {
 		if (this.system.magic?.manifestedMetalCore)
 		{
 			const currentHpValue = this.system.magic.metalCore.hp.value;
-			const actualDamage = amountToApply <= currentHpValue ? amountToApply : currentHpValue;
+			let actualDamage = amountToApply <= currentHpValue ? amountToApply : currentHpValue;
+
+			if ((await this.metalMagicTalentChanges()).some(c => c.key === 'system.bonuses.bioMetallicIntegration'))
+			{
+				let physicalHP = this.system.attributes.hp.value;
+				actualDamage = Math.ceil(amountToApply * (currentHpValue / (currentHpValue + physicalHP)));
+				if (actualDamage > currentHpValue)  actualDamage = currentHpValue;
+			}
+
 			leftoverDamage = leftoverDamage - actualDamage;
 
 			// Ensures that we don't go above Max or below Zero
@@ -1770,6 +1778,24 @@ export default class ActorSD extends Actor {
 
 		return metalMagicTalents.sort((a, b) => a.name.localeCompare(b.name));
 	}
+
+	async metalMagicTalentChanges() {
+		const metalMagicTalents = [];
+
+		for (const uuid of this.system?.magic?.metalMagicTalents ?? []) {
+			metalMagicTalents.push(await fromUuid(uuid));
+		}
+
+		let changes = [];
+		for (let talent of metalMagicTalents) {
+			for (let effect of talent.effects) {
+				for (let change of effect.changes) {
+					changes.push({key: change.key, value: change.value});
+				}
+			}
+		}
+		return changes;
+	}
 	
 	async metalMagicPowers() {
 		const metalMagicPowers = [];
@@ -3051,5 +3077,24 @@ export default class ActorSD extends Actor {
 		);
 
 		return equippedSpellbook;
+	}
+
+	isBurning() {
+		return this.system?.penalties?.burning;
+	}
+
+	async burnOut() {
+		var rollResult = await shadowdark.dice.DiceSD._roll(['1d4'], {});
+		await game.dice3d.showForRoll(rollResult.roll, game.user, true, false, false);
+		await this.applyDamage(rollResult.roll.total, 1);
+
+		var effects = await this.getEmbeddedCollection("ActiveEffect");
+		if (effects.contents.length)
+		{
+			let effect = effects.contents.find(e => e.changes.find(c => c.key === 'system.penalties.burning'));
+			if (effect) {
+				this.deleteEmbeddedDocuments("ActiveEffect", [effect.id]);
+			}
+		}
 	}
 }

@@ -813,6 +813,8 @@ SHADOWDARK.PREDEFINED_EFFECTS = {
 	//system.bonuses.runeSpecialist
 	//system.bonuses.focusMastery
 	//system.bonuses.permanenceMastery
+	//system.bonuses.abilityBonus
+	//system.penalties.abilityPenalty
 
 	//TODO:
 	//system.bonuses.injector On hit, injects a random drug on the target. Roll DC 12 CON. On a failure, roll 1d6:
@@ -849,13 +851,11 @@ SHADOWDARK.PREDEFINED_EFFECTS = {
 	// system.penalties.frozen
 	// system.penalties.shrunk
 	// system.bonuses.electric
-	// system.penalties.transformed_into_small_animal
 	// system.bonuses.summon
 	// system.penalties.frightened
 	// system.penalties.panic
 	// system.penalties.sickness
 	// system.penalties.enfeebled
-	// system.penalties.abilityPenalty
 	// system.penalties.elementalFlesh
 	// system.penalties.slowTime
 	// system.penalties.paralyze
@@ -868,7 +868,6 @@ SHADOWDARK.PREDEFINED_EFFECTS = {
 	// system.bonuses.deflectMissile
 	// system.bonuses.accelerateTime
 	// system.penalties.loseRune
-	// system.bonuses.abilityBonus
 	// system.bonuses.bladedWeaponDamage
 	// system.bonuses.noArmorStealthPenalty
 };
