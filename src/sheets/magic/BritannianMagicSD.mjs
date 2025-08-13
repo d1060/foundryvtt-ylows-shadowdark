@@ -538,7 +538,7 @@ export default class BritannianMagicSD {
         for (var token of tokens) {
 
             if (spell.effect.resistedBy && spell.effect.resistedBy !== 'ac') {
-                let resistanceRoll = result.resistanceRolls.find(r => r.main.roll.data.actor.id === token.actor.id);
+                let resistanceRoll = result.resistanceRolls?.find(r => r.main.roll.data.actor.id === token.actor.id);
                 if (resistanceRoll && (resistanceRoll.main.success.value || resistanceRoll.main.critical === "success"))
                     continue;
             }

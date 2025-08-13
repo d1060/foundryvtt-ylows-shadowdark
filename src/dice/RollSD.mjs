@@ -32,6 +32,8 @@ export default class RollSD extends Roll {
 	 * @returns {Promise<object>}
 	 */
 	static async Roll(parts, data, $form, adv=0, options={}) {
+		if (data.actor.isBurning()) data.actor.burnOut();
+
 		//shadowdark.debug(`RollSD Roll options.target=${options.target} data.rollType=${data.rollType} data.item?.type=${data.item?.type}`);
 		// If the dice has been fastForwarded, there is no form
 		if (!options.fastForward) {
