@@ -885,6 +885,10 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
     }
 
     static getSpellResistanceDC(spell, actor) {
+        return 10 + BritannianSpellSD.getSpellResistancePenalty(spell, actor);
+    }
+
+    static getSpellResistancePenalty(spell, actor) {
         const spellCircle = BritannianSpellSD.spellWordsCircle(spell);
         let extraLevels = spellCircle;
         if (spell.effect.powerLevel != "*")
@@ -892,7 +896,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
         else
             extraLevels = spellCircle - 1;
 
-        let dc = 10;
+        let penalty = 0;
         if (spell.effect.resistance_penalty)
         {
             let totalPenalty = parseInt(spell.effect.resistance_penalty);
@@ -904,20 +908,29 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             {
                 totalPenalty = parseInt(spell.effect.resistance_penalty) * spellCircle;
             }
-            dc = 10 - totalPenalty;
+            penalty = Math.abs(totalPenalty);
         }
         if (actor.system.bonuses.spellPenetration && spell.effect.resistedBy && spell.effect.resistedBy !== 'ac') {
             if (!Array.isArray(actor.system.bonuses.spellPenetration)) actor.system.bonuses.spellPenetration = [actor.system.bonuses.spellPenetration];
             for (let penetration of actor.system.bonuses.spellPenetration)
             {
                 if (penetration === spell.effect.resistedBy)
-                    dc++;
+                    penalty++;
             }
         }
-        return dc;
+        return penalty;
     }
 
     static getSpellCreature(spell) {
         return spell.creature;
+    }
+
+    static async getResistedAcBySpell(spell, actor, ac, isMetallic) {
+        let effect = await fromUuid(spell.effect.uuid);
+        if (!isMetallic && effect.system?.resistance_penalty_metallic) return ac;
+
+        let spellPenalty = BritannianSpellSD.getSpellResistancePenalty(spell, actor);
+        ac -= spellPenalty;
+        return ac;
     }
 }

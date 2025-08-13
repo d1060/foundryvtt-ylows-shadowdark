@@ -155,4 +155,72 @@ export default class MistMagicSD {
             actor.update({"system.attributes.hp.value": hp});
         }
     }
+
+    static async applyMistTaintToActor(actor)
+    {
+        const abilityIndex = Math.floor(Math.random() * 6);
+        const ability = CONFIG.SHADOWDARK.ABILITY_KEYS[abilityIndex];
+
+        if (await MistMagicSD.isActorTainted(actor, ability))
+            return await MistMagicSD.worsenTaint(actor, ability);
+
+        let abilityIcon = 'icons/magic/death/skull-flames-white-blue.webp';
+        switch (ability)
+        {
+            case 'str':
+                abilityIcon = 'icons/magic/death/hand-undead-skeleton-fire-green.webp';
+                break;
+            case 'dex':
+                abilityIcon = 'icons/magic/unholy/strike-body-explode-disintegrate.webp';
+                break;
+            case 'cha':
+                abilityIcon = 'icons/magic/death/undead-skeleton-lich-armor.webp';
+                break;
+            case 'con':
+                abilityIcon = 'icons/magic/death/blood-corruption-vomit-red.webp';
+                break;
+            case 'wis':
+                abilityIcon = 'icons/magic/perception/silhouette-stealth-shadow.webp';
+                break;
+        }
+
+        const taintEffectData =  {
+            name: ability.toUpperCase() + " Tainted",
+            label: ability.toUpperCase() + " Tainted",
+            img: abilityIcon,
+            changes: [{	key: "system.abilities." + ability + ".base", 
+                        mode: 2,
+                        value: -1
+                    }],
+            disabled: false,
+            transfer: true,
+            sourceName: 'Mistdark',
+            system: { origin: 'Mistdark' },
+            description: "You are tainted by the mistdark and now suffer a penalty to " + ability.toUpperCase(),
+        };
+
+        const [newEffect] = await actor.createEmbeddedDocuments("ActiveEffect", [taintEffectData]);
+        return;
+    }
+
+    static async isActorTainted(actor, ability) {
+        const activeEffects = await actor.getEmbeddedCollection("ActiveEffect");
+        if (!activeEffects) return;
+        return activeEffects.contents.some(e => e.name === ability.toUpperCase() + " Tainted");
+    }
+
+    static async worsenTaint(actor, ability) {
+        const activeEffects = await actor.getEmbeddedCollection("ActiveEffect");
+        if (!activeEffects) return;
+        const activeEffect = activeEffects.contents.find(e => e.name === ability.toUpperCase() + " Tainted");
+        if (!activeEffect) return;
+        let changes = activeEffect.changes.find(c => c.key === "system.abilities." + ability + ".base");
+        changes.value--;
+        await actor.updateEmbeddedDocuments("ActiveEffect", [
+            {
+                "_id": activeEffect._id,
+                "changes": activeEffect.changes
+            },
+        ]);
+    }
 }

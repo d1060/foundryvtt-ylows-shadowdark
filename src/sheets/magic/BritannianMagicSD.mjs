@@ -542,6 +542,10 @@ export default class BritannianMagicSD {
                 if (resistanceRoll && (resistanceRoll.main.success.value || resistanceRoll.main.critical === "success"))
                     continue;
             }
+
+            if (result.acMisses && result.acMisses.find(m => m === token.actor.id))
+                continue;
+            
             atLeastOneEffectApplied = true;
 
             if (!game.user.isGM) {

@@ -1,5 +1,6 @@
 import UtilitySD from "../utils/UtilitySD.mjs";
 import BritannianMagicSD from "../sheets/magic/BritannianMagicSD.mjs";
+import BritannianSpellSD from "../apps/BritannianSpellSD.mjs";
 
 export default class RollSD extends Roll {
 
@@ -33,6 +34,7 @@ export default class RollSD extends Roll {
 	 */
 	static async Roll(parts, data, $form, adv=0, options={}) {
 		if (data.actor.isBurning()) data.actor.burnOut();
+		if (data.actor.isFrozen()) data.actor.thawFrost(); 
 
 		//shadowdark.debug(`RollSD Roll options.target=${options.target} data.rollType=${data.rollType} data.item?.type=${data.item?.type}`);
 		// If the dice has been fastForwarded, there is no form
@@ -58,6 +60,8 @@ export default class RollSD extends Roll {
 				? this._getHandednessFromForm($form)
 				: undefined;
 		}
+
+		if (!options.speaker && data.actor) options.speaker = ChatMessage.getSpeaker({actor: data.actor}),
 
 		// Roll the Dice
 		data.rolls = {
@@ -214,6 +218,27 @@ export default class RollSD extends Roll {
 				}
 			}
 		}
+		else if ((result.rolls?.main?.success?.value || result?.rolls?.main?.critical === "success") && data.resistedBy && data.resistedBy.toLowerCase() === 'ac')
+		{
+			var tokens = [];
+			if (options.targetToken)
+				tokens.push(options.targetToken);
+			if (data.targetTokens)
+				tokens.push(...data.targetTokens);
+			
+			for (let token of tokens) {
+				if (token.actor)
+				{
+					let [actorAc, acTooltip, isMetallic] = await token.actor.getArmorClass();
+					if (options.power?.effect) actorAc = await BritannianSpellSD.getResistedAcBySpell(options.power, data.actor, actorAc, isMetallic);
+					if (result.rolls?.main?.roll?._total < actorAc)
+					{
+						if (!result.acMisses) result.acMisses = [];
+							result.acMisses.push(token.actor.id);
+					}
+				}
+			}
+		}
 
 		await this._applyDamageToTargets(result, options, data);
 		return result;
@@ -233,7 +258,8 @@ export default class RollSD extends Roll {
 		}
 		const resistanceOptions = {
 			target,
-			title: game.i18n.format("SHADOWDARK.dialog.resistanceRoll", { name: token.actor.name, ability: data.resistedBy})
+			title: game.i18n.format("SHADOWDARK.dialog.resistanceRoll", { name: token.actor.name, ability: data.resistedBy}),
+			speaker: ChatMessage.getSpeaker({actor: token.actor})
 		}
 		resistanceData.rolls = {
 			main: await this._rollAdvantage([(game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20"), '@abilityBonus'], resistanceData, adv)
@@ -261,12 +287,15 @@ export default class RollSD extends Roll {
 				if (resistanceRoll && resistanceRoll.main.success.value)
 					continue;
 
+				if (result.acMisses && result.acMisses.find(m => m === token.actor.id))
+					continue;
+				
 				if (!data.isHealing)
 				{
 					if (data.extraFireDamage) damageTotal -= data.extraFireDamage;
 
-					if (result.actor && (result.item || result.power) && token.actor)
-						damageTotal = await this.checkDamageModifiersByType(result.actor, result.item, result.power, result?.rolls?.main, token.actor, damageTotal);
+					if (result.actor && (result.item || result.power || options.power) && token.actor)
+						damageTotal = await this.checkDamageModifiersByType(result.actor, result.item, result.power ?? options.power, result?.rolls?.main, token.actor, damageTotal);
 
 					if (data.extraFireDamage) damageTotal = await this.addExtraDamageByType(data.extraFireDamage, 'fire', token.actor, damageTotal);
 				}
@@ -346,6 +375,7 @@ export default class RollSD extends Roll {
 								{title: "Failed a Poison Resistance Check.",
 								 chatCardTemplate: "systems/shadowdark/templates/chat/roll-card.hbs",
 								 target: 15,
+								 speaker: ChatMessage.getSpeaker({actor: data.actor}),
 								});
 						}
 					}
@@ -358,45 +388,14 @@ export default class RollSD extends Roll {
 							{title: "Succeeded a Poison Resistance Check.",
 							 chatCardTemplate: "systems/shadowdark/templates/chat/roll-card.hbs",
 							 target: 15,
+							 speaker: ChatMessage.getSpeaker({actor: data.actor}),
 							});
 					}
 				}
 
-				if (data.actor && token.actor?.system?.bonuses?.helvarion && options.attackType === 'melee')
+				if (data.actor && token.actor?.system?.bonuses?.helvarion && options.attackType === 'melee' && (!token.actor?.system?.bonuses?.mistdarkCreature || token.actor.system.attributes.hp.value > 0))
 				{
-					var rollParts = [game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20",
-						data.actor.system.abilities['con'].mod.toString()];
-					var rollResult = await this._roll(rollParts, {target: 12});
-
-					if (rollResult.roll.total < 12)
-					{
-						var damageResult = await this._roll(['1d4'], {});
-						await this._renderRoll(
-							{actor: data.actor,
-							 rolls: { main: rollResult, damage: damageResult } },
-							0,
-							{title: "Failed a Taint Check.",
-							 chatCardTemplate: "systems/shadowdark/templates/chat/roll-card.hbs",
-							 target: 12,
-							});
-
-						var actorToken = token.scene.tokens.find(t => t.actor?.id === data.actor.id);
-						if (actorToken)
-						{
-							await this.applyDamageToToken(actorToken, damageResult.roll.total);
-						}
-					}
-					else
-					{
-						await this._renderRoll(
-							{actor: data.actor,
-							 rolls: { main: rollResult } },
-							 0, 
-							 {title: "Resisted a Taint Check.",
-							  chatCardTemplate: "systems/shadowdark/templates/chat/roll-card.hbs",
-							  target: 12,
-							 });
-					}
+					await data.actor.makeTaintCheck();
 				}
 			}
 
@@ -413,6 +412,7 @@ export default class RollSD extends Roll {
 		var attackDamageType = weapon?.system?.damage?.type;
 		if (!attackDamageType && power && power.damage_type) attackDamageType = power.damage_type;
 		if (!attackDamageType && power && power.system?.damage_type) attackDamageType = power.system.damage_type;
+		if (!attackDamageType && power && power.effect?.damage_type) attackDamageType = power.effect.damage_type;
 		if (!attackDamageType) attackDamageType = 'bludgeoning';
 
 		if (target.system.bonuses?.immunity && !Array.isArray(target.system.bonuses.immunity)) target.system.bonuses.immunity = [target.system.bonuses.immunity];
@@ -475,14 +475,14 @@ export default class RollSD extends Roll {
 		else
 			token.actor.applyDamage(damage, 1);
 		
-		if (token.actor.type == "NPC" && token.actor.system.attributes.hp.value <= 0 && !token.document.hidden)
+		if (token.actor.type == "NPC" && token.actor.system.attributes.hp.value <= 0 && token.document && !token.document.hidden)
 		{
 			token.document.alpha = 0;
 
-			let isHidden = token.document.hidden;
 			const tokens = token.controlled ? canvas.tokens.controlled : [token];
 			const updates = tokens.map(t => { return {_id: t.id, hidden: true};});
 			await canvas.scene.updateEmbeddedDocuments("Token", updates);
+			await token.actor.onDefeat();
 		}
 
 		if (token.actor.system.attributes.hp.value <= 0 && token.actor.system.summonedBy)
@@ -1323,6 +1323,7 @@ export default class RollSD extends Roll {
 				},
 				{
 					action: "normal",
+					default: true,
 					label: game.i18n.localize("SHADOWDARK.roll.normal"),
 					callback: (event, button, dialog) => {
 						return this.Roll(parts, data, dialog.element, 0, options);
@@ -1402,11 +1403,11 @@ export default class RollSD extends Roll {
 				//This is the scene.
 				for (var sceneToken of scene.tokens)
 				{
+					if (sceneToken === token) continue;
 					if (sceneToken._source.name.slugify() === token._source.name.slugify())
 					{
 						const distance = UtilitySD.distanceBetweenTokens(scene, token, sceneToken);
-						if (distance == 0) continue;
-						if (distance <= 1) {
+						if (distance < 1) {
 							return bonus;
 						}
 					}
@@ -1431,6 +1432,7 @@ export default class RollSD extends Roll {
 		const chatData = {
 			user: game.user.id,
 			speaker: speaker,
+			alias: speaker,
 			flags: {
 				"isRoll": {value: true},
 				"rolls": {value: rolls},

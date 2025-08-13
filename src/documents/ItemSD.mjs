@@ -353,6 +353,10 @@ export default class ItemSD extends Item {
 		return await this.hasProperty("one-handed");
 	}
 
+	async isMetallicArmor() {
+		return (await this.hasProperty("metallic-chainmail") || await this.hasProperty("metallic-platemail") || await this.hasProperty("metallic-shield"));
+	}
+
 	isTwoHanded() {
 		const damage = this.system.damage;
 		return this.hasProperty("two-handed")

@@ -626,6 +626,7 @@
   "SHADOWDARK.item.resistance_penalty_step_fixed": "Fixed",
   "SHADOWDARK.item.resistance_penalty_step_per_level": "Per Level",
   "SHADOWDARK.item.resistance_penalty_step_per_extra_level": "Per Extra Level",
+  "SHADOWDARK.item.resistance_penalty_only_metallic": "Only with metal armor",
   "SHADOWDARK.item.runes.label": "Runes",
   "SHADOWDARK.item.runes.prompt": "Select Rune...",
   "SHADOWDARK.item.scroll.label": "Scroll",

@@ -124,6 +124,7 @@
 					<option value="per_extra_level"{{#if (eq system.resistance_penalty_step 'per_extra_level')}} selected{{/if}}>{{localize 'SHADOWDARK.item.resistance_penalty_step_per_extra_level'}}</option>
 				</select>
 			</div>
+			<div>{{localize 'SHADOWDARK.item.resistance_penalty_only_metallic'}} <input style="width: 12px; height: 12px;" name="system.resistance_penalty_metallic" type="checkbox" {{#if system.resistance_penalty_metallic}} checked{{/if}}></div>
 			{{/if}}
 		</div>
 		<div style="width: 99%">

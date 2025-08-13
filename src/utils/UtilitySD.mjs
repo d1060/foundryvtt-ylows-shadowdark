@@ -367,13 +367,13 @@ export default class UtilitySD {
 		{
 			for (var sceneToken of scene.tokens)
 			{
+				if (sceneToken === token) continue;
 				if (!groupedTokens.some(t => t.id === sceneToken.id))
 				{
 					if (sceneToken._source.name.slugify() === token._source.name.slugify())
 					{
 						const distance = UtilitySD.distanceBetweenTokens(scene, token, sceneToken);
-						if (distance == 0) continue;
-						if (distance <= 1) {
+						if (distance < 1) {
 							groupedTokens.push(sceneToken);
 						}
 					}
@@ -383,11 +383,32 @@ export default class UtilitySD {
 		return groupedTokens;
 	}
 
+	static getAllNearTokens(primaryToken, distance) {
+		let tokens = [];
+		for (let token of canvas.scene.tokens) {
+			if (token === primaryToken) continue;
+			if (UtilitySD.distanceBetweenTokens(canvas.scene, primaryToken, token) < distance)
+				tokens.push(token);
+		}
+		return tokens;
+	}
+
 	static distanceBetweenTokens(scene, token1, token2)
 	{
-		const deltaX = (token1.x - token2.x) / scene.grid.sizeX;
-		const deltaY = (token1.y - token2.y) / scene.grid.sizeY;
-		const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+		let deltaX = Math.abs(token1._object.center.x - token2._object.center.x);
+		let deltaY = Math.abs(token1._object.center.y - token2._object.center.y);
+		const xRate = deltaX / (deltaX + deltaY);
+		const yRate = deltaY / (deltaX + deltaY);
+
+		let distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+		distance /= (scene.grid.sizeX < scene.grid.sizeY ? scene.grid.sizeX : scene.grid.sizeY);
+
+		const token1borderDistance = (token1.width * xRate + token1.height * yRate) / 2;
+		const token2borderDistance = (token2.width * xRate + token2.height * yRate) / 2;
+
+		distance -= token1borderDistance;
+		distance -= token2borderDistance;
+
 		return distance;
 	}
 

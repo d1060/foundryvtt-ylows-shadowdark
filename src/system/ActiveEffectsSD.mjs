@@ -775,7 +775,7 @@ export default class ActiveEffectsSD {
 				img: effect.img,
 				name: effect.name,
 				casterName: effect.system.casterName,
-				sourceName: effect.parent?.name ?? "Unknown",
+				sourceName: (effect.system.origin && typeof effect.system.origin === "string") ? effect.system.origin : (effect.parent?.name ?? "Unknown"),
 			};
 
 			if (effect.disabled) {

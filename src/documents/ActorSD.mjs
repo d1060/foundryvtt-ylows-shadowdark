@@ -1,5 +1,7 @@
 import ItemSD from "./ItemSD.mjs";
 import MetalMagicSD from "../sheets/magic/MetalMagicSD.mjs";
+import MistMagicSD from "../sheets/magic/MistMagicSD.mjs";
+import UtilitySD from "../utils/UtilitySD.mjs";
 
 export default class ActorSD extends Actor {
 
@@ -1085,6 +1087,7 @@ export default class ActorSD extends Actor {
 
 	async getArmorClass() {
 		const dexModifier = this.abilityModifier("dex");
+		let isWearingMetallicArmor = false;
 
 		let baseArmorClass = shadowdark.defaults.BASE_ARMOR_CLASS;
 		let armorClassTooltip = "Base: " + shadowdark.defaults.BASE_ARMOR_CLASS + "<br>";
@@ -1151,6 +1154,8 @@ export default class ActorSD extends Actor {
 					a => a === firstShield.name.slugify()
 							|| a === firstShield.system.baseArmor
 				).length;
+
+				isWearingMetallicArmor |= await firstShield.isMetallicArmor();
 			}
 
 			if (equippedArmor.length > 0) {
@@ -1184,6 +1189,7 @@ export default class ActorSD extends Actor {
 					if (armor.system.ac.modifier)
 						armorClassTooltip += "Shield AC modifier: " + armor.system.ac.modifier + "<br>";
 
+					isWearingMetallicArmor |= await armor.isMetallicArmor();
 					let armorExpertise = (this.system.bonuses.armorExpertise != null && this.system.bonuses?.armorExpertise == armor.name.slugify()) ? 1 : 0;
 					newArmorClass += armorExpertise;
 					if (armorExpertise)
@@ -1277,7 +1283,7 @@ export default class ActorSD extends Actor {
 		if (armorClassTooltip.endsWith("<br>"))
     		armorClassTooltip = armorClassTooltip.slice(0, -4);
 
-		return [this.system.attributes.ac.value, armorClassTooltip];
+		return [this.system.attributes.ac.value, armorClassTooltip, isWearingMetallicArmor];
 	}
 
 
@@ -3094,6 +3100,69 @@ export default class ActorSD extends Actor {
 			let effect = effects.contents.find(e => e.changes.find(c => c.key === 'system.penalties.burning'));
 			if (effect) {
 				this.deleteEmbeddedDocuments("ActiveEffect", [effect.id]);
+			}
+		}
+	}
+
+	isFrozen() {
+		return this.system?.penalties?.frozen;
+	}
+
+	async thawFrost() {
+
+	}
+
+	async makeTaintCheck() {
+		if (this.system?.bonuses?.mistdarkCreature) return;
+		if (this.system?.bonuses?.helvarion) return;
+
+		var rollParts = [game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20",
+			this.system.abilities['con'].mod.toString()];
+		var rollResult = await shadowdark.dice.DiceSD._roll(rollParts, {target: 12});
+
+		if (rollResult.roll.total < 12)
+		{
+			var damageResult = await shadowdark.dice.DiceSD._roll(['1d4'], {});
+			await shadowdark.dice.DiceSD._renderRoll(
+				{actor: this,
+					rolls: { main: rollResult, damage: damageResult } },
+				0,
+				{title: "Failed a Taint Check.",
+					chatCardTemplate: "systems/shadowdark/templates/chat/roll-card.hbs",
+					target: 12,
+					speaker: ChatMessage.getSpeaker({actor: this}),
+				});
+
+			var actorToken = canvas.scene.tokens.find(t => t.actor?.id === this.id);
+			if (actorToken)
+			{
+				await shadowdark.dice.DiceSD.applyDamageToToken(actorToken, damageResult.roll.total);
+				await MistMagicSD.applyMistTaintToActor(this);
+			}
+		}
+		else
+		{
+			await shadowdark.dice.DiceSD._renderRoll(
+				{actor: this,
+					rolls: { main: rollResult } },
+					0, 
+					{title: "Resisted a Taint Check.",
+					chatCardTemplate: "systems/shadowdark/templates/chat/roll-card.hbs",
+					target: 12,
+					speaker: ChatMessage.getSpeaker({actor: this}),
+					});
+		}
+	}
+
+	async onDefeat() {
+		if (this.system.bonuses.mistdarkCreature) {
+			let actorToken = canvas.scene.tokens.find(t => t.actor?.id === this.id);
+			if (actorToken)
+			{
+				let tokens = UtilitySD.getAllNearTokens(actorToken, 0.5);
+				for (let token of tokens) {
+					await token.actor?.makeTaintCheck();
+				}
 			}
 		}
 	}
