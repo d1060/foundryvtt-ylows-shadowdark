@@ -942,7 +942,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			patronBoon: false,
 			technique: false,
 			nanoMagic: false,
-			auraMagic: false,
+			auraMagic: true,
 			metalMagic: false,
 			abyssalMagic: true,
 			mistMagic: false,
@@ -1346,7 +1346,11 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 
 		if (!this.isEditable) return;
 
-		if (this.item.type === 'Class' && event.target.name.startsWith("title."))
+		if (event.target.name === "system.newExtraDamage")
+			await this._onNewExtraDamage(event.target);
+		else if (event.target.name === "system.extraDamage" || event.target.name === "system.extraDamageType")
+			await this._onEditExtraDamage(event.target);
+		else if (this.item.type === 'Class' && event.target.name.startsWith("title."))
 			await this._onClassTitleUpdate(event.target);
 		else if (event.target.id === 'effect-change-value')
 		{
@@ -1513,5 +1517,38 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 
 	static async #manageActiveEffect(event, target) {
 		shadowdark.effects.onManageActiveEffect(event, this.item, target);
+	}
+
+	async _onNewExtraDamage(target) {
+		if (!this.item.system.extraDamage) this.item.system.extraDamage = [];
+		this.item.system.extraDamage.push({
+			damage: target.value,
+			type: this.item.system.newExtraDamageType
+		});
+		await this.item.update({['system.extraDamage']: this.item.system.extraDamage});
+	}
+
+	async _onEditExtraDamage(target) {
+		if (!this.item.system.extraDamage) return;
+		const index = target.dataset.index;
+		const extraDamage = this.item.system.extraDamage[index];
+		switch (target.name) {
+			case "system.extraDamage":
+				extraDamage.damage = target.value;
+				break;
+			case "system.extraDamageType":
+				extraDamage.type = target.value;
+				break;
+		}
+
+		if (extraDamage.damage === '')
+		{
+			this.item.system.extraDamage.splice(index, 1);
+		}
+		else
+		{
+			this.item.system.extraDamage[index] = extraDamage;
+		}
+		await this.item.update({['system.extraDamage']: this.item.system.extraDamage});
 	}
 }

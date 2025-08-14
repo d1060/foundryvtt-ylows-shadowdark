@@ -642,7 +642,11 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		else if (event.target.type === 'checkbox')
 			await this.actor.update({[event.target.name]: event.target.checked});
 		else if (event.target.type === 'number')
+		{
 			await this.actor.update({[event.target.name]: parseInt(event.target.value)});
+			if (event.target.name.includes(".magic."))
+				this.render(true);
+		}
 		else
 			await this.actor.update({[event.target.name]: event.target.value});
 	}

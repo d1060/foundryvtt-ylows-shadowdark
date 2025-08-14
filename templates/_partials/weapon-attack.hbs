@@ -2,4 +2,4 @@
 ({{handedness}}),
 {{numberFormat attackBonus decimals=0 sign=true}}
 ({{attackRange}}),
-{{baseDamage}}{{#ifCond bonusDamage '!=' 0}}{{numberFormat bonusDamage decimals=0 sign=true}}{{/ifCond}}{{#ifCond extraDamageDice '!==' ''}}+{{extraDamageDice}}{{/ifCond}}{{#ifCond properties '!==' ''}}, {{properties}}{{/ifCond}}
+{{baseDamage}}{{#ifCond bonusDamage '!=' 0}}{{numberFormat bonusDamage decimals=0 sign=true}}{{/ifCond}}{{#ifCond extraDamageDice '!==' ''}}+{{extraDamageDice}}{{/ifCond}}{{#if baseDamageType}} {{baseDamageType}}{{/if}}{{#each extrDamage}} +{{damage}} {{type}}{{/each}}{{#ifCond properties '!==' ''}}, {{properties}}{{/ifCond}}

@@ -16,7 +16,7 @@ export default class AuraMagicSD {
 			};
 		else
 		{
-			if (!actor.system.magic.auralCore.value)
+			if (actor.system.magic.auralCore.value === null)
 				actor.system.magic.auralCore.value = context.magicCoreLevel;
 			actor.system.magic.auralCore.base = context.magicCoreLevel;
 		}
@@ -154,7 +154,7 @@ export default class AuraMagicSD {
 		await actor.rollMagic(magicCoreLevel, options, auraMagicEffect);
 	}
 	
-	static async _onResetAuralCore(actor, event, html, sheet, target)
+	static async _onResetAuralCore(actor, event, sheet, target)
 	{
 		var currentLostCores = actor.system.magic.auralCore.lost;
 		actor.system.magic.auralCore.lost = 0;
@@ -167,7 +167,7 @@ export default class AuraMagicSD {
 		sheet.render();
 	}
 	
-	static async _onRedundantPatternways(actor, event, html, sheet, target)
+	static async _onRedundantPatternways(actor, event, sheet, target)
 	{
 		const effectId = target.dataset.id;
 		const effect = actor.system.magic.auraMagicEffects.find(p => p.id === effectId);
@@ -219,5 +219,13 @@ export default class AuraMagicSD {
 				actor.update({"system.attributes.hp.temp": actor.system.attributes.hp.temp});
 			}
 		}
+	}
+
+	static async getResistedAcBySpell(power, actorAc, isMetallic, metallicPart) {
+		if (!power || !power.system) return actorAc;
+		if (power.system.resistedBy === 'ac' && power.system.resistance_penalty_metallic) {
+			return isMetallic ? actorAc - metallicPart : actorAc;
+		}
+		return actorAc;
 	}
 }

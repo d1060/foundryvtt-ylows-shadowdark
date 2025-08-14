@@ -48,6 +48,15 @@
 				{{#if data.item.system.damage.type}}<span style="text-align: center;">{{data.item.system.damage.type}}</span>{{/if}}
 			</div>
 		</div>
+		{{#each data.item.system.extraDamage}}
+		<div class="form-group">
+			<div></div>
+			<div style="display: grid; grid-template-columns: 1fr 120px">
+				<input type="text" name="extraDamage_{{@index}}" value="{{damage}}" data-index="{{@index}}" data-type="{{type}}" placeholder="0">
+				<span style="text-align: center;">{{type}}</span>
+			</div>
+		</div>
+		{{/each}}
 		<hr />
 		{{/if}}
 

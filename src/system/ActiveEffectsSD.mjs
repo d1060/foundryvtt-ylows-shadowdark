@@ -800,5 +800,4 @@ export default class ActiveEffectsSD {
 
 		return categories;
 	}
-
 }

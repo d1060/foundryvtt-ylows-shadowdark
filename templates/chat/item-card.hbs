@@ -102,6 +102,16 @@
 				</div>
 			</div>
 			{{/if}}
+			{{#if data.rolls.extraDamage}}
+				{{#each data.rolls.extraDamage}}
+					<div
+						class="card-damage-roll-single blindable"
+						data-blind="{{../data.rolls.main.blind}}"
+					>
+						{{{renderedHTML}}}
+					</div>
+				{{/each}}
+			{{/if}}
 		{{/ifNeq}}
 	{{/if}}
 

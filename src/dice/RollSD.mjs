@@ -1,6 +1,7 @@
 import UtilitySD from "../utils/UtilitySD.mjs";
 import BritannianMagicSD from "../sheets/magic/BritannianMagicSD.mjs";
 import BritannianSpellSD from "../apps/BritannianSpellSD.mjs";
+import AuraMagicSD from "../sheets/magic/AuraMagicSD.mjs";
 
 export default class RollSD extends Roll {
 
@@ -35,6 +36,7 @@ export default class RollSD extends Roll {
 	static async Roll(parts, data, $form, adv=0, options={}) {
 		if (data.actor.isBurning()) data.actor.burnOut();
 		if (data.actor.isFrozen()) data.actor.thawFrost(); 
+		if (!data.target && options.target) data.target = options.target;
 
 		//shadowdark.debug(`RollSD Roll options.target=${options.target} data.rollType=${data.rollType} data.item?.type=${data.item?.type}`);
 		// If the dice has been fastForwarded, there is no form
@@ -45,6 +47,8 @@ export default class RollSD extends Roll {
 			data.damage = this._getModifiedDamage($form, data.damage);
 			data = foundry.utils.mergeObject(data, formBonuses);
 		}
+
+		data.extraDamage = this._getExtraDamage($form);
 
 		if (!options.rollMode) {
 			// only override if it's actually been set on the form (some rolls
@@ -67,6 +71,8 @@ export default class RollSD extends Roll {
 		data.rolls = {
 			main: await this._rollAdvantage(parts, data, adv),
 		};
+		
+		if (data.resistedBy) await this.rollResistance(data, options);
 
 		if (data.rollType === "ability") {
 			return this._renderRoll(data, adv, options);
@@ -185,6 +191,7 @@ export default class RollSD extends Roll {
 
 		// Check if it was a spell, and if it failed, lose it
 		const result = await this._renderRoll(data, adv, options);
+
 		if (
 			data.item?.isSpell()
 			&& result
@@ -192,6 +199,8 @@ export default class RollSD extends Roll {
 			// Focus rolls shouldn't lose the spell, unless it is a critical
 			&& (!options.isFocusRoll || result?.rolls?.main?.critical === "failure")
 		) data.item.update({"system.lost": true});
+
+		if (data.resistedBy) await this.renderResistanceRolls(data, options);
 
 		// Reduce ammo if required
 		if (data.usesAmmunition && data.ammunitionItem) {
@@ -201,50 +210,61 @@ export default class RollSD extends Roll {
 		if (await data.item?.isExplosive())
 			data.actor?.reduceQuantity(data.item, 1);
 
-		if ((result.rolls?.main?.success?.value || result?.rolls?.main?.critical === "success") && data.resistedBy && data.resistedBy.toLowerCase() !== 'ac')
-		{
-			var tokens = [];
-			if (options.targetToken)
-				tokens.push(options.targetToken);
-			if (data.targetTokens)
-				tokens.push(...data.targetTokens);
-			
-			result.resistanceRolls = [];
-			for (let token of tokens) {
-				if (token.actor)
-				{
-					let resistanceRoll = await this.rollResistance(token, data, result.rolls.main);
-					result.resistanceRolls.push(resistanceRoll);
-				}
-			}
-		}
-		else if ((result.rolls?.main?.success?.value || result?.rolls?.main?.critical === "success") && data.resistedBy && data.resistedBy.toLowerCase() === 'ac')
-		{
-			var tokens = [];
-			if (options.targetToken)
-				tokens.push(options.targetToken);
-			if (data.targetTokens)
-				tokens.push(...data.targetTokens);
-			
-			for (let token of tokens) {
-				if (token.actor)
-				{
-					let [actorAc, acTooltip, isMetallic] = await token.actor.getArmorClass();
-					if (options.power?.effect) actorAc = await BritannianSpellSD.getResistedAcBySpell(options.power, data.actor, actorAc, isMetallic);
-					if (result.rolls?.main?.roll?._total < actorAc)
-					{
-						if (!result.acMisses) result.acMisses = [];
-							result.acMisses.push(token.actor.id);
-					}
-				}
-			}
-		}
-
 		await this._applyDamageToTargets(result, options, data);
 		return result;
 	}
 
-	static async rollResistance(token, data, mainRoll) {
+	static async rollResistance(data, options) {
+		if (!data.resistedBy) return;
+		if (!(data.rolls?.main?.success?.value) && !(data.rolls?.main?.critical === "success")) return;
+
+		if (data.resistedBy.toLowerCase() !== 'ac')
+		{
+			var tokens = [];
+			if (options.targetToken)
+				tokens.push(options.targetToken);
+			if (data.targetTokens)
+				tokens.push(...data.targetTokens);
+			
+			if (tokens.length) data.wasAnyoneHit = false;
+			data.resistanceRolls = [];
+			for (let token of tokens) {
+				if (token.actor)
+				{
+					let resistanceRoll = await this.rollOneResistance(token, data, data.rolls.main);
+					if (!resistanceRoll.main.success) data.wasAnyoneHit = true;
+					data.resistanceRolls.push(resistanceRoll);
+				}
+			}
+		}
+		else // if (data.resistedBy.toLowerCase() === 'ac')
+		{
+			var tokens = [];
+			if (options.targetToken)
+				tokens.push(options.targetToken);
+			if (data.targetTokens)
+				tokens.push(...data.targetTokens);
+			
+			if (tokens.length) data.wasAnyoneHit = false;
+			for (let token of tokens) {
+				if (token.actor)
+				{
+					let [actorAc, acTooltip, isMetallic, metallicPart] = await token.actor.getArmorClass();
+					if (options.power?.system?.talentClass === 'auraMagic') actorAc = await AuraMagicSD.getResistedAcBySpell(options.power, actorAc, isMetallic, metallicPart);
+					if (options.power?.effect) actorAc = await BritannianSpellSD.getResistedAcBySpell(options.power, data.actor, actorAc, isMetallic);
+					if (data.rolls?.main?.roll?._total < actorAc)
+					{
+						if (!data.acMisses) data.acMisses = [];
+							data.acMisses.push(token.actor);
+					}
+					else
+						data.wasAnyoneHit = true;
+				}
+			}
+		}
+	}
+
+	static async rollOneResistance(token, data, mainRoll) {
 		const resistanceAbility = data.resistedBy.toLowerCase();
 		let target = data.resistanceDC ?? mainRoll.roll.total;
 		let abilityBonus = token.actor.system.abilities[resistanceAbility].mod;
@@ -256,16 +276,40 @@ export default class RollSD extends Roll {
 			actor: token.actor,
 			tokenId: token.id,
 		}
-		const resistanceOptions = {
-			target,
-			title: game.i18n.format("SHADOWDARK.dialog.resistanceRoll", { name: token.actor.name, ability: data.resistedBy}),
-			speaker: ChatMessage.getSpeaker({actor: token.actor})
-		}
 		resistanceData.rolls = {
-			main: await this._rollAdvantage([(game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20"), '@abilityBonus'], resistanceData, adv)
+			main: await this._rollAdvantage([(game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20"), '@abilityBonus'], resistanceData, adv),
+			tokenId: token.id
 		};
-		const result = await this._renderRoll(resistanceData, adv, resistanceOptions);
-		return result.rolls;
+		return resistanceData.rolls;
+	}
+
+	static async renderResistanceRolls(data, options) {
+		const resistanceAbility = data.resistedBy.toLowerCase();
+		let target = data.resistanceDC ?? data.rolls.main.roll.total;
+
+		for (let resistanceRoll of data.resistanceRolls ?? [])
+		{
+			let token = canvas.scene.tokens.find(t => t.id === resistanceRoll.tokenId);
+			if (!token) continue;
+
+			let abilityBonus = token.actor.system.abilities[resistanceAbility].mod;
+
+			const resistanceData = {
+				target,
+				abilityBonus,
+				actor: token.actor,
+				rolls: resistanceRoll
+			};
+			delete resistanceData.rolls.main.roll['data'];
+
+			const resistanceOptions = {
+				target,
+				title: game.i18n.format("SHADOWDARK.dialog.resistanceRoll", { name: token.actor.name, ability: data.resistedBy}),
+				speaker: ChatMessage.getSpeaker({actor: token.actor})
+			};
+
+			await this._renderRoll(resistanceData, 0, resistanceOptions);
+		}
 	}
 	
 	static async _applyDamageToTargets(result, options, data) {
@@ -281,26 +325,36 @@ export default class RollSD extends Roll {
 
 			for (var token of tokens)
 			{
+				var canApplyDamage = result.actor && (result.item || result.power || options.power) && token.actor;
+
 				let resistanceRoll;
 				if (result.resistanceRolls)
 					resistanceRoll = result.resistanceRolls.find(r => r.main.roll.data?.actor?.id === token.actor?.id);
 				if (resistanceRoll && resistanceRoll.main.success.value)
 					continue;
 
-				if (result.acMisses && result.acMisses.find(m => m === token.actor.id))
+				if (result.acMisses && result.acMisses.find(m => m.id === token.actor.id))
 					continue;
 				
 				if (!data.isHealing)
 				{
 					if (data.extraFireDamage) damageTotal -= data.extraFireDamage;
 
-					if (result.actor && (result.item || result.power || options.power) && token.actor)
-						damageTotal = await this.checkDamageModifiersByType(result.actor, result.item, result.power ?? options.power, result?.rolls?.main, token.actor, damageTotal);
+					if (canApplyDamage)
+						damageTotal = await this.checkDamageModifiers(result.item, result.power ?? options.power, result?.rolls?.main, token.actor, damageTotal);
 
 					if (data.extraFireDamage) damageTotal = await this.addExtraDamageByType(data.extraFireDamage, 'fire', token.actor, damageTotal);
 				}
 				else
 					damageTotal = -damageTotal;
+
+				if (data.rolls.extraDamage && canApplyDamage)
+				{
+					for (let extraDamage of data.rolls.extraDamage)
+					{
+						damageTotal += await this.checkDamageModifiersByType(result.item, result?.rolls?.main, token.actor, extraDamage.roll.total, extraDamage.type);
+					}
+				}
 
 				//shadowdark.debug(`Applying damage of ${damageTotal} to ${token.actor.name}`);
 
@@ -407,7 +461,7 @@ export default class RollSD extends Roll {
 		}
 	}
 
-	static async checkDamageModifiersByType(actor, weapon, power, roll, target, damageTotal)
+	static async checkDamageModifiers(weapon, power, roll, target, damageTotal)
 	{
 		var attackDamageType = weapon?.system?.damage?.type;
 		if (!attackDamageType && power && power.damage_type) attackDamageType = power.damage_type;
@@ -415,6 +469,11 @@ export default class RollSD extends Roll {
 		if (!attackDamageType && power && power.effect?.damage_type) attackDamageType = power.effect.damage_type;
 		if (!attackDamageType) attackDamageType = 'bludgeoning';
 
+		return await this.checkDamageModifiersByType(weapon, roll, target, damageTotal, attackDamageType);
+	}
+
+	static async checkDamageModifiersByType(weapon, roll, target, damageTotal, attackDamageType)
+	{
 		if (target.system.bonuses?.immunity && !Array.isArray(target.system.bonuses.immunity)) target.system.bonuses.immunity = [target.system.bonuses.immunity];
 		if (target.system.bonuses?.resistance && !Array.isArray(target.system.bonuses.resistance)) target.system.bonuses.resistance = [target.system.bonuses.resistance];
 
@@ -668,16 +727,25 @@ export default class RollSD extends Roll {
 			var fireDamageFormulaPart = "+ " + data.extraFireDamage;
 			roll._formula = this._wrapModifier(roll._formula, fireDamageFormulaPart, '<span style="font-weight: bold; color: #bb0000;">', '</span>');
 		}
-		const renderedHTML = await roll.render({template: 'systems/shadowdark/templates/dice/roll.hbs'});
+		let renderOptions = {
+			template: 'systems/shadowdark/templates/dice/roll.hbs'
+		};
+		if (data.type) {
+			renderOptions.flavor = data.type;
+		} 
+		const renderedHTML = await roll.render(renderOptions);
 
 		// Also send the actors critical bonuses in case it has modified thresholds
 		const critical = this._digestCritical(roll, data.actor?.system?.bonuses);
 
-		return {
+		const result = {
 			roll,
 			renderedHTML,
 			critical,
 		};
+		if (data.target !== null) result.success = {value: result.roll.total >= data.target};
+
+		return result;
 	}
 
 	static _wrapModifier(expression, partToWrap, insertStart, insertEnd) {
@@ -799,8 +867,8 @@ export default class RollSD extends Roll {
 	 * @returns {object} - Returns the data object, with additional roll evaluations
 	 */
 	static async _rollWeapon(data) {
-		//shadowdark.debug(`RollSD _rollWeapon`);
-		//shadowdark.debugObject(data);
+
+		if (data.item?.system?.damage?.type) data.type = data.item.system.damage.type;
 		// Get dice information from the weapon
 		let baseDamageFormula = data.damage ?? data.item.system.damage.value ?? "";
 		let dualBonus = null;
@@ -1026,6 +1094,15 @@ export default class RollSD extends Roll {
 				data.rolls.damage = await this._rollDamage(data, dualWieldParts, oneHandedParts, twoHandedParts, damageDie1H, damageDie2H);
 		}
 
+		if (data.extraDamage?.length) {
+			data.rolls.extraDamage = [];
+			for (let extraDamage of data.extraDamage) {
+				let extraDamageRoll = await this._rollDamage({actor: data.actor, handedness: '1h', type: extraDamage.type}, null, [extraDamage.damage], null, null, null);
+				extraDamageRoll.type = extraDamage.type;
+				data.rolls.extraDamage.push(extraDamageRoll);
+			}
+		}
+
 		return data;
 	}
 	
@@ -1141,6 +1218,18 @@ export default class RollSD extends Roll {
 			if (input) { return input.value; }
 		}
 		return prevDamage;
+	}
+
+	static _getExtraDamage($form) {
+		let extraDamage = [];
+		var inputs = $form.querySelectorAll('[name^="extraDamage_"]');
+		inputs.forEach(input => {
+  			extraDamage.push({
+				damage: input.value,
+				type: input.dataset.type
+			});
+		});
+		return extraDamage;
 	}
 
 	/**
@@ -1441,7 +1530,7 @@ export default class RollSD extends Roll {
 				"critical": {value: rolls?.main?.critical},
 			},
 		};
-		if (target) chatData.flags.success = {value: rolls.main.roll.total >= target};
+		if (target !== null) chatData.flags.success = {value: rolls.main.roll.total >= target};
 		return chatData;
 	}
 
@@ -1533,7 +1622,6 @@ export default class RollSD extends Roll {
 			(options.speaker) ? options.speaker : ChatMessage.getSpeaker(),
 			options.target
 		);
-		//shadowdark.debug(`RollSD _renderRoll options.target=${options.target}`);
 
 		// TODO: Write tests for this.
 		// Add whether the roll succeeded or not to the roll data
@@ -1543,6 +1631,9 @@ export default class RollSD extends Roll {
 
 		options.rollMode = this._translateRollModeFromLabel(options.rollMode);
 		if ( options.rollMode === "blindroll" ) data.rolls.main.blind = true;
+		if(!data.acMisses) data.acMisses = [];
+		data.showDamage = true;
+		if ((data.acMisses.length || data.resistanceRolls?.length) && !data.wasAnyoneHit) data.showDamage = false;
 
 		const content = await this._getChatCardContent(data, options);
 
@@ -1610,6 +1701,9 @@ export default class RollSD extends Roll {
 		}
 		if ( rolls.secondaryDamage ) {
 			rollsToShow.push(rolls.secondaryDamage.roll);
+		}
+		if (rolls.extraDamage) {
+			rollsToShow.push(...rolls.extraDamage.map(e => e.roll));
 		}
 
 		const { whisper, blind } = this.getRollModeSettings(rollMode);

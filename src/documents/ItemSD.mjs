@@ -379,12 +379,13 @@ export default class ItemSD extends Item {
 		return !isAShield;
 	}
 
-	async propertiesDisplay() {
+	async propertiesDisplay(excludeProperty) {
 		let properties = [];
 
 		if (this.type === "Armor" || this.type === "Weapon") {
 			for (const property of await this.propertyItems()) {
-				properties.push(property.name);
+				if (excludeProperty && excludeProperty.slugify() !== property.name.slugify())
+					properties.push(property.name);
 			}
 		}
 

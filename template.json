@@ -222,7 +222,17 @@
 					"value": 1
 				},
 				"range": "",
-				"tier": 1
+				"tier": 1,
+				"auralCore": {
+					"base": 0,
+					"effective": 0,
+					"value": 0
+				},
+				"auraMagicEffects": [],
+				"auraMagicTalents": [],
+				"metalMagicTalents": [],
+				"nanoMagicTalents": [],
+				"nanoPoints": []
 			},
 			"physical": {
 				"broken": false,

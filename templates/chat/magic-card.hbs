@@ -64,6 +64,10 @@
 		{{/ifEq}}
 	{{/if}}
 
+	{{#each data.acMisses}}
+		<div class="card-content"><h3>{{localize "SHADOWDARK.chat.missedByAc"}} {{name}}</h3></div>
+	{{/each}}
+
 	{{#if isWeapon}}
 		{{#ifNeq data.rolls.main.critical "failure"}}
 			<div class="card-damage-rolls">
@@ -96,6 +100,7 @@
 	{{/if}}
 
 	{{#if isMagicWithDamage}}
+	{{#if data.showDamage}}
 		{{#ifNeq data.rolls.main.critical "failure"}}
 			<div class="card-damage-rolls">
 				<div
@@ -107,6 +112,7 @@
 				</div>
 			</div>
 		{{/ifNeq}}
+	{{/if}}
 	{{/if}}
 
 	{{#if isNPC}}

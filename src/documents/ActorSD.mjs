@@ -535,10 +535,12 @@ export default class ActorSD extends Actor {
 			attackBonus: 0,
 			attackRange: "",
 			baseDamage: "",
+			baseDamageType: (item.system?.damage?.type ? UtilitySD.capitalize(item.system.damage.type) : null),
 			bonusDamage: 0,
 			attackOption: "",
 			extraDamageDice: "",
-			properties: await item.propertiesDisplay(),
+			extrDamage: item.system.extraDamage ?? [],
+			properties: await item.propertiesDisplay(item.system?.damage?.type),
 			meleeAttackBonus: this.system.bonuses.meleeAttackBonus,
 			rangedAttackBonus: this.system.bonuses.rangedAttackBonus,
 		};
@@ -1086,8 +1088,14 @@ export default class ActorSD extends Actor {
 
 
 	async getArmorClass() {
+		if (this.type === "NPC")
+		{
+			return [this.system.attributes.ac.value, '', this.system.bonuses.metallic ?? false, this.system.attributes.ac.value];
+		}
+
 		const dexModifier = this.abilityModifier("dex");
 		let isWearingMetallicArmor = false;
+		let metallicArmorValue = 0;
 
 		let baseArmorClass = shadowdark.defaults.BASE_ARMOR_CLASS;
 		let armorClassTooltip = "Base: " + shadowdark.defaults.BASE_ARMOR_CLASS + "<br>";
@@ -1155,7 +1163,11 @@ export default class ActorSD extends Actor {
 							|| a === firstShield.system.baseArmor
 				).length;
 
-				isWearingMetallicArmor |= await firstShield.isMetallicArmor();
+				if (await firstShield.isMetallicArmor())
+				{
+					isWearingMetallicArmor = true;
+					metallicArmorValue += shieldBonus;
+				}
 			}
 
 			if (equippedArmor.length > 0) {
@@ -1166,6 +1178,7 @@ export default class ActorSD extends Actor {
 				let bestAttributeForBonus = '';
 				let baseArmorClassApplied = false;
 				var isEquippingHeavyArmor = false;
+				var isEquippingMetallicArmor = false;
 
 				for (const armor of equippedArmor) {
 
@@ -1189,7 +1202,6 @@ export default class ActorSD extends Actor {
 					if (armor.system.ac.modifier)
 						armorClassTooltip += "Shield AC modifier: " + armor.system.ac.modifier + "<br>";
 
-					isWearingMetallicArmor |= await armor.isMetallicArmor();
 					let armorExpertise = (this.system.bonuses.armorExpertise != null && this.system.bonuses?.armorExpertise == armor.name.slugify()) ? 1 : 0;
 					newArmorClass += armorExpertise;
 					if (armorExpertise)
@@ -1216,6 +1228,8 @@ export default class ActorSD extends Actor {
 					{
 						isEquippingHeavyArmor = true;
 					}
+
+					if (await armor.isMetallicArmor()) isEquippingMetallicArmor = true;
 				}
 
 				if (isEquippingHeavyArmor && this.system.bonuses.heavyArmorACBonus)
@@ -1239,6 +1253,13 @@ export default class ActorSD extends Actor {
 				newArmorClass += armorMasteryBonus;
 				newArmorClass += shieldBonus;
 
+				if (isEquippingMetallicArmor)
+				{
+					isWearingMetallicArmor = true;
+					if (newArmorClass > baseArmorClass)
+						metallicArmorValue += (newArmorClass - baseArmorClass);
+				}
+
 				if (bestAttributeBonus) armorClassTooltip += "Best Attribute (" + bestAttributeForBonus.toUpperCase() + ") Bonus:" + bestAttributeBonus + "<br>";
 				if (armorMasteryBonus) armorClassTooltip += "Armor Mastery:" + armorMasteryBonus + "<br>";
 				if (shieldBonus) armorClassTooltip += "Shield Bonus:" + shieldBonus + "<br>";
@@ -1259,9 +1280,12 @@ export default class ActorSD extends Actor {
 			}
 
 			// Add AC from bonus effects
-			let effectACbonus = parseInt(this.system.bonuses.acBonus, 10);
-			newArmorClass += effectACbonus;
-			if (effectACbonus) armorClassTooltip += "Effects AC bonus: " + effectACbonus + "<br>";
+			if (this.system.bonuses.acBonus)
+			{
+				let effectACbonus = parseInt(this.system.bonuses.acBonus, 10);
+				newArmorClass += effectACbonus;
+				if (effectACbonus) armorClassTooltip += "Effects AC bonus: " + effectACbonus + "<br>";
+			}
 
 			// Stone Skin Talent provides a bonus based on level
 			if (this.system.bonuses.stoneSkinTalent > 0) {
@@ -1283,7 +1307,7 @@ export default class ActorSD extends Actor {
 		if (armorClassTooltip.endsWith("<br>"))
     		armorClassTooltip = armorClassTooltip.slice(0, -4);
 
-		return [this.system.attributes.ac.value, armorClassTooltip, isWearingMetallicArmor];
+		return [this.system.attributes.ac.value, armorClassTooltip, isWearingMetallicArmor, metallicArmorValue];
 	}
 
 
@@ -2101,6 +2125,7 @@ export default class ActorSD extends Actor {
 
 	async rollAttack(itemId, options={}) {
 		const item = this.items.get(itemId);
+		if (!item.system.extraDamage) item.system.extraDamage = [];
 
 		if (game.settings.get("shadowdark", "enableTargeting")) {
 			if (!options.targetToken && game.user.targets.size > 0) {
@@ -3112,9 +3137,28 @@ export default class ActorSD extends Actor {
 
 	}
 
+	async isWearingSealedArmor() {
+		const equippedArmorItems = this.items.filter(
+			item => item.type === "Armor" && item.system.equipped
+		);
+		const equippedArmor = [];
+		for (const item of equippedArmorItems) {
+			if (!await item.isAShield()) {
+				equippedArmor.push(item);
+			}
+		}
+		for (let armor of equippedArmor)
+		{
+			if (await armor.hasProperty('sealed'))
+				return true;
+		}
+		return false;
+	}
+
 	async makeTaintCheck() {
 		if (this.system?.bonuses?.mistdarkCreature) return;
 		if (this.system?.bonuses?.helvarion) return;
+		if (await this.isWearingSealedArmor()) return;
 
 		var rollParts = [game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20",
 			this.system.abilities['con'].mod.toString()];

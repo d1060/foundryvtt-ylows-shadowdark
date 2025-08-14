@@ -927,6 +927,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
 
     static async getResistedAcBySpell(spell, actor, ac, isMetallic) {
         let effect = await fromUuid(spell.effect.uuid);
+        if (!effect) return ac;
         if (!isMetallic && effect.system?.resistance_penalty_metallic) return ac;
 
         let spellPenalty = BritannianSpellSD.getSpellResistancePenalty(spell, actor);
