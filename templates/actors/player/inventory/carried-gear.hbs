@@ -29,6 +29,7 @@
 		{{#each inventory.carried as |item|}}
 			{{> actors/player/inventory/item
 				item=item
+				bulkSelling=../bulkSelling
 				owner=../owner
 			}}
 		{{/each}}

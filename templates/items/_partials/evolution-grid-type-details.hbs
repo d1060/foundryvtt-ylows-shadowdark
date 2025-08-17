@@ -1,0 +1,46 @@
+<section class="tab {{tabs.evolutionGridTypeDetails.cssClass}} navigation-tab" data-tab="evolutionGridTypeDetails" data-group="sheet" data-application-part="evolutionGridTypeDetails">
+    <!-- Class -->
+    <div class="SD-box">
+        <div class="header">
+            <label>
+                {{localize "SHADOWDARK.sheet.item.tab.evolutionGridType.classes"}}
+            </label>
+            <span style="display: flex; flex-direction: row; justify-content: flex-end;">
+                <a
+                    class=""
+                    data-action="openEvolutionGrid"
+                    data-tooltip="{{localize 'SHADOWDARK.sheet.item.open_evolution_grid.tooltip'}}"
+                    style="margin-right: 6px"
+                ><img class="evolution-grid-icon" style="opacity: 0.5" src="/systems/shadowdark/assets/icons/grid.png"></a>
+                <a
+                    class="item-selector fas fa-pen-to-square edit-button"
+                    data-action="selectItem"
+                    data-options="class"
+                    data-item-type="class"
+                    data-select-type="class"
+                    for="system.class">
+                </a>
+            </span>
+        </div>
+        <div class="content">
+            <div class="grid-1-columns">
+                <div class="items flexrow">
+                    {{#if system.class.length}}
+                        {{#each system.class as |class|}}
+                        <div class="talent flexrow">
+                            <a
+                                class="content-link uuid-link"
+                                data-link
+                                data-uuid="{{class}}"
+                            >
+                                <i class="fas fa-delete-right" data-action="deleteChoice" data-choices-key="class" data-uuid="{{class}}"></i>
+                                {{uuidToName class}}
+                            </a>
+                        </div>
+                        {{/each}}
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

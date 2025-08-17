@@ -74,7 +74,7 @@ export default class AuraMagicSD {
 			{
 				if (effect.redundantPatternways)
 				{
-					var newEffect = newAuraMagicEffects.find(p => p.id === effect.id);
+					var newEffect = newAuraMagicEffects.find(p => p._id === effect._id);
 					newEffect.redundantPatternways = effect.redundantPatternways;
 				}
 			}
@@ -145,6 +145,7 @@ export default class AuraMagicSD {
 			advantage,
 			advantageTooltip,
 			failureTolerance,
+			description: auraMagicEffect.formattedDescription,
 		};
 		options.target = spellDC;
 		options.power = auraMagicEffect;
@@ -170,9 +171,9 @@ export default class AuraMagicSD {
 	static async _onRedundantPatternways(actor, event, sheet, target)
 	{
 		const effectId = target.dataset.id;
-		const effect = actor.system.magic.auraMagicEffects.find(p => p.id === effectId);
+		const effect = actor.system.magic.auraMagicEffects.find(p => p._id === effectId);
 		effect.redundantPatternways = !effect.redundantPatternways;
-		actor.update({"system.magic.auraMagicEffects": actor.system.magic.auraMagicEffects});
+		await actor.update({"system.magic.auraMagicEffects": actor.system.magic.auraMagicEffects});
 		sheet.render();
 	}
 
@@ -181,19 +182,56 @@ export default class AuraMagicSD {
 			return;
 
 		var actor = result.actor;
-		var power = result.power;
+		var power = await fromUuid(result.power.uuid);
 		
 		const resultMargin = result.rolls.main.roll._total - result.spellDC;
 
-		//shadowdark.debug(`ActorSD _rollMagicCallback for Aura-Magic. Result by ${resultMargin}.`);
 		if (resultMargin >= 0)
 		{
-			if (result?.rolls?.main?.critical !== "success" && result.cost > 0)
+			if (result?.rolls?.main?.critical !== "success" && parseInt(result.cost) > 0)
 			{
-				var newHp = actor.system.attributes.hp.value - result.cost;
+				var newHp = parseInt(actor.system.attributes.hp.value) - parseInt(result.cost);
 				actor.updateHP(newHp);
 				actor.update({"system.attributes.hp.value": actor.system.attributes.hp.value});
 				actor.update({"system.attributes.hp.temp": actor.system.attributes.hp.temp});
+
+				if (power)
+				{
+					let powerEffects = await power.getEmbeddedCollection("ActiveEffect");
+					for (let powerEffect of powerEffects.contents) {
+						let changes = structuredClone(powerEffect.changes);
+						for (let change of changes) {
+							let changeValueInt = parseInt(change.value);
+							if (!Number.isNaN(changeValueInt)) {
+								if (power.system.damage) {
+									let excessPower = 0;
+									if (result.power.effectiveLevel) {
+										excessPower = result.power.effectiveLevel - parseInt(power.system.powerLevel);
+									}
+									let newDamage = shadowdark.dice.RollMagicSD.increasePowerDamage(power, excessPower);
+									let newDamageInt = parseInt(newDamage);
+									if (!Number.isNaN(newDamageInt)) {
+										change.value = newDamageInt;
+									}
+								}
+							}
+						}
+
+						const newEffectData =  {
+							name: powerEffect.name,
+							label: powerEffect.name,
+							img: powerEffect.img,
+							changes: changes,
+							disabled: false,
+							transfer: true,
+							sourceName: 'AuraMagic',
+							system: { origin: 'AuraMagic' },
+							description: power.system?.description,
+						};
+
+						const [newEffect] = await actor.createEmbeddedDocuments("ActiveEffect", [newEffectData]);
+					}
+				}
 			}
 		}
 		else

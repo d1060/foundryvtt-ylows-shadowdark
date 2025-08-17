@@ -230,13 +230,6 @@ export default class UtilitySD {
 		const items = [];
 
 		for (const result of results) {
-			// const uuid = [
-			// 	"Compendium",
-			// 	result.documentCollection,
-			// 	result.documentId,
-
-			// ].join(".");
-
 			items.push(await fromUuid(result.documentUuid));
 		}
 
@@ -429,10 +422,10 @@ export default class UtilitySD {
 			const rect = new PIXI.Rectangle(gx, gy, gridSize.x * 0.5, gridSize.y * 0.75);
 
 			return canvas.tokens.placeables.some(token =>
-				token.document.x < rect.right &&
-				token.document.x + token.document.width * gridSize.x > rect.left &&
-				token.document.y < rect.bottom &&
-				token.document.y + token.document.height * gridSize.y > rect.top
+				Math.hypot(
+					(gx - token.center?.x) / gridSize.x,
+					(gy - token.center?.y) / gridSize.y
+				) <= 0.5
 			);
 		}
 
@@ -732,5 +725,131 @@ export default class UtilitySD {
 		sanitized = sanitized.replace(/\/r/g, "");
 		sanitized = sanitized.replace(/\\r/g, "");
 		return sanitized;
+	}
+
+	static adjustDescriptionForLevel(description, level) {
+		if (!description.includes("{") || !description.includes("}"))
+			return description;
+
+		let openBrackets = description.indexOf("{");
+		let closeBrackets = description.indexOf("}");
+		do {
+			if (closeBrackets > openBrackets) {
+				let formula = description.substring(openBrackets + 1, closeBrackets);
+				let evaluatedFormula = this.evaluateFormula(formula, level);
+				description = description.slice(0, openBrackets) + evaluatedFormula + description.slice(closeBrackets + 1);
+			}
+
+			openBrackets = description.indexOf("{");
+			closeBrackets = description.indexOf("}");
+		} while (openBrackets != -1 && closeBrackets > openBrackets);
+
+		return description;
+	}
+
+	static evaluateFormula(formula, level) {
+		formula = formula.replace(/L\+(\d+)/, (_, x) => level + Number(x));
+		formula = formula.replace(/L\-(\d+)/, (_, x) => level - Number(x));
+		formula = formula.replace(/L\*(\d+)/, (_, x) => level * Number(x));
+		formula = formula.replace(/L\/(\d+)/, (_, x) => Math.floor(level / Number(x)));
+		formula = formula.replace(/L\^(\d+)/, (_, x) => Math.pow(level, Number(x)));
+		formula = formula.replace(/(\d+)\+L/, (_, x) => level + Number(x));
+		formula = formula.replace(/(\d+)\-L/, (_, x) => Number(x) - level);
+		formula = formula.replace(/(\d+)\*L/, (_, x) => level * Number(x));
+		formula = formula.replace(/(\d+)\/L/, (_, x) => Math.floow(Number(x) / level));
+		formula = formula.replace(/(\d+)\^L/, (_, x) => Math.pow(Number(x), level));
+		formula = formula.replace("L", level);
+
+		return this.evaluateNumeric(formula);
+	}
+
+	static evaluateNumeric(formula) {
+		let openParenthesis = formula.indexOf("(");
+		let closeParenthesis = formula.indexOf(")");
+		do {
+			if (openParenthesis != -1 && closeParenthesis > openParenthesis)
+			{
+				let subFormula = formula.substring(openParenthesis + 1, closeParenthesis);
+				subFormula = this.evaluateNumeric(subFormula);
+				formula = formula.slice(0, openParenthesis) + subFormula + formula.slice(closeParenthesis + 1);
+			}
+			openParenthesis = formula.indexOf("(");
+			closeParenthesis = formula.indexOf(")");
+		} while (openParenthesis != -1 && closeParenthesis > openParenthesis);
+
+		let accum = null;
+		let current = null;
+		let operation = null;
+
+		for (const ch of formula) {
+			const code = parseInt(ch);
+ 			if (Number.isNaN(code)) {
+
+				if (current != null) {
+					if (accum != null && operation != '') {
+						switch (operation) {
+							case '+':
+								accum += current;
+								break;
+							case '-':
+								accum -= current;
+								break;
+							case '*':
+								accum *= current;
+								break;
+							case '/':
+								accum = Math.floor(accum / current);
+								break;
+							case '^':
+								accum = Math.pow(accum, current);
+								break;
+						}
+					}
+					else if (accum == null)
+						accum = current;
+
+					current = null;
+				}
+
+				switch (ch) {
+					case '+':
+					case '-':
+					case '*':
+					case '/':
+					case '^':
+						operation = ch;
+						break;
+					default:
+						operation = '';
+				}
+			} else { // It's a number
+				current = current * 10 + code;
+			}
+		}
+
+		if (operation != '' && accum != null && current != null)
+		{
+			switch (operation) {
+				case '+':
+					accum += current;
+					break;
+				case '-':
+					accum -= current;
+					break;
+				case '*':
+					accum *= current;
+					break;
+				case '/':
+					accum = Math.floor(accum / current);
+					break;
+				case '^':
+					accum = Math.pow(accum, current);
+					break;
+			}
+		}
+		else if (accum == null && current != null)
+			return current;
+
+		return accum;
 	}
 }

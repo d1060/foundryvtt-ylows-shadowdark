@@ -1,0 +1,9 @@
+<div>
+    <div style="display: grid; place-items: center;"><h3>{{localize 'SHADOWDARK.inventory.barter_check'}} {{bulkSell.barterCheck}}</h3></div>
+    <input style="background-color: transparent;" type="range" name="bulkSell.barterCheck" min="2" max="25" step="1" value="{{bulkSell.barterCheck}}">
+    <div style="display: inline; place-items: center; margin-bottom: 4px;">{{localize 'SHADOWDARK.coins.gp'}} <b>{{bulkSell.gp}}</b>, {{localize 'SHADOWDARK.coins.sp'}} <b>{{bulkSell.sp}}</b>, {{localize 'SHADOWDARK.coins.cp'}} <b>{{bulkSell.cp}}</b></div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; column-gap: 2px; margin-top: 4px;">
+    <button type="button" data-action="sellBulkSell" name="bulkSell.sell" value="1"><span class="fa-solid fa-donate"></span>{{localize 'SHADOWDARK.dialog.item.sell'}}</button>
+    <button type="button" data-action="cancelBulkSell" name="bulkSell.cancel" value="1"><span class="fa-solid fa-close"></span>{{localize 'SHADOWDARK.dialog.general.cancel'}}</button>
+    </div>
+</div>

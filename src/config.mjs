@@ -98,6 +98,7 @@ SHADOWDARK.DEFAULTS = {
 		"Potion": "icons/consumables/potions/bottle-corked-red.webp",
 		"Property": "icons/sundries/documents/document-torn-diagram-tan.webp",
 		"Magic Power": "icons/magic/symbols/rune-sigil-white-pink.webp",
+		"Evolution Grid Type": "icons/tools/fishing/net-gold.webp",
 		"Scroll": "icons/sundries/scrolls/scroll-runed-brown-purple.webp",
 		"Spell": "icons/magic/symbols/runes-star-blue.webp",
 		"Talent": "icons/sundries/books/book-worn-brown-grey.webp",

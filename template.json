@@ -172,6 +172,7 @@
 			"Class",
 			"Deity",
 			"Effect",
+			"Evolution Grid Type",
 			"Gem",
 			"Language",
 			"Magic Power",
@@ -456,6 +457,12 @@
 			"tokenIcon": {
 				"show": true
 			}
+		},
+		"Evolution Grid Type": {
+			"templates": [
+				"common"
+			],
+			"class": []
 		},
 		"Language": {
 			"templates": [

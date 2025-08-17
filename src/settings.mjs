@@ -288,6 +288,20 @@ export default function registerSystemSettings() {
 		requiresReload: false,
 	});
 
+	// ------------------------
+	//  Evolution Grid SETTINGS
+	// ------------------------
+	//
+	game.settings.register("shadowdark", "evolutionGrid", {
+		name: "SHADOWDARK.settings.evolutionGrid.name",
+		hint: "SHADOWDARK.settings.evolutionGrid.hint",
+		scope: "world",
+		type: Boolean,
+		config: true,
+		default: false,
+		requiresReload: true,
+	});
+
 	// ----------------
 	//  DEBUG SETTINGS
 	// ----------------

@@ -128,5 +128,15 @@
 			<i class="fa-solid fa-box" data-item-id="{{item._id}}"></i>
 		</a>
 		{{/unless}}
+		{{#if bulkSelling}}
+			<a
+				data-action="addToBulkSell"
+				data-item-id="{{item._id}}"
+				data-tooltip="{{localize 'SHADOWDARK.inventory.tooltip.sell_item'}}"
+				{{#if item.system.bulkSelling}}style="color: darkorange;{{/if}}"
+			>
+				<i class="fa-solid fa-coins"></i>
+			</a>
+		{{/if}}
 	</div>
 </li>

@@ -1,6 +1,7 @@
 import UtilitySD from "../utils/UtilitySD.mjs";
 import * as select from "../apps/CompendiumItemSelectors/_module.mjs";
 import BritannianMagicSD from "./magic/BritannianMagicSD.mjs";
+import EvolutionGridSD from "../apps/EvolutionGridSD.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api
 const { ItemSheetV2 } = foundry.applications.sheets
@@ -48,7 +49,8 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			removePrefix: this.#onRemovePrefix,
 			removeSuffix: this.#onRemoveSuffix,
 			selectItem: this.#onItemSelection,
-			manageActiveEffect: this.#manageActiveEffect
+			manageActiveEffect: this.#manageActiveEffect,
+			openEvolutionGrid: this.#onOpenEvolutionGrid
 		},
 		dragDrop: [{dropSelector: ".items"}],
  	}
@@ -76,6 +78,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		description:             { template: "systems/shadowdark/templates/items/_partials/description-tab.hbs" },
 		effectDetails:           { template: "systems/shadowdark/templates/items/effect/details-tab.hbs" },
 		effects:                 { template: "systems/shadowdark/templates/items/_partials/effects-tab.hbs" },
+		evolutionGridTypeDetails:{ template: "systems/shadowdark/templates/items/_partials/evolution-grid-type-details.hbs" },
 		gemDetails:              { template: "systems/shadowdark/templates/items/gem/details-tab.hbs" },
 		languageDetails:         { template: "systems/shadowdark/templates/items/language/details-tab.hbs" },
 		light:                   { template: "systems/shadowdark/templates/items/basic/light-tab.hbs" },
@@ -150,6 +153,11 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			case "effect":
 				tabs.tabs.push({ id: 'effectDetails', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.details', cssClass: "navigation-tab active" })
 				tabs.tabs.push({ id: 'effects', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.effects', cssClass: "navigation-tab" })
+				tabs.tabs.push({ id: 'description', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.description', cssClass: "navigation-tab" })
+				tabs.tabs.push({ id: 'source', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.source', cssClass: "navigation-tab" })
+				break;
+			case "evolution-grid-type":
+				tabs.tabs.push({ id: 'evolutionGridTypeDetails', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.evolutionGridTypeDetails', cssClass: "navigation-tab active" })
 				tabs.tabs.push({ id: 'description', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.description', cssClass: "navigation-tab" })
 				tabs.tabs.push({ id: 'source', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.source', cssClass: "navigation-tab" })
 				break;
@@ -600,10 +608,10 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		context.sources = await shadowdark.compendiums.sources();
 
 		const itemSource = context.sources.find(
-			s => s.uuid === context.item.system.source.title
+			s => s.uuid === context.item.system.source?.title
 		);
 
-		context.sourceLoaded = itemSource || context.item.system.source.title === ""
+		context.sourceLoaded = itemSource || context.item.system.source?.title === ""
 			? true
 			: false;
 	}
@@ -1304,6 +1312,9 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		const selectType = target.dataset.selectType;
 
 		switch (selectType) {
+			case "class":
+				new select.ClassSelector(this.item).render(true);
+				break;
 			case "itemProperty":
 				if (itemType === "armor") {
 					new select.ArmorPropertySelector(this.item).render(true);
@@ -1311,8 +1322,6 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 				else if (itemType === "weapon") {
 					new select.WeaponPropertySelector(this.item).render(true);
 				}
-
-
 				break;
 		}
 	}
@@ -1517,6 +1526,13 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 
 	static async #manageActiveEffect(event, target) {
 		shadowdark.effects.onManageActiveEffect(event, this.item, target);
+	}
+
+	static async #onOpenEvolutionGrid(event, target) {
+		if (!this.evolutionGrid)
+			this.evolutionGrid = new EvolutionGridSD({type: this.item});
+		this.evolutionGrid.render(true);
+
 	}
 
 	async _onNewExtraDamage(target) {

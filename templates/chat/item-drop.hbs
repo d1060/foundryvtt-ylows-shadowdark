@@ -8,18 +8,26 @@
 	<header class="card-header flexrow">
 		<img
 			src="{{item.img}}"
-			{{#if picked_up}}
-				data-tooltip="{{name}} {{localize 'SHADOWDARK.chat.item.picked_up'}}"
+			{{#if target}}
+				{{localize "SHADOWDARK.chat.item.given"}} {{target.name}}
 			{{else}}
-				data-tooltip="{{name}} {{localize 'SHADOWDARK.chat.item.dropped'}}"
+				{{#if picked_up}}
+					data-tooltip="{{name}} {{localize 'SHADOWDARK.chat.item.picked_up'}}"
+				{{else}}
+					data-tooltip="{{name}} {{localize 'SHADOWDARK.chat.item.dropped'}}"
+				{{/if}}
 			{{/if}}
 		/>
 		<h3 class="light-source-name">
 			{{name}}
-			{{#if picked_up}}
-				{{localize "SHADOWDARK.chat.item.picked_up"}}
+			{{#if target}}
+				{{localize "SHADOWDARK.chat.item.given"}} {{target.name}}
 			{{else}}
-				{{localize "SHADOWDARK.chat.item.dropped"}}
+				{{#if picked_up}}
+					{{localize "SHADOWDARK.chat.item.picked_up"}}
+				{{else}}
+					{{localize "SHADOWDARK.chat.item.dropped"}}
+				{{/if}}
 			{{/if}}
 		</h3>
 	</header>

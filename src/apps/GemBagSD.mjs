@@ -33,7 +33,7 @@ export default class GemBagSD extends HandlebarsApplicationMixin(ApplicationV2) 
 
 	/** @inheritdoc */
 	static PARTS = {
-		form: { template: "systems/shadowdark/templates/apps/gem-bag.hbs"}
+		form: { template: "systems/shadowdark/templates/apps/gem-bag.hbs" }
 	}
 
 	/** @inheritdoc */

@@ -1,6 +1,7 @@
 // Property selector applications
 export {default as CharacterGeneratorSD} from "./CharacterGeneratorSD.mjs";
 export {default as EffectPanelSD} from "./EffectPanelSD.mjs";
+export {default as EvolutionGridSD} from "./EvolutionGridSD.mjs";
 export {default as GemBagSD} from "./GemBagSD.mjs";
 export {default as ItemImporterSD} from "./ItemImporterSD.mjs";
 export {default as LevelUpSD} from "./LevelUpSD.mjs";

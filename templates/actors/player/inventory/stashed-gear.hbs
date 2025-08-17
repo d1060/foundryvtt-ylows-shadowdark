@@ -43,20 +43,22 @@
 
 				<div class="actions" style="flex: 0 0 60px">
 					<a
-						data-action="sellItem"
-						data-item-id="{{item._id}}"
-						data-tooltip="{{localize 'SHADOWDARK.inventory.tooltip.sell_item'}}"
-					>
-						<i class="fa-solid fa-coins"></i>
-					</a>
-
-					<a
 						data-action="toggleStashed"
 						data-item-id="{{item._id}}"
 						data-tooltip="{{localize 'SHADOWDARK.inventory.tooltip.toggle_stashed'}}"
 					>
 						<i style="color:var(--primary)" class="fa-solid fa-box"></i>
 					</a>
+					{{#if ../bulkSelling}}
+					<a
+						data-action="addToBulkSell"
+						data-item-id="{{item._id}}"
+						data-tooltip="{{localize 'SHADOWDARK.inventory.tooltip.sell_item'}}"
+						{{#if item.system.bulkSelling}}style="color: darkorange;{{/if}}"
+					>
+						<i class="fa-solid fa-coins"></i>
+					</a>
+					{{/if}}
 				</div>
 			</li>
 		{{/each}}

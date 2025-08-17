@@ -68,21 +68,25 @@ export default class RollMagicSD extends HandlebarsApplicationMixin(ApplicationV
 		{
 			case "data.effectiveLevel":
 				await this._onChangeMagicLevel(event, formData);
+				this.render(true);
 				break;
 			case "rollMode":
 				this.rollMode = event.target.value;
+				this.render(true);
 				break;
 			case "data.talentBonus":
 				await this._onChangeTalentBonus(event, formData);
+				this.render(true);
 				break;
 			case "data.resistanceDC":
 				await this._onChangeResistanceDC(event, formData);
+				this.render(true);
 				break;
 			case "data.damage":
 				await this._onChangeDamage(event, formData);
+				this.render(true);
 				break;
 		}
-		this.render(true);
 	}	
 
 	async _onChangeMagicLevel(event, formData) {

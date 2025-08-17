@@ -168,28 +168,61 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 	 * @param {object} dropData - Information the carries the coordinates of the drop
 	 */
 	async dropLightSourceOnScene(item, itemOwner, actorData, dropData, speaker = false) {
-		// Create a new actor
-		const lightActor = await Actor.create(actorData);
+		const gridSize = {x: canvas.grid.sizeX, y: canvas.grid.sizeY};
 
-		// Create a copy of the item
-		lightActor.createEmbeddedDocuments("Item", [item]);
+		let targetToken = canvas.tokens.placeables.find(token =>
+			Math.hypot(
+				(dropData.x - token.center?.x) / gridSize.x,
+				(dropData.y - token.center?.y) / gridSize.y
+			) <= 0.5 &&
+			token.document.actor?.type === "Player"
+		);
 
-		// Remove light from items parents
-		game.actors.get(itemOwner?._id)?.toggleLight(false, "");
+		if (targetToken && targetToken?.document?.actor?.id === itemOwner._id)
+			return;
 
 		// Send message that the torch was dropped
 		game.actors.get(itemOwner?._id)?.sheet._sendToggledLightSourceToChat(
 			false,
 			item,
 			{
+				source: itemOwner,
+				target: targetToken.document.actor,
 				speaker: speaker ?? ChatMessage.getSpeaker(),
 				picked_up: false,
 				template: "systems/shadowdark/templates/chat/lightsource-drop.hbs",
 			}
 		);
 
+		// Remove light from items parents
+		game.actors.get(itemOwner?._id)?.toggleLight(false, "");
+
 		// Remove item from the items parents
 		game.actors.get(itemOwner?._id)?.items.get(item._id).delete();
+
+		if (targetToken && targetToken.document.actor)
+		{
+			let [newItem] = await targetToken.document.actor.createEmbeddedDocuments("Item", [item]);
+
+			if (item.system?.light?.active)
+			{
+				targetToken.document.actor.toggleLight(item.system.light.active, newItem.id);
+				game.shadowdark.lightSourceTracker.toggleLightSource(
+					targetToken.document.actor,
+					newItem
+				);
+			}
+
+			// Flag the housekeeper to get to work
+			this.dirty = true;
+			return;
+		}
+
+		// Create a new actor
+		const lightActor = await Actor.create(actorData);
+
+		// Create a copy of the item
+		lightActor.createEmbeddedDocuments("Item", [item]);
 
 		// Create token
 		canvas.tokens._onDropActorData({}, {
@@ -206,17 +239,26 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 	}
 
 	async dropItemOnScene(item, itemOwner, actorData, dropData, speaker = false) {
-		// Create a new actor
-		const itemActor = await Actor.create(actorData);
+		const gridSize = {x: canvas.grid.sizeX, y: canvas.grid.sizeY};
 
-		// Create a copy of the item
-		itemActor.createEmbeddedDocuments("Item", [item]);
+		let targetToken = canvas.tokens.placeables.find(token =>
+			Math.hypot(
+				(dropData.x - token.center?.x) / gridSize.x,
+				(dropData.y - token.center?.y) / gridSize.y
+			) <= 0.5 &&
+			token.document.actor?.type === "Player"
+		);
+
+		if (targetToken && targetToken?.document?.actor?.id === itemOwner._id)
+			return;
 
 		// Send message that the item was dropped"
 		game.actors.get(itemOwner?._id)?.sheet._sendDroppedItemToChat(
 			false,
 			item,
 			{
+				source: itemOwner,
+				target: targetToken?.document?.actor,
 				speaker: speaker ?? ChatMessage.getSpeaker(),
 				picked_up: false,
 				template: "systems/shadowdark/templates/chat/item-drop.hbs",
@@ -226,18 +268,39 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 		// Remove item from the items parents
 		game.actors.get(itemOwner?._id)?.items.get(item._id).delete();
 
-		// Create token
-		canvas.tokens._onDropActorData({}, {
-			type: "Actor",
-			uuid: itemActor.uuid,
-			x: dropData.x,
-			y: dropData.y,
-			isLightSource: true,
-			parent: itemOwner
-		});
+		if (targetToken && targetToken.document && targetToken.document.actor)
+		{
+			targetToken.document.actor.createEmbeddedDocuments("Item", [item]);
+			return;
+		}
+		else
+		{
+			// Create a new actor
+			const itemActor = await Actor.create(actorData);
+
+			// Create a copy of the item
+			itemActor.createEmbeddedDocuments("Item", [item]);
+
+			// Create token
+			canvas.tokens._onDropActorData({}, {
+				type: "Actor",
+				uuid: itemActor.uuid,
+				x: dropData.x,
+				y: dropData.y,
+				isLightSource: true,
+				parent: itemOwner
+			});
+		}
 
 		// Flag the housekeeper to get to work
 		this.dirty = true;
+	}
+
+	async removeItemFromActor(owner, itemId) {
+		owner.deleteEmbeddedDocuments(
+				"Item",
+				[itemId]
+			);
 	}
 
 	/** @override */

@@ -526,6 +526,10 @@ section.effect-panel .effect-item .effect-info .tags .talent {
   overflow: auto;
 }
 
+.tab.spells {
+  scrollbar-gutter: stable;
+}
+
 .shadowdark.loading-spinner img {
   border-width: 0px;
   width: 50px;
@@ -829,6 +833,13 @@ section.effect-panel .effect-item .effect-info .tags .talent {
 .shadowdark.ability-card .card-ability-roll {
   padding: 3px 0 3px;
   border-top: 2px groove #FFF;
+}
+
+.shadowdark .evolution-grid-icon {
+  width: 18px;
+  height: 18px;
+  margin-left: auto;
+  border: 0;
 }
 
 .shadowdark .SD-box {
@@ -2501,4 +2512,10 @@ picture {
   background-image: url(/ui/denim075.png);
   color: rgb(240, 240, 224);
   justify-content: flex-start;
+}
+
+.evolution-grid-edit {
+  position: absolute;
+  right: 0px;
+  top: 0px;
 }

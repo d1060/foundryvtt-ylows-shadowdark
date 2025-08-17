@@ -3,6 +3,8 @@ import BritannianMagicSD from "./sheets/magic/BritannianMagicSD.mjs";
 export default function listenOnSocket() {
 
 	game.socket.on("system.shadowdark", event => {
+		//shadowdark.log(`received event ${event.type}`);
+
 		if (event.type === "createCharacter") {
 			// only the GM should handle this event
 			if (!game.user.isGM) return;
@@ -32,6 +34,14 @@ export default function listenOnSocket() {
 				event.data.actorData,
 				event.data.dropData,
 				event.data.speaker
+			);
+		}
+
+		if (event.type === "removeItemFromActor" && game.user.isGM) {
+			shadowdark.log(`Received event removeItemFromActor ${event.data.itemOwner.id} ${event.data.item.id}`);
+			game.shadowdark.lightSourceTracker.removeItemFromActor(
+				event.data.itemOwner,
+				event.data.item.id
 			);
 		}
 

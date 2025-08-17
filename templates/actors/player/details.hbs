@@ -25,7 +25,15 @@
 			</div>
 		{{/if}}
 
-		{{> actors/player/details/languages }}
+		{{#if evolutionGrid}}
+		<div class="grid-2-columns">
+			{{> actors/player/details/languages }}
+			{{> actors/player/details/evolutionGrid }}
+		</div>
+		{{else}}
+			{{> actors/player/details/languages }}
+		{{/if}}
+
 		{{> actors/player/details/boons }}
 	</div>
 </section>

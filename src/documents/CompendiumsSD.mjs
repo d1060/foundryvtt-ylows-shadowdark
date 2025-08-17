@@ -247,6 +247,11 @@ export default class CompendiumsSD {
 		);
 	}
 
+	static async evolutionGridTypes(filterSources=true) {
+		const documents = await CompendiumsSD._documents("Item", "Evolution Grid Type", filterSources);
+		return this._collectionFromArray(documents);
+	}
+
 	static async britannianMagicEffects(filterSources=true) {
 		const documents = await CompendiumsSD._documents("Item", "Magic Power", filterSources);
 		let filteredDocuments = documents.filter(

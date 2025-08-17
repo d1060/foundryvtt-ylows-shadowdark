@@ -1,23 +1,23 @@
-<!-- Languages -->
-<div class="SD-box{{#unless evolutionGrid}} grid-rowspan-2{{/unless}}">
+{{#if evolutionGrid}}
+<!-- Evolution Grid Items -->
+<div class="SD-box">
 	<div class="header">
 		<label>
-			{{localize 'SHADOWDARK.sheet.player.languages'}}
+			{{localize "SHADOWDARK.sheet.player.evolutionGrid"}}
 		</label>
 		<span>
 			{{#if owner}}
 				<a
-					class="item-selector fas fa-pen-to-square edit-button"
-					data-action="selectItem"
-					data-options="language"
-					for="system.languages">
+					class="item-selector edit-button evolution-grid-icon"
+					data-action="openEvolutionGrid">
+                    <img class="evolution-grid-icon" style="opacity: 0.5" src="/systems/shadowdark/assets/icons/grid.png">
 				</a>
 			{{/if}}
 		</span>
 	</div>
 	<div class="content">
 		<ul class="tags">
-			{{#each knownLanguages}}
+			{{#each evolutionGridItems}}
 				<li
 					{{#ifEq this.system.rarity "common"}}
 						class="tag tag_primary"
@@ -32,3 +32,4 @@
 		</ul>
 	</div>
 </div>
+{{/if}}

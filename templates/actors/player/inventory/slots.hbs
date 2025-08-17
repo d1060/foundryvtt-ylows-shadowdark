@@ -5,22 +5,11 @@
 	</div>
 	<div class="content">
 		<div class="value-grid larger">
-			<div {{#ifCond slots.total '>' gearSlots}}style="color: red;"{{/ifCond}}>
+			<div {{#ifCond slots.total '>' gearSlots}}style="color: red;"{{/ifCond}} data-tooltip="{{slots.totalTooltip}}">
 				{{slots.total}}
 			</div>
 			<div>/</div>
-			<div>{{gearSlots}}</div>
-		</div>
-		<hr>
-		<div class="SD-grid left small">
-			<div style="text-align: right">{{slots.gear}}</div>
-			{{localize "SHADOWDARK.inventory.gear"}}
-			<div style="text-align: right">{{slots.treasure}}</div>
-			{{localize "SHADOWDARK.inventory.section.treasure"}}
-			<div style="text-align: right">{{slots.coins}}</div>
-			{{localize "SHADOWDARK.inventory.coins"}}
-			<div style="text-align: right">{{slots.gems}}</div>
-			{{localize "SHADOWDARK.inventory.gems"}}
+			<div data-tooltip="{{gearSlotsTooltip}}">{{gearSlots}}</div>
 		</div>
 	</div>
 </div>

@@ -26,7 +26,7 @@
 
 	{{#each inventory.treasure as |item|}}
 		<li
-			class="item"
+			class="item draggable"
 			data-item-id="{{item._id}}"
 			data-uuid="{{item.uuid}}"
 		>
@@ -73,19 +73,22 @@
 
 			<div class="actions">
 				<a
-					data-action="sellTreasure"
-					data-item-id="{{item._id}}"
-					data-tooltip="{{localize 'SHADOWDARK.inventory.tooltip.sell_treasure'}}"
-				>
-					<i class="fa-solid fa-coins"></i>
-				</a>
-				<a
 					data-action="toggleStashed"
 					data-item-id="{{item._id}}"
 					data-tooltip="{{localize 'SHADOWDARK.inventory.tooltip.toggle_stashed'}}"
 				>
 					<i class="fa-solid fa-box"></i>
 				</a>
+				{{#if ../bulkSelling}}
+				<a
+					data-action="addToBulkSell"
+					data-item-id="{{item._id}}"
+					data-tooltip="{{localize 'SHADOWDARK.inventory.tooltip.sell_treasure'}}"
+					{{#if item.system.bulkSelling}}style="color: darkorange;{{/if}}"
+				>
+					<i class="fa-solid fa-coins"></i>
+				</a>
+				{{/if}}
 			</div>
 		</li>
 	{{/each}}

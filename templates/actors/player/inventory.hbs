@@ -9,9 +9,15 @@
 		<!--Sidebar-->
 		<div>
 			<div class="grid-1-columns">
-				{{> actors/player/inventory/slots }}
-				{{> actors/player/inventory/coins }}
-				{{> actors/player/inventory/gems }}
+				{{#if bulkSelling}}
+					{{> actors/player/inventory/coins }}
+					{{> actors/player/inventory/bulk-sell }}
+				{{else}}
+					{{> actors/player/inventory/slots }}
+					{{> actors/player/inventory/coins }}
+					{{> actors/player/inventory/gems }}
+					<div data-action="startSellItems" style="display: grid; place-items: center;"><span class="fa-solid fa-coins"> {{localize 'SHADOWDARK.inventory.sell_items'}}</span></div>
+				{{/if}}
 			</div>
 		</div>
 	</div>

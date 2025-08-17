@@ -6,6 +6,8 @@ import MistMagicSD from "./magic/MistMagicSD.mjs";
 import AbyssalMagicSD from "./magic/AbyssalMagicSD.mjs";
 import BritannianMagicSD from "./magic/BritannianMagicSD.mjs";
 import UtilitySD from "../utils/UtilitySD.mjs";
+import EvolutionGridSD from "../apps/EvolutionGridSD.mjs";
+import BulkSellSD from "../utils/BulkSellSD.mjs";
 
 export default class PlayerSheetSD extends ActorSheetSD {
 
@@ -63,6 +65,11 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			abyssalPowerRoll: this.#onAbyssalPowerRoll,
 			mistPowerRoll: this.#onMistPowerRoll,
 			itemChatClick: this.#onItemChatClick,
+			openEvolutionGrid: this.#onOpenEvolutionGrid,
+			startSellItems: this.#onStartSellItems,
+			sellBulkSell: this.#onSellBulkSell,
+			cancelBulkSell: this.#onCancelBulkSell,
+			addToBulkSell: this.#onAddToBulkSell,
 
 			nanoProgramRoll: this.#onRollNanoMagic,
 			resetCoreDump: this.#onResetCoreDump,
@@ -126,7 +133,11 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		tabs: { template: 'systems/shadowdark/templates/actors/player.hbs' },
 		details: { template: "systems/shadowdark/templates/actors/player/details.hbs" },
 		abilities: { template: "systems/shadowdark/templates/actors/player/abilities.hbs" },
-		spells: { template: "systems/shadowdark/templates/actors/player/spells.hbs" },
+		spells:
+		{
+			template: "systems/shadowdark/templates/actors/player/spells.hbs",
+			scrollable: [".spells"]
+		},
 		inventory: { template: "systems/shadowdark/templates/actors/player/talents.hbs" },
 		talents: { template: "systems/shadowdark/templates/actors/player/inventory.hbs" },
 		notes: { template: "systems/shadowdark/templates/actors/player/notes.hbs" },
@@ -233,6 +244,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				break;
 			case "details":
 				context.showBritannianMagic = game.settings.get("shadowdark", "use_britannianRuneMagic");
+				context.evolutionGrid = game.settings.get("shadowdark", "evolutionGrid");
 				context.xpNextLevel = context.system.level.value * 10;
 				context.levelUp = (context.system.level.xp >= context.xpNextLevel);
 				context.knownLanguages = await this.actor.languageItems();
@@ -290,7 +302,14 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				await MistMagicSD._prepareMistMagic(this.actor, context);
 				break;
 			case "inventory":
-				context.gearSlots = this.actor.numGearSlots();
+				if (this.actor.bulkSell?.active)
+				{
+					context.bulkSelling = this.actor.bulkSell.active;
+					context.bulkSell = this.actor.bulkSell;
+				}
+				else
+					context.bulkSelling = false;
+				[context.gearSlots, context.gearSlotsTooltip] = this.actor.numGearSlots();
 				this.gemBag.render(false);
 				break;
 			case "talents":
@@ -371,6 +390,10 @@ export default class PlayerSheetSD extends ActorSheetSD {
 	}
 
 	/** @override */
+	async _onDragEnd(event, data) {
+	}
+
+	/** @override */
 	async _onDropItem(event, data) {
 		switch ( data.documentName ) {
 			case "Item":
@@ -387,6 +410,8 @@ export default class PlayerSheetSD extends ActorSheetSD {
 	 */
 	async _onDropItemSD(event, data) {
 		var item = data;
+		if (item?.actor?.id === this.actor.id) return;
+
 		if (data.uuid)
 		{
 			let uuidItem = await fromUuid(data.uuid);
@@ -417,7 +442,8 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		}
 
 		// Items with Effects may need some user input
-		if (!item.isPotion() && item.effects.toObject().length > 0) {
+		var effects = await item.getEmbeddedCollection("ActiveEffect");
+		if (!item.isPotion() && effects.contents.length > 0) {
 			
 			var alreadyHasAtempHPeffect = this.actor.items.some(i => i.effects.some(e => e.changes.some(c => c.key === "system.bonuses.tempHP")));
 			if (alreadyHasAtempHPeffect) {
@@ -488,6 +514,27 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			var newItems = await super._onDropItem(event, item);
 			if (newItems.length > 0 && data.system.fromLoot.description)
 				await this._updateLootItem(newItems[0], data);
+		}
+
+		if (data.actor) {
+			if (game.user.isGM) {
+				item.actor.deleteEmbeddedDocuments(
+						"Item",
+						[item.id]
+					);
+			} else {
+				shadowdark.log(`emiting removeItemFromActor for ${item.actor.name} ${item.name}`);
+				game.socket.emit(
+					"system.shadowdark",
+					{
+						type: "removeItemFromActor",
+						data: {
+							item,
+							itemOwner: item.actor,
+						},
+					}
+				);
+			}
 		}
 	}
 
@@ -601,7 +648,9 @@ export default class PlayerSheetSD extends ActorSheetSD {
 	}
 
 	static async #onSubmit(event, form, formData) {
-		const match = event.target?.name?.match(/system\.abilities\.(.*?)\.total/);
+		let match;
+		if (typeof event.target?.name?.match === "function")
+			match = event.target?.name?.match(/system\.abilities\.(.*?)\.total/);
 		if (match)
 		{
 			let abilityId = match[1];
@@ -628,6 +677,8 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				"system.attributes.hp.base": newHpBase,
 			});
 		}
+		else if (event.target?.name.includes('bulkSell.'))
+			BulkSellSD.onSubmit(this.actor, event);
 		else if (event.target?.name === 'predefinedEffects')
 			shadowdark.effects.fromPreDefined(this.actor, event.target.value);
 		else if (event.target?.name === "system.attributes.hp.value")
@@ -775,6 +826,44 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		const item = this.actor.getEmbeddedDocument("Item", itemId);
 
 		item.displayCard();
+	}
+
+	static async #onOpenEvolutionGrid(event, target) {
+		let allGridTypes = await shadowdark.compendiums.evolutionGridTypes();
+		if (!allGridTypes) return;
+		let actorGridType = null;
+		for (let type of allGridTypes) {
+			let gridType = await fromUuid(type.uuid);
+			if (gridType.system.class && gridType.system.class.some(c => c === this.actor.system.class))
+			{
+				actorGridType = gridType;
+			}
+		}
+
+		if (!this.evolutionGrid)
+			this.evolutionGrid = new EvolutionGridSD({actor: this.actor, type: actorGridType});
+		this.evolutionGrid.render(true);
+	}
+
+	static async #onStartSellItems(event, target) {
+		this.actor.bulkSell = {active: true, barterCheck: 10, gp: 0, sp: 0, cp: 0, originalCost: 0 }
+		await BulkSellSD.clearBulkSelltems(this.actor);
+		this.render(true);
+	}
+
+	static async #onSellBulkSell(event, target) {
+		await BulkSellSD.bulkSell(this.actor);
+		this.render(true);
+	}
+
+	static async #onCancelBulkSell(event, target) {
+		this.actor.bulkSell.active = false;
+		this.render(true);
+	}
+
+	static async #onAddToBulkSell(event, target) {
+		await BulkSellSD.addToBulkSell(this.actor, target.dataset.itemId);
+		this.render(true);
 	}
 
 	static async #onItemQuantityDecrement(event, target) {
@@ -998,6 +1087,8 @@ export default class PlayerSheetSD extends ActorSheetSD {
 	async _sendDroppedItemToChat(active, item, options = {}) {
 		const cardData = {
 			name: item?.name,
+			source: options.source,
+			target: options.target,
 			actor: this,
 			item: item,
 			picked_up: options.picked_up ?? false,
@@ -1017,6 +1108,8 @@ export default class PlayerSheetSD extends ActorSheetSD {
 	async _sendToggledLightSourceToChat(active, item, options = {}) {
 		const cardData = {
 			active: active,
+			source: options.source,
+			target: options.target,
 			name: item?.name,
 			timeRemaining: Math.floor(item.system.light.remainingSecs / 60),
 			longevity: item.system.light.longevityMins,
@@ -1371,6 +1464,11 @@ export default class PlayerSheetSD extends ActorSheetSD {
 
 		// calculate total slots
 		slots.total = slots.gear + slots.treasure + slots.coins + slots.gems;
+		slots.totalTooltip = '';
+		if (slots.gear) slots.totalTooltip += slots.gear + ' ' + game.i18n.localize("SHADOWDARK.inventory.gear") + '<br>';
+		if (slots.treasure) slots.totalTooltip += slots.treasure + ' ' + game.i18n.localize("SHADOWDARK.inventory.section.treasure") + '<br>';
+		if (slots.coins) slots.totalTooltip += slots.coins + ' ' + game.i18n.localize("SHADOWDARK.inventory.coins") + '<br>';
+		if (slots.gems) slots.totalTooltip += slots.gems + ' ' + game.i18n.localize("SHADOWDARK.inventory.gems");
 
 		const classAbilities = [];
 

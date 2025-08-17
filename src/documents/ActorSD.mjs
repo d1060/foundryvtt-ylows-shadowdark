@@ -1792,7 +1792,8 @@ export default class ActorSD extends Actor {
 		const auraMagicTalents = [];
 
 		for (const uuid of this.system?.magic?.auraMagicTalents ?? []) {
-			auraMagicTalents.push(await fromUuid(uuid));
+			let talent = await fromUuid(uuid);
+			if (talent) auraMagicTalents.push(talent);
 		}
 
 		return auraMagicTalents.sort((a, b) => a.name.localeCompare(b.name));
@@ -1903,29 +1904,36 @@ export default class ActorSD extends Actor {
 		{
 			for (var power of allAuraMagicPowers)			
 			{
-				if (parseInt(power.system.powerLevel) === i)
+				let powerLevel = parseInt(power.system.powerLevel);
+				if (powerLevel === i)
 				{
 					if (!(power.system?.duration)) power.system.duration = "instant";
 					power.formattedDuration = game.i18n.localize( CONFIG.SHADOWDARK.SEIRIZIAN_DURATIONS[power.system.duration]);
-					power.formattedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML( jQuery(power.system.description).text(), { async: true, } );
+					power.formattedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML( jQuery(UtilitySD.adjustDescriptionForLevel(power.system.description, 1)).text(), { async: true, } );
 					power.increasedDuration = power.system.duration;
 					power.increasedDamage = power.system.damage;
 					power.increasedPowerLevel = power.system.powerLevel;
 					auraMagicEffects.push(power);
 				}
-				else if (parseInt(power.system.powerLevel) < i && (power.system.duration_increase || power.system.damage_increase))
+				else if (powerLevel < i)
 				{
 					var updatedPower = (await fromUuid(power.uuid)).toObject();
 					updatedPower._id += "_" + i;
+					updatedPower.uuid = power.uuid;
+					updatedPower.effectiveLevel = i;
 					if (!(updatedPower.system?.duration)) updatedPower.system.duration = "instant";
 					updatedPower.formattedDuration = game.i18n.localize( CONFIG.SHADOWDARK.SEIRIZIAN_DURATIONS[updatedPower.system.duration]);
-					updatedPower.formattedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML( jQuery(power.system.description).text(), { async: true, } );
+					let evaluatedOriginalDescription = UtilitySD.adjustDescriptionForLevel(power.system.description, i - powerLevel);
+					let evaluatedDescription = UtilitySD.adjustDescriptionForLevel(power.system.description, 1 + i - powerLevel);
+					updatedPower.formattedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML( jQuery(evaluatedDescription).text(), { async: true, } );
 					updatedPower.increasedDuration = updatedPower.system.duration;
 					updatedPower.increasedDamage = updatedPower.system.damage;
 					updatedPower.increasedPowerLevel = i;
-					updatedPower = await ItemSD.increasePower(updatedPower, i - parseInt(updatedPower.system.powerLevel));
+					let newUpdatedPower = await ItemSD.increasePower(updatedPower, i - parseInt(updatedPower.system.powerLevel));
+					if (newUpdatedPower)
+						updatedPower = newUpdatedPower;
 
-					if (updatedPower)
+					if (newUpdatedPower || evaluatedDescription != evaluatedOriginalDescription)
 					{
 						if (updatedPower.formattedDuration.includes("-"))
 						{
@@ -1984,6 +1992,7 @@ export default class ActorSD extends Actor {
 
 	numGearSlots() {
 		let gearSlots = shadowdark.defaults.GEAR_SLOTS;
+		let gearSlotsTooltip = game.i18n.localize("SHADOWDARK.inventory.default_gear_slots") + " " + shadowdark.defaults.GEAR_SLOTS;
 
 		if (this.type === "Player") {
 			const strength = this.system.abilities.str.base ?? 0
@@ -1991,23 +2000,34 @@ export default class ActorSD extends Actor {
 				+ this.system.abilities.str.magicModifier ?? 0;
 
 			gearSlots = strength > gearSlots ? strength : gearSlots;
+			gearSlotsTooltip = game.i18n.localize("SHADOWDARK.inventory.str_gear_slots") + " " + gearSlots;
 
 			// Hauler's get to add their Con modifer (if positive)
-			const conModifier = this.abilityModifier("con");
-			gearSlots += this.system.bonuses.hauler && conModifier > 0
-				? conModifier
-				: 0;
+			if (this.system.bonuses.hauler)
+			{
+				const conModifier = this.abilityModifier("con");
+				gearSlots += conModifier > 0
+					? conModifier
+					: 0;
+				if (conModifier > 0)
+					gearSlotsTooltip += "<br>" + game.i18n.localize("SHADOWDARK.inventory.hauler") + " " + conModifier;
+			}
 
 			if (this.system.bonuses.gear_slots)
 			{
 				gearSlots += this.system.bonuses.gear_slots;
+				gearSlotsTooltip += "<br>" + game.i18n.localize("SHADOWDARK.inventory.talent_gear_slots") + " " + this.system.bonuses.gear_slots;
 			}
 
 			// Add effects that modify gearslots
-			gearSlots += parseInt(this.system.bonuses.gearSlots, 10);
+			if (this.system.bonuses.gearSlots)
+			{
+				gearSlots += parseInt(this.system.bonuses.gearSlots, 10);
+				gearSlotsTooltip += "<br>" + game.i18n.localize("SHADOWDARK.inventory.talent_gear_slots") + " " + this.system.bonuses.gearSlots;
+			}
 		}
 
-		return gearSlots;
+		return [gearSlots, gearSlotsTooltip];
 	}
 
 
@@ -2488,6 +2508,7 @@ export default class ActorSD extends Actor {
 			advantageTooltip : params.advantageTooltip,
 			target: params.target,
 			variableLevelEffects: params.variableLevelEffects,
+			description: params.description,
 			power: power,
             resistedBy: params.resistedBy ? params.resistedBy.toUpperCase() : null,
             resistanceDC: params.resistanceDC,
@@ -2564,51 +2585,6 @@ export default class ActorSD extends Actor {
 		{
 			if (!data.resistedBy)
 				data.resistedBy = power.system?.resistedBy;
-			// if (!params.targetToken && game.user.targets.size > 0)
-			// {
-			// 	for (const target of game.user.targets.values())
-			// 	{
-			// 		var targetAbilityValue = 0;
-			// 		if (power.system.resistedBy === "ac")
-			// 		{
-			// 			targetAbilityValue = target.actor.system.attributes.ac.value;
-						
-			// 			if (this.system.bonuses?.opponentACpenalty)
-			// 				targetAbilityValue -= this.system.bonuses?.opponentACpenalty;
-			// 		}
-			// 		else
-			// 		{
-			// 			if (target.actor.type === "NPC")
-			// 				targetAbilityValue = target.actor.system.abilities[power.system.resistedBy].mod * 2 + 10;
-			// 			else
-			// 				targetAbilityValue = target.actor.system.abilities[power.system.resistedBy].total;
-			// 		}
-
-			// 		if (!params.target || targetAbilityValue > params.target)
-			// 			params.target = targetAbilityValue;
-					
-			// 		if (params.target < params.spellDC) params.target = params.spellDC;
-			// 	}
-			// }
-			// else if (params.targetToken)
-			// {
-			// 	params.target = 0;
-			// 	if (power.system.resistedBy === "ac")
-			// 	{
-			// 		params.target = params.targetToken.actor.system.attributes.ac.value;
-			// 		if (this.system.bonuses?.opponentACpenalty)
-			// 			params.target -= this.system.bonuses?.opponentACpenalty;
-			// 	}
-			// 	else
-			// 	{
-			// 		if (params.targetToken.actor.type === "NPC")
-			// 			params.target = params.targetToken.actor.system.abilities[power.system.resistedBy].mod * 2 + 10;
-			// 		else
-			// 			params.target = params.targetToken.actor.system.abilities[power.system.resistedBy].total;
-			// 	}
-				
-			// 	if (params.target < params.spellDC) params.target = params.spellDC;
-			// }
 		}
 		
 		if (!params.targetToken && game.user.targets.size > 0)
@@ -2886,7 +2862,8 @@ export default class ActorSD extends Actor {
 							});
 							
 							// If a potion has Effects, activate them before consuming the potion.
-							if (item.effects.toObject().length > 0)
+							var effects = await item.getEmbeddedCollection("ActiveEffect");
+							if (effects.contents.length)
 							{
 								await this._createPotionEffects(item);
 							}

@@ -382,16 +382,20 @@ export default class RollSD extends Roll {
 					await this.applyDamageToToken(token, damageTotal);
 				}
 
-				if (token.actor?.system?.bonuses?.automaticDamageOnCloseAttack && options.attackType === 'melee')
+				if (token.actor?.system?.bonuses?.automaticDamageOnCloseAttack && (options.attackType === 'melee' || options.attackType == null))
 				{
 					var actorToken = token.scene.tokens.find(t => t.actor?.id === data.actor.id);
 					if (actorToken)
 					{
-						await this.applyDamageToToken(actorToken, token.actor?.system?.bonuses?.automaticDamageOnCloseAttack);
+						let automaticDamage = token.actor.system.bonuses.automaticDamageOnCloseAttack;
+						if (token.actor?.system?.bonuses?.automaticDamageOnCloseAttackType) {
+							automaticDamage = await this.checkDamageModifiersByType(null, null, actorToken.actor, automaticDamage, token.actor?.system?.bonuses?.automaticDamageOnCloseAttackType);
+						}
+						await this.applyDamageToToken(actorToken, automaticDamage);
 					}
 				}
 
-				if (data.actor && token.actor?.system?.bonuses?.automaticPoisonOnCloseAttack && options.attackType === 'melee')
+				if (data.actor && token.actor?.system?.bonuses?.automaticPoisonOnCloseAttack && (options.attackType === 'melee' || options.attackType == null))
 				{
 					var rollParts = [game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20",
 						data.actor.system.abilities['con'].mod.toString()];
@@ -447,7 +451,7 @@ export default class RollSD extends Roll {
 					}
 				}
 
-				if (data.actor && token.actor?.system?.bonuses?.helvarion && options.attackType === 'melee' && (!token.actor?.system?.bonuses?.mistdarkCreature || token.actor.system.attributes.hp.value > 0))
+				if (data.actor && token.actor?.system?.bonuses?.helvarion && (options.attackType === 'melee' || options.attackType == null) && (!token.actor?.system?.bonuses?.mistdarkCreature || token.actor.system.attributes.hp.value > 0))
 				{
 					await data.actor.makeTaintCheck();
 				}
@@ -492,13 +496,15 @@ export default class RollSD extends Roll {
 			damageTotal *= 2;
 		else if (target.system.bonuses?.antiGuardian && weapon && !(await weapon.isMagicItem()) && !(await weapon.isMagicDamage()))
 			damageTotal = Math.floor(damageTotal/2);
-		else if (target.system.bonuses?.misty && (!roll.critical || roll.critical !== 'success') && attackDamageType !== 'fire' && attackDamageType !== 'cold' && attackDamageType !== 'electricity')
+		else if (target.system.bonuses?.misty && (!roll?.critical || roll?.critical !== 'success') && attackDamageType !== 'fire' && attackDamageType !== 'cold' && attackDamageType !== 'electricity')
 			damageTotal = 1;
 		else if (target.system.bonuses?.incorporeal && weapon && !(await weapon.isMagicItem()) && !(await weapon.isMagicDamage()))
 			damageTotal = 0;
 		else if (target.system.bonuses?.immunity && (target.system.bonuses?.immunity ?? []).some(i => i.slugify() === attackDamageType.slugify()))
 			damageTotal = 0;
 		else if (target.system.bonuses?.resistance && (target.system.bonuses?.resistance ?? []).some(i => i.slugify() === attackDamageType.slugify()))
+			damageTotal = Math.floor(damageTotal/2);
+		else if (target.system.magic?.type === 'auraMagic' && attackDamageType === 'electricity')
 			damageTotal = Math.floor(damageTotal/2);
 		else if (target.system.bonuses?.helvarionWeakness && weapon && (await weapon.isCrysteel()))
 			damageTotal += 3;
