@@ -835,6 +835,7 @@ SHADOWDARK.PREDEFINED_EFFECTS = {
 
 	// New abilities:
 	// Gain more HP at each heal.
+	// Imprisoning spells.
 
 	// system.bonuses.nanoAutoDebugging
 	// system.bonuses.nanoProgramsFailureTolerance

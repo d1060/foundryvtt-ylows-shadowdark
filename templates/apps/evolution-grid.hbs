@@ -1,3 +1,21 @@
-<div>
-<div class="evolution-grid-edit" data-action="editEvolutionGrid"><i class="fas {{#if editing}}fa-eye{{else}}fa-edit{{/if}}"></i></div>
+<div class="evolution-grid-wrapper">
+    <div class="evolution-grid droppable" style="width: {{gridSize}}px; height: {{gridSize}}px; left: {{gridLeft}}px; top: {{gridTop}}px;" data-id data-action>
+        <canvas class="evolution-grid-lines" style="width: {{gridSize}}px; height: {{gridSize}}px;" ></canvas>
+        <canvas class="evolution-grid-grid" style="width: {{gridSize}}px; height: {{gridSize}}px;" ></canvas>
+        <div class="evolution-grid-talents" ></div>
+        <div class="evolution-grid-multiselect hidden" style="left: 0px; top: 0px; width: 0px; height: 0px"></div>
+    </div>
+    {{#if showEditIcon}}
+    <div class="evolution-grid-edit" data-action="editEvolutionGrid"><i class="fas {{#if editing}}fa-eye{{else}}fa-edit{{/if}}"></i></div>
+    {{/if}}
+    <div class="multiselect-align hidden">
+        <img class="multiselect-align-icon" src="/systems/shadowdark/assets/icons/horizontal-align.png" data-action="horizontalAlign">
+        <img class="multiselect-align-icon" src="/systems/shadowdark/assets/icons/vertical-align.png" data-action="verticalAlign">
+        <img class="multiselect-align-icon" src="/systems/shadowdark/assets/icons/poligonal-align.png" data-action="polygonalAlign">
+        <img class="multiselect-align-icon" src="/systems/shadowdark/assets/icons/circle-align.png" data-action="circleAlign">
+    </div>
+    <div class="grid-types hidden">
+        <img class="grid-type" src="/systems/shadowdark/assets/icons/square-grid.png" data-action="squareGrid">
+        <img class="grid-type" src="/systems/shadowdark/assets/icons/triangular-grid.png" data-action="triangularGrid">
+    </div>
 </div>

@@ -88,7 +88,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		patronDetails:           { template: "systems/shadowdark/templates/items/patron/details-tab.hbs" },
 		potionDetails:           { template: "systems/shadowdark/templates/items/potion/details-tab.hbs" },
 		propertyDetails:         { template: "systems/shadowdark/templates/items/property/details-tab.hbs" },
-		magicPowerDetails:        { template: "systems/shadowdark/templates/items/magic-power/details-tab.hbs" },
+		magicPowerDetails:       { template: "systems/shadowdark/templates/items/magic-power/details-tab.hbs" },
 		scrollDetails:           { template: "systems/shadowdark/templates/items/scroll/details-tab.hbs" },
 		source:                  { template: "systems/shadowdark/templates/items/_partials/source-tab.hbs" },
 		spellDetails:            { template: "systems/shadowdark/templates/items/spell/details-tab.hbs" },

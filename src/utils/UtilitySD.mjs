@@ -852,4 +852,209 @@ export default class UtilitySD {
 
 		return accum;
 	}
+
+	static parseIntOrZero(number)
+	{
+		const n = parseInt(number, 10);
+		if (Number.isNaN(n)) return 0
+		return n;
+	}
+
+	static normalize(v) {
+		const m = Math.hypot(v.x, v.y) || 1; return {x:v.x/m, y:v.y/m};
+	}
+
+	static perpendicular(unit) {
+		return {x:-unit.y, y:unit.x};
+	}
+
+	static perp(u) {
+		return {x: -u.y, y: u.x};
+	}
+
+	static polygonalAlign(points, opts = {}) {
+		const n = points.length;
+		if (n <= 1) {
+			return { aligned: points.slice(), center: {...(points[0] || {x:0,y:0})}, radius: 0, rotation: 0 };
+		}
+
+		const scale = (opts.scale ?? 1);
+
+		// --- Center: centroid (unless provided)
+		const center = opts.center ?? (()=>{
+			let sx = 0, sy = 0;
+			for (const p of points) { sx += p.x; sy += p.y; }
+			return { x: sx / n, y: sy / n };
+		})();
+
+		// --- Polar coords relative to center
+		const polar = points.map((p, idx) => {
+			const dx = p.x - center.x, dy = p.y - center.y;
+			return { idx, x:p.x, y:p.y, r: Math.hypot(dx,dy), a: Math.atan2(dy,dx) };
+		});
+
+		// --- Radius: mean radial distance (unless provided)
+		const radius = (opts.radius ?? (polar.reduce((s,p)=>s+p.r,0) / n)) * scale;
+
+		// Guard tiny radius
+		const R = Math.max(radius, 1e-6);
+
+		// --- Sort by angle to define the order around the center
+		polar.sort((a,b)=>a.a-b.a);
+
+		// Unwrap angles to a continuous increasing sequence (avoid 2π jumps)
+		const unwrap = (arr) => {
+			const out = arr.map(o=>({ ...o, au: o.a }));
+			for (let i=1;i<out.length;i++){
+			let d = out[i].au - out[i-1].au;
+			if (d <= -Math.PI) out[i].au += 2*Math.PI * Math.ceil((out[i-1].au - out[i].au) / (2*Math.PI));
+			else if (d > Math.PI) out[i].au -= 2*Math.PI * Math.ceil((out[i].au - out[i-1].au) / (2*Math.PI));
+			}
+			return out;
+		};
+		const polUn = unwrap(polar);
+
+		// Try both orientations and all cyclic offsets; pick minimal error
+		const TWO_PI = Math.PI * 2;
+		const step = TWO_PI / n;
+
+		function fitForOrientation(sign) {
+			let best = { err: Infinity, offset: 0, theta0: 0 };
+			for (let o = 0; o < n; o++) {
+			// Find rotation θ0 that best aligns angles (on the circle) for this offset+orientation
+			// θ0 = arg( mean_i exp(j*(α_i - s*(i+o))) ), s = sign*2π/n
+			const s = sign * step;
+			let cs = 0, sn = 0;
+			for (let i = 0; i < n; i++) {
+				const delta = polUn[i].au - s * (i + o);
+				cs += Math.cos(delta);
+				sn += Math.sin(delta);
+			}
+			const theta0 = Math.atan2(sn, cs);
+
+			// Compute squared positional error for this θ0, offset o
+			let err = 0;
+			for (let i = 0; i < n; i++) {
+				const phi = theta0 + s * (i + o);
+				const tx = center.x + R * Math.cos(phi);
+				const ty = center.y + R * Math.sin(phi);
+				const dx = polUn[i].x - tx;
+				const dy = polUn[i].y - ty;
+				err += dx*dx + dy*dy;
+			}
+			if (err < best.err) best = { err, offset: o, theta0 };
+			}
+			return best;
+		}
+
+		const fitCCW = fitForOrientation(+1);
+		const fitCW  = fitForOrientation(-1);
+		const useCW = (opts.clockwise === true) || (opts.clockwise === undefined && fitCW.err < fitCCW.err);
+		const fit = useCW ? fitCW : fitCCW;
+		const s = (useCW ? -1 : +1) * step;
+
+		// Build target positions mapped back to original input order
+		const alignedBySorted = new Array(n);
+		for (let i = 0; i < n; i++) {
+			const phi = fit.theta0 + s * (i + fit.offset);
+			alignedBySorted[i] = {
+			idx: polUn[i].idx,
+			x: center.x + R * Math.cos(phi),
+			y: center.y + R * Math.sin(phi)
+			};
+		}
+
+		// Reorder to the original input order
+		const aligned = new Array(n);
+		for (const v of alignedBySorted) aligned[v.idx] = { x: v.x, y: v.y };
+
+		// Return also the effective rotation (angle of vertex 0)
+		return aligned;
+	}
+
+	static circleAlign(points)
+	{
+		let c = {x : 0, y : 0};
+		for (let p of points) {
+			c.x += p.x; 
+			c.y += p.y;
+		}
+		c.x /= points.length; 
+		c.y /= points.length;
+
+		let r = 0;
+		for (let p of points) {
+			let d = (p.x - c.x)*(p.x - c.x) + (p.y - c.y)*(p.y - c.y);
+			if (d > r)
+				r = d;
+		}
+		r = Math.sqrt(r);
+
+		for (let p of points) {
+			let v = {x: p.x - c.x, y: p.y - c.y};
+			v = this.normalize(v);
+			p.x = c.x + v.x * r;
+			p.y = c.y + v.y * r;
+		}
+		return [points, c];
+	}
+
+	static closestPoint(points, point)
+	{
+		if (!points || points.length == 0) return point;
+		let closest = Number.MAX_VALUE;
+		let closestPoint = point;
+		for (let p of points) {
+			const d = Math.hypot(p.x - point.x, p.y - point.y);
+			if (d < closest)
+			{
+				closest = d;
+				closestPoint = p;
+			}
+		}
+		return closestPoint;
+	}
+
+	static pointProjectionToLine(p, a, b) {
+		const abx = b.x - a.x, aby = b.y - a.y;
+		const ab2 = abx * abx + aby * aby;
+		if (ab2 === 0) return { x: a.x, y: a.y };
+
+		const apx = p.x - a.x, apy = p.y - a.y;
+		const t = (apx * abx + apy * aby) / ab2;
+		return { x: a.x + t * abx, y: a.y + t * aby };
+	}
+
+	static pointToSegmentDistance(p, a, b) {
+		const projection = this.pointProjectionToLine(p, a, b);
+		const abx = b.x - a.x, aby = b.y - a.y;
+		const pax = projection.x - a.x, pay = projection.y - a.y;
+		const pbx = projection.x - b.x, pby = projection.y - b.y;
+
+		let distABSqr = abx * abx + aby * aby;
+		let distPASqr = pax * pax + pay * pay;
+		let distPBSqr = pbx * pbx + pby * pby;
+
+		if (distPASqr > distABSqr)
+		{
+			return Math.hypot(p.x - b.x, p.y - b.y);
+		}
+		else if (distPBSqr > distABSqr)
+		{
+			return Math.hypot(p.x - a.x, p.y - a.y);
+		}
+		else
+		{
+			return Math.hypot(p.x - projection.x, p.y - projection.y);
+		}
+	}
+
+	static uniqBy(arr, keyFn) {
+  		const out = [], seen = new Set();
+  		for (const item of arr) {
+    		const k = keyFn(item);
+    		if (!seen.has(k)) { seen.add(k); out.push(item); }
+  		}
+  		return out;
+	}
 }
