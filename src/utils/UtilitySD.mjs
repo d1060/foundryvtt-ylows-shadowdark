@@ -996,7 +996,7 @@ export default class UtilitySD {
 			p.x = c.x + v.x * r;
 			p.y = c.y + v.y * r;
 		}
-		return [points, c];
+		return [points, c, r];
 	}
 
 	static closestPoint(points, point)

@@ -2595,6 +2595,10 @@ picture {
   filter: drop-shadow(0 0 10px #ffd000) drop-shadow(0 0 20px #ffd000);
 }
 
+.evolutionTalent.unchosen {
+  opacity: 0.4;
+}
+
 .multiselect-align {
   position: absolute;
   left: 5px;
