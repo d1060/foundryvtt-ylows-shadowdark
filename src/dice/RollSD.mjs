@@ -48,7 +48,8 @@ export default class RollSD extends Roll {
 			data = foundry.utils.mergeObject(data, formBonuses);
 		}
 
-		data.extraDamage = this._getExtraDamage($form);
+		if ($form)
+			data.extraDamage = this._getExtraDamage($form);
 
 		if (!options.rollMode) {
 			// only override if it's actually been set on the form (some rolls
@@ -959,7 +960,7 @@ export default class RollSD extends Roll {
 				);
 			}
 			
-			if (data.actor.system.level.value >= 3)
+			if (data.actor.level >= 3)
 			{
 				if (damageDie1H) {
 					damageDie1H = shadowdark.utils.getNextDieInList(
@@ -976,7 +977,7 @@ export default class RollSD extends Roll {
 				}
 			}
 			
-			if (data.actor.system.level.value >= 9)
+			if (data.actor.level >= 9)
 			{
 				if (damageDie1H) {
 					damageDie1H = shadowdark.utils.getNextDieInList(
@@ -1027,7 +1028,8 @@ export default class RollSD extends Roll {
 			// Adds dice if backstabbing
 			if (data.backstab) {
 				// Additional dice
-				numDice += 1 + Math.floor(data.actor.system.level.value / 2);
+
+				numDice += 1 + Math.floor(data.actor.level / 2);
 
 				if (data.actor.system.bonuses?.backstabDie) {
 					numDice +=

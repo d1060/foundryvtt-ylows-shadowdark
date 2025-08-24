@@ -19,12 +19,10 @@
 		<ul class="tags">
 			{{#each evolutionGridItems}}
 				<li
-					{{#ifEq this.system.rarity "common"}}
-						class="tag tag_primary"
-					{{else}}
-						class="tag tag_secondary"
-					{{/ifEq}}
-					data-tooltip="{{this.system.description}}"
+					class="tag tag_primary"
+					data-link
+					data-uuid="{{uuid}}"
+					data-tooltip="{{system.description}}"
 				>
 					{{this.name}}
 				</li>

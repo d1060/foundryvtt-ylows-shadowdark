@@ -59,6 +59,7 @@ export default class CharacterGeneratorSD extends HandlebarsApplicationMixin(App
 					},
 				},
 				level: {
+					grid: 0,
 					value: 0,
 					xp: 0,
 				},

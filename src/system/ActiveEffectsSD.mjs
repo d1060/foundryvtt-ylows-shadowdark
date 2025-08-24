@@ -124,6 +124,55 @@ export default class ActiveEffectsSD {
 			itemObj.system.light.longevityMins = duration / 60;
 		}
 
+		// A Talent to Roll Max HP
+		if (itemObj.effects.some(e => e.changes.some(c => c.key === "system.bonuses.rollHP"))) {
+			const effect = itemObj.effects.find(e => e.changes.some(c => c.key === "system.bonuses.rollHP"));
+			const change = effect.changes.find(c => c.key === "system.bonuses.rollHP");
+			const diceToRoll = parseInt(change.value);
+			let hpValue = 0;
+
+			const hpData = {
+				rollType: "hp",
+				actor
+			};
+			let advantage = 0;
+			if (actor?.hasAdvantage(hpData)) advantage = 1;
+
+			const hpRollMode = game.settings.get("shadowdark", "useFixedHP");
+			switch (hpRollMode)
+			{
+				case 0: // Roll Normally.
+					let options = {};
+					options.title = game.i18n.localize("SHADOWDARK.dialog.hp_roll.title");
+
+					options.flavor = options.title;
+					options.chatCardTemplate = "systems/shadowdark/templates/chat/roll-hp.hbs";
+					options.fastForward = true;
+
+					let parts = ['1d' + diceToRoll];
+
+					const result = await CONFIG.DiceSD.Roll(parts, hpData, false, advantage, options);
+
+					hpValue = result.rolls.main.roll.total;
+					ui.sidebar.changeTab("chat", "primary");
+				break;
+				case 1: // Full HP
+					if (advantage) hpValue += diceToRoll * 0.5;
+					else hpValue += diceToRoll;
+				break;
+				case 2: // 75% HP
+					if (advantage) hpValue += diceToRoll;
+					else hpValue += (diceToRoll + 1) * 0.75;
+				break;
+				case 3: // Half HP
+					if (advantage) hpValue += (diceToRoll + 1) * 0.75;
+					else hpValue += (diceToRoll + 1) * 0.5;
+				break;
+			}
+
+			change.value = hpValue;
+		}
+
 		return itemObj;
 	}
 

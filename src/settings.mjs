@@ -1,4 +1,5 @@
 import SourceFilterSettings from "./apps/SourceFilterSettings.mjs";
+import CompendiumsSD from "./documents/CompendiumsSD.mjs";
 
 /**
  * Register all of the system"s settings.
@@ -296,9 +297,22 @@ export default function registerSystemSettings() {
 		name: "SHADOWDARK.settings.evolutionGrid.name",
 		hint: "SHADOWDARK.settings.evolutionGrid.hint",
 		scope: "world",
-		type: Boolean,
+		type: Number,
 		config: true,
-		default: false,
+		default: 0,
+		choices: {
+			0: "SHADOWDARK.evolution_grid_type.no_grid",
+			1: "Option 1",
+			2: "Option 2",
+			3: "Option 3",
+			4: "Option 4",
+			5: "Option 5",
+			6: "Option 6",
+			7: "Option 7",
+			8: "Option 8",
+			9: "Option 9",
+			10: "Option 10"
+		},
 		requiresReload: true,
 	});
 

@@ -95,7 +95,7 @@ export default class NanoMagicSD {
 			actor.system.magic.nanoMagicPrograms = [];
 		}
 		
-		context.knownNanoProgramCount = actor.system.level.value * 2;
+		context.knownNanoProgramCount = actor.level * 2;
 		context.nanoProgramsFailureTolerance = 0;
 		context.nanoMemoryProtection = 0;
 		context.nanoTolerance = 0;
@@ -578,8 +578,8 @@ export default class NanoMagicSD {
 			await NanoMagicSD.removeActiveEffect(actor, existingProgram);
 
 		actor.system.magic.nanoPoints.value += existingProgram.points;
-		if (actor.system.magic.nanoPoints.value > actor.system.level.value)
-			actor.system.magic.nanoPoints.value = actor.system.level.value;
+		if (actor.system.magic.nanoPoints.value > actor.level)
+			actor.system.magic.nanoPoints.value = actor.level;
 
 		actor.system.magic.nanoMagicPrograms[powerIndex].active = false;
 		actor.update({"system.magic.nanoPoints.value": actor.system.magic.nanoPoints.value});

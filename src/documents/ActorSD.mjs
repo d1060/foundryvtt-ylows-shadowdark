@@ -26,6 +26,13 @@ export default class ActorSD extends Actor {
 	}
 
 
+	get level() {
+		let level = this.system.level?.value ?? 0;
+		if (this.type === "Player" && game.settings.get("shadowdark", "evolutionGrid"))
+			level = this.system.level?.grid ?? 0;
+		return level;
+	}
+
 	async _applyHpRollToMax(value) {
 		const currentHpBase = this.system.attributes.hp.base;
 		await this.update({"system.attributes.hp.base": currentHpBase + value,});
@@ -616,7 +623,7 @@ export default class ActorSD extends Actor {
 				);
 			}
 			
-			if (this.system.level.value >= 3)
+			if (this.level >= 3)
 			{
 				if (oneHanded) {
 					oneHanded = shadowdark.utils.getNextDieInList(
@@ -633,7 +640,7 @@ export default class ActorSD extends Actor {
 				}
 			}
 			
-			if (this.system.level.value >= 9)
+			if (this.level >= 9)
 			{
 				if (oneHanded) {
 					oneHanded = shadowdark.utils.getNextDieInList(
@@ -945,7 +952,7 @@ export default class ActorSD extends Actor {
 			|| this.system.bonuses.weaponMastery.includes(item.system.baseWeapon)
 			|| this.system.bonuses.weaponMastery.includes(item.name.slugify())
 		) {
-			bonus += 1 + Math.floor(this.system.level.value / 2);
+			bonus += 1 + Math.floor(this.level / 2);
 		}
 
 		return bonus;
@@ -1291,7 +1298,7 @@ export default class ActorSD extends Actor {
 
 			// Stone Skin Talent provides a bonus based on level
 			if (this.system.bonuses.stoneSkinTalent > 0) {
-				const currentLevel = this.system.level.value ?? 0;
+				const currentLevel = this.level ?? 0;
 				const stoneSkinBonus = 2 + Math.floor(currentLevel / 2);
 				newArmorClass += stoneSkinBonus;
 				if (stoneSkinBonus) armorClassTooltip += "Stone Skin bonus: " + stoneSkinBonus + "<br>";
@@ -1431,6 +1438,33 @@ export default class ActorSD extends Actor {
 			}
 		}
 		return ret;
+	}
+
+	async recalculateHp() {
+		let maxHp = 0;
+		const items = await this.getEmbeddedCollection("Item");
+		for (const item of items) {
+			for (const effect of item.effects) {
+				for (const change of effect.changes) {
+					if (change.key === 'system.bonuses.rollHP' || change.key === 'system.bonuses.hpBonus') {
+						maxHp += parseFloat(change.value);
+					}
+				}
+			}
+		}
+
+		const lostHp = this.system.attributes.hp.max - this.system.attributes.hp.value;
+
+		if (maxHp < 1) maxHp = 1;
+		this.system.attributes.hp.frac = maxHp;
+		this.system.attributes.hp.base = Math.floor(this.system.attributes.hp.frac);
+		this.system.attributes.hp.max = Math.floor(this.system.attributes.hp.frac);
+		this.system.attributes.hp.value = this.system.attributes.hp.max - lostHp;
+		if (this.system.attributes.hp.value < 1) this.system.attributes.hp.value = 1;
+
+		await this.update({
+			"system.attributes.hp": this.system.attributes.hp
+		});
 	}
 
 	async applyBonusHp(item)
@@ -1865,7 +1899,7 @@ export default class ActorSD extends Actor {
 	
 	async magicCoreLevel(type)
 	{
-		return this.system.level.value;
+		return this.level;
 	}
 	
 	async auraCorePenalty()
@@ -2354,7 +2388,7 @@ export default class ActorSD extends Actor {
 		//Backstab Damage tooltip.
 		if (data.canBackstab)
 		{
-			let numBackstabDice = 1 + Math.floor(this.system.level.value / 2);
+			let numBackstabDice = 1 + Math.floor(this.level / 2);
 			if (this.system.bonuses?.backstabDie) {
 				numBackstabDice += parseInt(this.system.bonuses?.backstabDie, 10);
 			}
@@ -2405,7 +2439,7 @@ export default class ActorSD extends Actor {
 				shadowdark.config.DAMAGE_DICE
 			);
 			
-			if (this.system.level.value >= 3)
+			if (this.level >= 3)
 			{
 				damageDie = shadowdark.utils.getNextDieInList(
 					damageDie,
@@ -2413,7 +2447,7 @@ export default class ActorSD extends Actor {
 				);
 			}
 			
-			if (this.system.level.value >= 9)
+			if (this.level >= 9)
 			{
 				damageDie = shadowdark.utils.getNextDieInList(
 					damageDie,

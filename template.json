@@ -134,7 +134,8 @@
 				"weaponMastery": [],
 				"resistance": [],
 				"immunity": [],
-				"spellPenetration": []
+				"spellPenetration": [],
+				"runeMastery": []
 			},
 			"britannian_magic": {
                 "runes": [],
@@ -161,7 +162,12 @@
 			"patron": "",
 			"slots": 10,
 			"evolutionGrid": {
-				"openNodes": []
+				"openNodes": [],
+				"location": {
+					"left": 0,
+					"top": 0,
+					"zoom": 1
+				}
 			} 
 		}
 	},

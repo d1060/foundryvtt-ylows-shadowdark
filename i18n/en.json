@@ -1391,6 +1391,7 @@
   "SHADOWDARK.britannian_spell.eraseWrittenSpell": "Erase Spell: ",
   "SHADOWDARK.britannian_spell.alreadySustaining": "You can't cast a sustained spell while already sustaining another spell.",
   "SHADOWDARK.britannian_spell.empoweredRunecasting": "You have Empowered Runecasting for {rune}.",
+  "SHADOWDARK.evolution_grid_type.no_grid": "Disabled",
   "SHADOWDARK.evolution_grid_type.nodeChoices": "Node Choices",
   "SHADOWDARK.evolution_grid_type.nodesAtFirstLevel": "At first level",
   "SHADOWDARK.evolution_grid_type.nodesAtOddLevel": "At odd levels",

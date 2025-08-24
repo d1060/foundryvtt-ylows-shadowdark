@@ -103,8 +103,8 @@ export default class BritannianMagicSD {
             context.knownRunes += actor.system.bonuses.words_of_power_starting;
         if (actor.system.bonuses.words_of_power)
             context.knownRunes += actor.system.bonuses.words_of_power;
-        if (actor.system.level.value > 1 && actor.system.bonuses.words_of_power_per_level)
-            context.knownRunes += (actor.system.level.value - 1) * actor.system.bonuses.words_of_power_per_level;
+        if (actor.level > 1 && actor.system.bonuses.words_of_power_per_level)
+            context.knownRunes += (actor.level - 1) * actor.system.bonuses.words_of_power_per_level;
 
         if (actor.system.bonuses.words_of_power_ability_modifier)
         {
@@ -253,7 +253,7 @@ export default class BritannianMagicSD {
 
     static async selectRune(actor, rune) {
         var atMax = false;
-        if (BritannianMagicSD.selectedRunesCircle(actor) >= actor.system.level.value)
+        if (BritannianMagicSD.selectedRunesCircle(actor) >= actor.level)
             atMax = true;
 
         var actorRune = actor.system.britannian_magic.runes.find(r => r.name === rune);
@@ -286,7 +286,7 @@ export default class BritannianMagicSD {
     }
 
     static async increaseRune(actor, rune) {
-        if (BritannianMagicSD.selectedRunesCircle(actor) >= actor.system.level.value)
+        if (BritannianMagicSD.selectedRunesCircle(actor) >= actor.level)
             return;
         var actorRune = actor.system.britannian_magic.selected_runes.find(r => r.name === rune);
         if (actorRune)
@@ -399,10 +399,10 @@ export default class BritannianMagicSD {
         let castingBonus = actor.system.abilities.int.mod;
         if (actor.system.bonuses.spellcastingCheckBonus)
             castingBonus += actor.system.bonuses.spellcastingCheckBonus;
-        if (actor.system.bonuses.runeMastery && spell.runes.find(r => r.name == actor.system.bonuses.runeMastery.slugify()))
+        if (actor.system.bonuses.runeMastery && spell.runes.some(r => actor.system.bonuses.runeMastery.includes(r.name)))
         {
             castingBonus++;
-            castingBonus += Math.floor(actor.system.level.value / 2);
+            castingBonus += Math.floor(actor.level / 2);
         }
 
         let advantage = 0;

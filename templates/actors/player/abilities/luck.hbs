@@ -12,11 +12,14 @@
 				min=0
 			}}
 		{{else}}
-			<input
-				type="checkbox"
-				name="system.luck.available"
-				{{checked actor.system.luck.available}}
-			>
+			{{#each luckTokens}}
+				<input
+					type="checkbox"
+					data-index="{{@index}}"
+					name="system.luck.token"
+					{{checked this}}
+				>
+			{{/each}}
 		{{/if}}
 	</div>
 </div>

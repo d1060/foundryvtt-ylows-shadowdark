@@ -72,17 +72,17 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
             canScribeSpells: this.actor.system.bonuses.canScribeSpells,
             config: CONFIG.SHADOWDARK,
 		};
-
+        
         if (this.actor.system.bonuses.spellcastingCheckBonus)
             context.castingBonus += this.actor.system.bonuses.spellcastingCheckBonus;
-        if (this.actor.system.bonuses.runeMastery && this.spell.runes.find(r => r.name == this.actor.system.bonuses.runeMastery.slugify()))
+        if (this.actor.system.bonuses.runeMastery && this.spell.runes.some(r => this.actor.system.bonuses.runeMastery.includes(r.name)))
         {
             context.castingBonus++;
-            context.castingBonus += Math.floor(this.actor.system.level.value / 2);
+            context.castingBonus += Math.floor(this.actor.level / 2);
         }
         if (context.castingBonus > 0) context.castingBonus = '+' + context.castingBonus;
 
-        if (BritannianSpellSD.fullSpellCircle(this.spell, this.actor) < this.actor.system.level.value)
+        if (BritannianSpellSD.fullSpellCircle(this.spell, this.actor) < this.actor.level)
             context.canSelectRunes = true;
 
         context.availableRunes = [];

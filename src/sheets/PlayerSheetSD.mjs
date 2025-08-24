@@ -8,6 +8,7 @@ import BritannianMagicSD from "./magic/BritannianMagicSD.mjs";
 import UtilitySD from "../utils/UtilitySD.mjs";
 import EvolutionGridSD from "../apps/EvolutionGridSD.mjs";
 import BulkSellSD from "../utils/BulkSellSD.mjs";
+import RandomizerSD from "../apps/RandomizerSD.mjs";
 
 export default class PlayerSheetSD extends ActorSheetSD {
 
@@ -140,7 +141,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		notes: { template: "systems/shadowdark/templates/actors/player/notes.hbs" },
 		effects: { template: "systems/shadowdark/templates/actors/_partials/effects.hbs" },
 	}
-	
+
 	/** @inheritdoc */
 	changeTab(tab, group, options) {
 		for (const tabKey of Object.keys(this.tabs))
@@ -242,7 +243,14 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			case "details":
 				context.showBritannianMagic = game.settings.get("shadowdark", "use_britannianRuneMagic");
 				context.evolutionGrid = game.settings.get("shadowdark", "evolutionGrid");
-				context.xpNextLevel = context.system.level.value * 10;
+				if (context.evolutionGrid) {
+					context.evolutionGridItems = [];
+					for (let node of this.actor.system.evolutionGrid?.openNodes ?? []) {
+						let nodeItem = await fromUuid(node.itemUuid);
+						context.evolutionGridItems.push(nodeItem);
+					}
+				}
+				context.xpNextLevel = this.actor.level * 10;
 				context.levelUp = (context.system.level.xp >= context.xpNextLevel);
 				context.knownLanguages = await this.actor.languageItems();
 				context.backgroundSelectors = await this.getBackgroundSelectors();
@@ -252,6 +260,23 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				context.characterPatron = await this.actor.getPatron();
 				break;
 			case "abilities":
+				if (!this.actor.system.luck.tokens || !Array.isArray(this.actor.system.luck.tokens)) {
+					this.actor.system.luck.tokens = [true];
+				}
+				if (this.actor.system.bonuses.luckTokens) {
+					if (this.actor.system.luck.tokens.length < (this.actor.system.bonuses.luckTokens ?? 0) + 1)
+					{
+						for (let i = this.actor.system.luck.tokens.length; i < (this.actor.system.bonuses.luckTokens ?? 0) + 1; i++)
+							this.actor.system.luck.tokens.push(true);
+					}
+				}
+				if (this.actor.system.luck.tokens.length > (this.actor.system.bonuses.luckTokens ?? 0) + 1)
+				{
+					for (let i = this.actor.system.luck.tokens.length; i > (this.actor.system.bonuses.luckTokens ?? 0) + 1; i--)
+						this.actor.system.luck.tokens.pop();
+				}
+
+				context.luckTokens = this.actor.system.luck.tokens;
 				[context.system.attributes.ac.value, context.system.attributes.ac.tooltip] = await this.actor.getArmorClass();
 				context.hasTempHP = this.actor.system.attributes.hp.temp && this.actor.system.attributes.hp.temp > 0;
 				context.actor.system.attributes.hp.temp = this.actor.system.attributes.hp.temp;
@@ -688,10 +713,35 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			});
 		}
 		else if (event.target.type === 'checkbox')
-			await this.actor.update({[event.target.name]: event.target.checked});
+		{
+			if (event.target.name === 'system.luck.token')
+			{
+				const idx = parseInt(event.target.dataset.index);
+				this.actor.system.luck.tokens[idx] = event.target.checked;
+				this.actor.update({'system.luck.tokens': this.actor.system.luck.tokens});
+			}
+			else
+				await this.actor.update({[event.target.name]: event.target.checked});
+		}
 		else if (event.target.type === 'number')
 		{
-			await this.actor.update({[event.target.name]: parseInt(event.target.value)});
+			if (event.target.name === 'system.level.xp' && game.settings.get("shadowdark", "evolutionGrid"))
+			{
+				const gridLevel = this.actor.system.level.grid ?? 1;
+				let totalXPforCurrentGridLevel = (gridLevel * (gridLevel - 1) / 2) * 10;
+				totalXPforCurrentGridLevel += parseInt(event.target.value);
+				const newGridLevel = Math.floor((Math.sqrt((totalXPforCurrentGridLevel / 10) * 8 + 1) + 1) / 2);
+				if (this.actor.system.level.grid != newGridLevel)
+				{
+					this.actor.system.level.grid = newGridLevel;
+					await this.actor.update({'system.level.grid': newGridLevel});
+				}
+				const totalXPforNewGridLevel = (newGridLevel * (newGridLevel - 1) / 2) * 10;
+				const leftOverXP = totalXPforCurrentGridLevel - totalXPforNewGridLevel;
+				await this.actor.update({[event.target.name]: leftOverXP});
+			}
+			else
+				await this.actor.update({[event.target.name]: parseInt(event.target.value)});
 			if (event.target.name.includes(".magic."))
 				this.render(true);
 		}
@@ -826,17 +876,15 @@ export default class PlayerSheetSD extends ActorSheetSD {
 	}
 
 	static async #onOpenEvolutionGrid(event, target) {
+		let evolutionGridTypeSetting = game.settings.get("shadowdark", "evolutionGrid");
+		evolutionGridTypeSetting--;
+
 		let allGridTypes = await shadowdark.compendiums.evolutionGridTypes();
 		if (!allGridTypes) return;
-		let actorGridType = null;
-		for (let type of allGridTypes) {
-			let gridType = await fromUuid(type.uuid);
-			if (gridType.system.class && gridType.system.class.some(c => c === this.actor.system.class))
-			{
-				actorGridType = gridType;
-			}
-		}
+		let actorGridTypeChoice = allGridTypes.contents[evolutionGridTypeSetting];
+		if (!actorGridTypeChoice) return;
 
+		const actorGridType = await fromUuid(actorGridTypeChoice.uuid);
 		if (!this.evolutionGrid)
 			this.evolutionGrid = new EvolutionGridSD({actor: this.actor, type: actorGridType});
 		this.evolutionGrid.render(true);
@@ -934,7 +982,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		event.preventDefault();
 
 		let actorClass = await this.actor.getClass();
-		if (this.actor.system.level.value === 0 && actorClass.name.includes("Level 0")) {
+		if (this.actor.level === 0 && actorClass.name.includes("Level 0")) {
 			new shadowdark.apps.CharacterGeneratorSD(this.actor._id).render(true);
 			this.close();
 		}

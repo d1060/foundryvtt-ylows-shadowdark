@@ -98,6 +98,11 @@ export default function registerHandlebarsHelpers() {
 		return shadowdark.utils.getFromUuidSync(uuid).name;
 	});
 
+	Handlebars.registerHelper("uuidToDescription", uuid => {
+		if (!uuid) return "";
+		return shadowdark.utils.getFromUuidSync(uuid).system.description;
+	});
+
 	/* -------------------------------------------- */
 	/*  Effect Panel Handlebars                     */
 	/* -------------------------------------------- */

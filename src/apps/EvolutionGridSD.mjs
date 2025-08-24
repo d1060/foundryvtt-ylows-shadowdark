@@ -27,6 +27,9 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 		if (!this.type.system.gridLines) this.type.system.gridLines = [];
 		if (!this.type.system.gridCircles) this.type.system.gridCircles = [];
 		if (!this.type.system.grid) this.type.system.grid = {zoom: 1, left: -(this.gridSize/2-400), top: -(this.gridSize/2-400), type: 'triangular'};
+		this.gridPosition = {left: 0, top: 0, zoom: 1 };
+		if (this.actor && this.actor.system.evolutionGrid.location) this.gridPosition = structuredClone(this.actor.system.evolutionGrid.location);
+		else if (this.type.system.grid) this.gridPosition = structuredClone(this.type.system.grid);
 		this.setupAllCircleArcs();
 
 		const lastStep = {
@@ -435,9 +438,9 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 		await super.render(force, options);
 		await this.activateListeners();
 		this.grid.style.transformOrigin = "top left";
-		this.grid.style.transform = `scale(${this.type.system.grid.zoom})`;
-		this.grid.style.left = this.type.system.grid.left + 'px';
-		this.grid.style.top = this.type.system.grid.top + 'px';
+		this.grid.style.transform = `scale(${this.gridPosition.zoom})`;
+		this.grid.style.left = this.gridPosition.left + 'px';
+		this.grid.style.top = this.gridPosition.top + 'px';
 
 		this.#dragDrop.forEach((d) => d.bind(this.element))
 	}
@@ -480,8 +483,8 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 	async _prepareContext(options) {
 		let context = {
 			editing: this.editing,
-			gridLeft: this.type.system.grid.left,
-			gridTop: this.type.system.grid.top,
+			gridLeft: this.gridPosition.left,
+			gridTop: this.gridPosition.top,
 			gridSize: this.gridSize,
 			showEditIcon: game.user.isGM,
 			selectingStartingNodes: this._selectingStartingNodes
@@ -496,8 +499,19 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 	}
 
 	async _onClose(options) {
-		await super._preClose?.(options);
+		await super._onClose?.(options);
+		if (!this.actor)
+		{
+			this.type.system.grid.left = this.gridPosition.left;
+			this.type.system.grid.top = this.gridPosition.top;
+			this.type.system.grid.zoom = this.gridPosition.zoom;
+		}
 		this.updateGrid();
+		if (this.actor)
+		{
+			this.actor.system.evolutionGrid.location = structuredClone(this.gridPosition);
+			this.actor.update({"system.evolutionGrid.location": this.actor.system.evolutionGrid.location});
+		}
 	}
 
 	static async #onEditEvolutionGrid(event, form, formData) {
@@ -702,17 +716,17 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 			if (!this.#zooming)
 			{
 				this.#zooming = true;
-				if (!this.type.system.grid.zoom) this.type.system.grid.zoom = 1;
+				if (!this.gridPosition.zoom) this.gridPosition.zoom = 1;
 				let zoomCenter = this.getGridClick(event);
-				let prevZoom = this.type.system.grid.zoom;
+				let prevZoom = this.gridPosition.zoom;
 				if (dy > 0) { // Zoom In
-					this.type.system.grid.zoom += 0.01;
-					if (this.type.system.grid.zoom > 1) this.type.system.grid.zoom = 1;
+					this.gridPosition.zoom += 0.01;
+					if (this.gridPosition.zoom > 1) this.gridPosition.zoom = 1;
 				} else { // Zoom Out
-					this.type.system.grid.zoom -= 0.01;
-					if (this.type.system.grid.zoom < 0.1) this.type.system.grid.zoom = 0.1;
+					this.gridPosition.zoom -= 0.01;
+					if (this.gridPosition.zoom < 0.1) this.gridPosition.zoom = 0.1;
 				}
-				//shadowdark.log(`_doZoom New Zoom is ${this.type.system.grid.zoom}`);
+				//shadowdark.log(`_doZoom New Zoom is ${this.gridPosition.zoom}`);
 				this.resizeGrid(zoomCenter, prevZoom);
 				this.#zooming = false;
 			}
@@ -729,23 +743,23 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 	}
 
 	getGridClick(event) {
-		if (!this.type.system.grid.zoom) this.type.system.grid.zoom = 1;
+		if (!this.gridPosition.zoom) this.gridPosition.zoom = 1;
 		//const parentRect = event.currentTarget.getBoundingClientRect();
 		//let x = event.clientX - parentRect.left;
   		//let y = event.clientY - parentRect.top;
 
 		const rect = this.grid.getBoundingClientRect();
-		const x = (event.clientX - rect.left) / this.type.system.grid.zoom;
-  		const y = (event.clientY - rect.top) / this.type.system.grid.zoom;
+		const x = (event.clientX - rect.left) / this.gridPosition.zoom;
+  		const y = (event.clientY - rect.top) / this.gridPosition.zoom;
 
 		//const topLeft = this.elementPageTopLeft(this.grid); // page coords of canvas (no gBCR)
 		//let x = event.pageX - topLeft.x;
   		//let y = event.pageY - topLeft.y;
 
-		//x /= this.type.system.grid.zoom;
-		//y /= this.type.system.grid.zoom;
+		//x /= this.gridPosition.zoom;
+		//y /= this.gridPosition.zoom;
 
-		//shadowdark.log(`getGridClick x: ${x}, y ${y}, client: ${event.clientX} ${event.clientY}, rect: ${rect.left} ${rect.top}, zoom: ${this.type.system.grid.zoom}`);
+		//shadowdark.log(`getGridClick x: ${x}, y ${y}, client: ${event.clientX} ${event.clientY}, rect: ${rect.left} ${rect.top}, zoom: ${this.gridPosition.zoom}`);
 
 		return {x, y};
 	}
@@ -828,7 +842,7 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 					this.addLine(this.#lineNode, node);
 					this.#lineNode = null;
 				}
-				this.setDebugText(`CTRL-Left Click at: ${UtilitySD.roundTo(gridClick.x, 2)}, ${UtilitySD.roundTo(gridClick.y, 2)} found node ${node.uuid}. left: ${UtilitySD.roundTo(UtilitySD.parseIntOrZero(this.type.system.grid.left), 2)}, top: ${UtilitySD.roundTo(UtilitySD.parseIntOrZero(this.type.system.grid.top), 2)}`);
+				this.setDebugText(`CTRL-Left Click at: ${UtilitySD.roundTo(gridClick.x, 2)}, ${UtilitySD.roundTo(gridClick.y, 2)} found node ${node.uuid}. left: ${UtilitySD.roundTo(UtilitySD.parseIntOrZero(this.gridPosition.left), 2)}, top: ${UtilitySD.roundTo(UtilitySD.parseIntOrZero(this.gridPosition.top), 2)}`);
 			}
 			else
 				this.setDebugText(`CTRL-Left Click at: ${UtilitySD.roundTo(gridClick.x, 2)}, ${UtilitySD.roundTo(gridClick.y, 2)} found NO node`);
@@ -971,7 +985,7 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 		let top = UtilitySD.parseIntOrZero(this.grid.style.top);
 
 		let prevSize = this.gridSize * prevZoom;
-		let size = this.gridSize * this.type.system.grid.zoom;
+		let size = this.gridSize * this.gridPosition.zoom;
 
 		let xRate = zoomCenter.x / this.gridSize;
 		let yRate = zoomCenter.y / this.gridSize;
@@ -982,15 +996,15 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 		top += delta * yRate;
 
 		this.grid.style.transformOrigin = "top left";
-		[top, left, this.type.system.grid.zoom] = this.moveGridToBounds(top, left, this.type.system.grid.zoom);
+		[top, left, this.gridPosition.zoom] = this.moveGridToBounds(top, left, this.gridPosition.zoom);
 		this.grid.style.top = top + 'px';
 		this.grid.style.left = left + 'px';
 		//grid.style.transformOrigin = zoomCenter.x + "px " + zoomCenter.y + "px";
-		this.grid.style.transform = `scale(${this.type.system.grid.zoom})`;
-		this.type.system.grid.left = UtilitySD.parseIntOrZero(this.grid.style.left);
-		this.type.system.grid.top = UtilitySD.parseIntOrZero(this.grid.style.top);
+		this.grid.style.transform = `scale(${this.gridPosition.zoom})`;
+		this.gridPosition.left = UtilitySD.parseIntOrZero(this.grid.style.left);
+		this.gridPosition.top = UtilitySD.parseIntOrZero(this.grid.style.top);
 		this.#dragDrop.forEach((d) => d.bind(this.element))
-		this.setDebugText(`Resizing the Grid. left: ${UtilitySD.roundTo(this.type.system.grid.left, 2)}, top: ${UtilitySD.roundTo(this.type.system.grid.top, 2)}, zoom: ${UtilitySD.roundTo(this.type.system.grid.zoom, 2)}`);
+		this.setDebugText(`Resizing the Grid. left: ${UtilitySD.roundTo(this.gridPosition.left, 2)}, top: ${UtilitySD.roundTo(this.gridPosition.top, 2)}, zoom: ${UtilitySD.roundTo(this.gridPosition.zoom, 2)}`);
 	}
 
 	async panGrid(event) {
@@ -999,13 +1013,13 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 		const newPosition = {left: this.#movingCanvas.left + moveDelta.x, top: this.#movingCanvas.top + moveDelta.y};
 
 		//shadowdark.log(`PanGrid: Click at ${UtilitySD.roundTo(event.screenX,2)} ${UtilitySD.roundTo(event.screenY,2)}, #movingCanvas: ${UtilitySD.roundTo(this.#movingCanvas.x,2)} ${UtilitySD.roundTo(this.#movingCanvas.y,2)}, Delta: ${UtilitySD.roundTo(moveDelta.x,2)} ${UtilitySD.roundTo(moveDelta.y,2)}. Position: ${UtilitySD.roundTo(newPosition.left,2)} ${UtilitySD.roundTo(newPosition.top,2)}`);
-		[newPosition.top, newPosition.left, this.type.system.grid.zoom] = this.moveGridToBounds(newPosition.top, newPosition.left, this.type.system.grid.zoom);
+		[newPosition.top, newPosition.left, this.gridPosition.zoom] = this.moveGridToBounds(newPosition.top, newPosition.left, this.gridPosition.zoom);
 
-		this.type.system.grid.left = newPosition.left;
-		this.type.system.grid.top = newPosition.top;
+		this.gridPosition.left = newPosition.left;
+		this.gridPosition.top = newPosition.top;
 		this.grid.style.left = newPosition.left + 'px';
 		this.grid.style.top = newPosition.top + 'px';
-		this.setDebugText(`Moving the Grid by ${UtilitySD.roundTo(moveDelta.x,2)} ${UtilitySD.roundTo(moveDelta.y,2)}. left: ${UtilitySD.roundTo(newPosition.left, 2)}, top: ${UtilitySD.roundTo(newPosition.top, 2)}, zoom: ${UtilitySD.roundTo(this.type.system.grid.zoom, 2)}`);
+		this.setDebugText(`Moving the Grid by ${UtilitySD.roundTo(moveDelta.x,2)} ${UtilitySD.roundTo(moveDelta.y,2)}. left: ${UtilitySD.roundTo(newPosition.left, 2)}, top: ${UtilitySD.roundTo(newPosition.top, 2)}, zoom: ${UtilitySD.roundTo(this.gridPosition.zoom, 2)}`);
 		this.#dragDrop.forEach((d) => d.bind(this.element))
 	}
 
@@ -1110,10 +1124,10 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 
 	async selectNode(node) {
 		if (!this.actor) return;
-		if (!this.remaningChoices) return;
 		const learned = this.actor.system.evolutionGrid?.openNodes?.some(n => n.uuid == node.uuid);
 		const available = this.actor.availableNodes.some(n => n.uuid == node.uuid);
 		if (!learned && !available) return;
+		if (!learned && available && !this.remaningChoices) return;
 
 		const item = await fromUuid(node.itemUuid);
 		if (!item || item.type != "Talent") return;
@@ -1136,10 +1150,14 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 						label: `${game.i18n.localize("SHADOWDARK.dialog.general.yes")}`,
 						callback: async () => {
 							if (!this.actor.system.evolutionGrid?.openNodes) this.actor.system.evolutionGrid.openNodes = [];
-							if (this.actor.system.evolutionGrid.openNodes.find(n => n.uuid == node.uuid)) {
-								const nodeIndex = this.actor.system.evolutionGrid.openNodes.indexOf(node);
-								this.actor.system.evolutionGrid.openNodes.splice(nodeIndex, 1);
-								await this.actor.update({"system.evolutionGrid.openNodes": this.actor.system.evolutionGrid.openNodes});
+							const foundOpenNode = this.actor.system.evolutionGrid.openNodes.find(n => n.uuid == node.uuid)
+							if (foundOpenNode) {
+								const nodeIndex = this.actor.system.evolutionGrid.openNodes.indexOf(foundOpenNode);
+								if (nodeIndex != -1)
+								{
+									this.actor.system.evolutionGrid.openNodes.splice(nodeIndex, 1);
+									await this.actor.update({"system.evolutionGrid.openNodes": this.actor.system.evolutionGrid.openNodes});
+								}
 								const items = await this.actor.getEmbeddedCollection("Item");
 								if (items)
 								{
@@ -1160,6 +1178,7 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 									await this.actor.update({"system.evolutionGrid.openNodes": this.actor.system.evolutionGrid.openNodes});
 								}
 							}
+							await this.actor.recalculateHp();
 							this.buildAvailableNodesList(this.type.system.gridTalents);
 							this.render();
 						},
@@ -2109,9 +2128,9 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 		this.talentsGrid.innerHTML = '';
 
 		this.grid.style.transformOrigin = "top left";
-		this.grid.style.transform = `scale(${this.type.system.grid.zoom})`;
-		this.grid.style.left = this.type.system.grid.left + 'px';
-		this.grid.style.top = this.type.system.grid.top + 'px';
+		this.grid.style.transform = `scale(${this.gridPosition.zoom})`;
+		this.grid.style.left = this.gridPosition.left + 'px';
+		this.grid.style.top = this.gridPosition.top + 'px';
 
 		this.renderAll();
 	}

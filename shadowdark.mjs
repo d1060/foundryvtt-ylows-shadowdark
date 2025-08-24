@@ -137,6 +137,18 @@ Hooks.on("ready", async () => {
 	UtilitySD.showNewReleaseNotes();
 
 	game.shadowdark.lightSourceTracker.start();
+
+	let evolutionGridChoices = {0: 'SHADOWDARK.evolution_grid_type.no_grid'};
+	let choicesIndex = 1;
+	const evolutionGridTypes = await CompendiumsSD.evolutionGridTypes(false);
+	for (let [k, v] of evolutionGridTypes.entries()) {
+		const item = await fromUuid(v.uuid);
+		evolutionGridChoices[choicesIndex++] = item.name;
+	}
+
+	const evolutionGridSettings = game.settings.settings.get("shadowdark.evolutionGrid");
+	evolutionGridSettings.choices = evolutionGridChoices;
+
 	shadowdark.log("Game Ready");
 });
 
