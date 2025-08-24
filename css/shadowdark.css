@@ -2196,6 +2196,10 @@ picture {
   font-size: 16px;
 }
 
+.shadowdark-dialog form {
+  gap: 4px;
+}
+
 .shadowdark-dialog .form-footer button {
   font-family: var(--font-primary);
   font-size: var(--font-size-12);
@@ -2599,6 +2603,10 @@ picture {
   opacity: 0.4;
 }
 
+.evolutionTalent.starting {
+  filter: drop-shadow(0 0 10px black) drop-shadow(0 0 40px blue);
+}
+
 .multiselect-align {
   position: absolute;
   left: 5px;
@@ -2621,7 +2629,6 @@ picture {
   gap: 5px;
   right: 25px;
   top: 5px;
-  width: 70px;
   height: 32px
 }
 
@@ -2633,4 +2640,35 @@ picture {
   width: 28px;
   height: 28px;
   border: 0;
+}
+
+.evolution-grid-debug {
+  display: none;
+  position: absolute;
+  border: 2px dashed brown;
+  background-color: bisque;
+  left: 2px;
+  bottom: 2px;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.node-description {
+  width: 300px;
+}
+
+.evolution-grid-choices {
+  font-family: "Old Newspaper Font";
+  font-size: 1.5rem;
+  position: absolute;
+  top: 2px;
+  background-color: var(--form-background);
+  left: 50%;
+  transform: translateX(-50%);
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.evolution-grid-choices.hidden {
+  display: hidden;
 }

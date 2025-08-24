@@ -151,14 +151,18 @@
 			"deity": "",
 			"languages": [],
 			"level": {
-				"xp": 0
+				"xp": 0,
+				"grid": 0
 			},
 			"luck": {
 				"remaining": 0,
 				"available": false
 			},
 			"patron": "",
-			"slots": 10
+			"slots": 10,
+			"evolutionGrid": {
+				"openNodes": []
+			} 
 		}
 	},
 	"Item": {

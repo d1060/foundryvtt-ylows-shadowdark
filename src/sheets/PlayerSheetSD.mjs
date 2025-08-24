@@ -17,6 +17,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		this.editingHp = false;
 		this.editingStats = false;
 		this.gemBag = new shadowdark.apps.GemBagSD({actor: this.actor});
+		//this.actor.deleteEmbeddedDocuments("Item", ['oht44oDr9TXXEmB7']);
 	}
 
 	/** @inheritdoc */
@@ -133,11 +134,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		tabs: { template: 'systems/shadowdark/templates/actors/player.hbs' },
 		details: { template: "systems/shadowdark/templates/actors/player/details.hbs" },
 		abilities: { template: "systems/shadowdark/templates/actors/player/abilities.hbs" },
-		spells:
-		{
-			template: "systems/shadowdark/templates/actors/player/spells.hbs",
-			scrollable: [".spells"]
-		},
+		spells: { template: "systems/shadowdark/templates/actors/player/spells.hbs" },
 		inventory: { template: "systems/shadowdark/templates/actors/player/talents.hbs" },
 		talents: { template: "systems/shadowdark/templates/actors/player/inventory.hbs" },
 		notes: { template: "systems/shadowdark/templates/actors/player/notes.hbs" },

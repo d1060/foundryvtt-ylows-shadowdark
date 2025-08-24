@@ -2,6 +2,7 @@ import ItemSD from "./ItemSD.mjs";
 import MetalMagicSD from "../sheets/magic/MetalMagicSD.mjs";
 import MistMagicSD from "../sheets/magic/MistMagicSD.mjs";
 import UtilitySD from "../utils/UtilitySD.mjs";
+import EvolutionGridSD from "../apps/EvolutionGridSD.mjs";
 
 export default class ActorSD extends Actor {
 
@@ -225,6 +226,7 @@ export default class ActorSD extends Actor {
 	abilityModifier(ability) {
 		if (this.type === "Player") {
 
+			ability = ability.length > 3 ? ability.slice(0, 3) : ability;
 			var magicModifier = 0;
 			if (ability === "int" || ability === "wis" || ability === "cha")
 			{
@@ -238,9 +240,9 @@ export default class ActorSD extends Actor {
 			}
 			
 			return this._abilityModifier(
-				this.system.abilities[ability].base
-					+ this.system.abilities[ability].bonus
-						+ magicModifier
+				(ability in this.system.abilities ? this.system.abilities[ability].base : 0) +
+					(ability in this.system.abilities ? this.system.abilities[ability].bonus : 0) +
+						magicModifier
 			);
 		}
 		else {

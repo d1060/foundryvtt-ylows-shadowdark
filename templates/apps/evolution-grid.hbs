@@ -11,13 +11,18 @@
     <div class="evolution-grid-edit" data-action="editEvolutionGrid"><i class="fas {{#if editing}}fa-eye{{else}}fa-edit{{/if}}"></i></div>
     {{/if}}
     <div class="multiselect-align hidden">
-        <img class="multiselect-align-icon" src="/systems/shadowdark/assets/icons/horizontal-align.png" data-action="horizontalAlign">
-        <img class="multiselect-align-icon" src="/systems/shadowdark/assets/icons/vertical-align.png" data-action="verticalAlign">
-        <img class="multiselect-align-icon" src="/systems/shadowdark/assets/icons/poligonal-align.png" data-action="polygonalAlign">
-        <img class="multiselect-align-icon" src="/systems/shadowdark/assets/icons/circle-align.png" data-action="circleAlign">
+        <img class="multiselect-align-icon" src="/systems/shadowdark/assets/icons/horizontal-align.png" data-action="horizontalAlign" data-tooltip="{{localize 'SHADOWDARK.evolution_grid.horizontalAlign'}}">
+        <img class="multiselect-align-icon" src="/systems/shadowdark/assets/icons/vertical-align.png" data-action="verticalAlign" data-tooltip="{{localize 'SHADOWDARK.evolution_grid.verticalAlign'}}">
+        <img class="multiselect-align-icon" src="/systems/shadowdark/assets/icons/poligonal-align.png" data-action="polygonalAlign" data-tooltip="{{localize 'SHADOWDARK.evolution_grid.polygonalAlign'}}">
+        <img class="multiselect-align-icon" src="/systems/shadowdark/assets/icons/circle-align.png" data-action="circleAlign" data-tooltip="{{localize 'SHADOWDARK.evolution_grid.circleAlign'}}">
+        <img class="multiselect-align-icon" src="/systems/shadowdark/assets/icons/circle-fit.png" data-action="circleFit" data-tooltip="{{localize 'SHADOWDARK.evolution_grid.circleFit'}}">
     </div>
     <div class="grid-types hidden">
-        <img class="grid-type" src="/systems/shadowdark/assets/icons/square-grid.png" data-action="squareGrid">
-        <img class="grid-type" src="/systems/shadowdark/assets/icons/triangular-grid.png" data-action="triangularGrid">
+        <img id="locationIcon" class="grid-type" src="/systems/shadowdark/assets/icons/location-{{#if selectingStartingNodes}}position{{else}}icon{{/if}}.png" data-action="startingNodes" data-tooltip="{{localize 'SHADOWDARK.evolution_grid.startingNodes'}}">
+        <img class="grid-type" src="/systems/shadowdark/assets/icons/undo-icon.png" data-action="undo" data-tooltip="{{localize 'SHADOWDARK.evolution_grid.undo'}}">
+        <img class="grid-type" src="/systems/shadowdark/assets/icons/square-grid.png" data-action="squareGrid" data-tooltip="{{localize 'SHADOWDARK.evolution_grid.square_grid'}}">
+        <img class="grid-type" src="/systems/shadowdark/assets/icons/triangular-grid.png" data-action="triangularGrid" data-tooltip="{{localize 'SHADOWDARK.evolution_grid.triangular_grid'}}">
     </div>
+    <div class="evolution-grid-debug"></div>
+    <div class="evolution-grid-choices">{{localize 'SHADOWDARK.evolution_grid.choices'}}</div>
 </div>

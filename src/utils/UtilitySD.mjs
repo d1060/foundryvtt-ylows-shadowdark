@@ -999,6 +999,92 @@ export default class UtilitySD {
 		return [points, c, r];
 	}
 
+	static circleFit(points) {
+		const n = points?.length|0;
+		
+		// --- 1) Best-fit circle (Kåsa LSQ) ---
+		// Solve [Σx² Σxy Σx][B] = -[Σx z], with z = x²+y²
+		//       [Σxy Σy² Σy][C]    [Σy z]
+		//       [Σx  Σy   n ][D]    [Σz  ]
+		let Sx=0,Sy=0,Sxx=0,Syy=0,Sxy=0,Sxz=0,Syz=0,Sz=0;
+		for (const p of points) {
+			const x=p.x, y=p.y, z=x*x+y*y;
+			Sx+=x; Sy+=y; Sxx+=x*x; Syy+=y*y; Sxy+=x*y; Sxz+=x*z; Syz+=y*z; Sz+=z;
+		}
+		const A = [
+			[Sxx, Sxy, Sx],
+			[Sxy, Syy, Sy],
+			[Sx,  Sy,  n ]
+		];
+		const b = [-Sxz, -Syz, -Sz];
+
+		const sol = this.solve3x3(A, b); // {x:B, y:C, z:D} or null if singular
+		// Fallback: centroid + mean radius if singular/degenerate
+		let cx, cy, r;
+		if (!sol) {
+			cx = Sx/n; cy = Sy/n;
+			let rSum = 0; for (const p of points) rSum += Math.hypot(p.x-cx, p.y-cy);
+			r = rSum / n;
+		} else {
+			const B=sol.x, C=sol.y, D=sol.z;
+			cx = -B/2; cy = -C/2;
+			const rr = (B*B + C*C)/4 - D;
+			r = rr > 0 ? Math.sqrt(rr) : 0;
+		}
+
+		// --- 2) Push points to the circle (preserve order around center) ---
+		const polar = points.map((p, idx) => {
+			const a = Math.atan2(p.y - cy, p.x - cx);
+			return { idx, a };
+		}).sort((u,v)=>u.a-v.a);
+
+		const aligned = new Array(n);
+		let angles  = new Array(n);
+		for (let k=0; k<n; k++) {
+			const a = polar[k].a;
+			const x = cx + r * Math.cos(a);
+			const y = cy + r * Math.sin(a);
+			aligned[polar[k].idx] = { x, y }; // mapped back to original order
+			angles[k] = a;
+		}
+
+		//if (opts.mutate) {
+		//	for (let i=0;i<n;i++) { points[i].x = aligned[i].x; points[i].y = aligned[i].y; }
+		//}
+		angles = polar.map(p=>p.a);
+
+		return [aligned, angles, {x: cx, y: cy}, r];
+	}
+
+	/* ---------- tiny 3x3 solver (Gaussian elimination) ---------- */
+	static solve3x3(A, b){
+		// A is 3x3, b length 3. Mutate local copies.
+		const m = [A[0].slice(), A[1].slice(), A[2].slice()];
+		const v = b.slice();
+
+		// pivot 0
+		if (Math.abs(m[0][0]) < Math.abs(m[1][0])) { [m[0],m[1]] = [m[1],m[0]]; [v[0],v[1]] = [v[1],v[0]]; }
+		if (Math.abs(m[0][0]) < Math.abs(m[2][0])) { [m[0],m[2]] = [m[2],m[0]]; [v[0],v[2]] = [v[2],v[0]]; }
+		if (Math.abs(m[0][0]) < 1e-12) return null;
+		let f = m[1][0]/m[0][0];
+		for(let j=0;j<3;j++) m[1][j]-=f*m[0][j]; v[1]-=f*v[0];
+		f = m[2][0]/m[0][0];
+		for(let j=0;j<3;j++) m[2][j]-=f*m[0][j]; v[2]-=f*v[0];
+
+		// pivot 1
+		if (Math.abs(m[1][1]) < Math.abs(m[2][1])) { [m[1],m[2]] = [m[2],m[1]]; [v[1],v[2]] = [v[2],v[1]]; }
+		if (Math.abs(m[1][1]) < 1e-12) return null;
+		f = m[2][1]/m[1][1];
+		for(let j=1;j<3;j++) m[2][j]-=f*m[1][j]; v[2]-=f*v[1];
+
+		// back-substitute
+		if (Math.abs(m[2][2]) < 1e-12) return null;
+		const z = v[2]/m[2][2];
+		const y = (v[1] - m[1][2]*z)/m[1][1];
+		const x = (v[0] - m[0][1]*y - m[0][2]*z)/m[0][0];
+		return { x, y, z };
+	}
+
 	static closestPoint(points, point)
 	{
 		if (!points || points.length == 0) return point;
@@ -1056,5 +1142,28 @@ export default class UtilitySD {
     		if (!seen.has(k)) { seen.add(k); out.push(item); }
   		}
   		return out;
+	}
+
+	static roundTo(x, n = 0)
+	{
+  		const f = 10 ** n;
+  		return Math.round((x + Number.EPSILON) * f) / f;
+	}
+
+	static coSort(arr1, arr2, compare = (a, b) => a - b) {
+		if (arr1.length !== arr2.length) throw new Error("Arrays must have same length");
+
+		// robust numeric compare (keeps NaN at the end)
+		const numCmp = (a, b) =>
+			Number.isNaN(a) ? (Number.isNaN(b) ? 0 : 1) :
+			Number.isNaN(b) ? -1 : compare(a, b);
+
+		const zipped = arr1.map((v, i) => [v, arr2[i]]);
+		zipped.sort((p, q) => numCmp(p[0], q[0]));
+
+		for (let i = 0; i < zipped.length; i++) {
+			arr1[i] = zipped[i][0];
+			arr2[i] = zipped[i][1];
+		}
 	}
 }

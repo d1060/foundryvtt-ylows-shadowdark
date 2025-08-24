@@ -43,4 +43,29 @@
             </div>
         </div>
     </div>
+    <span style="display: flex; flex-direction: row; justify-content: flex-end; height: 8px;"> </span>
+    <div class="SD-box">
+        <div class="header">
+            <label>
+                {{localize "SHADOWDARK.evolution_grid_type.nodeChoices"}}
+            </label>
+            <span style="display: flex; flex-direction: row; justify-content: flex-end; gap: 8px;"> </span>
+        </div>
+        <div class="content">
+            <div style="display: flex; flex-direction: row; justify-content: flex-end; gap: 8px;">
+                <div>
+                    <h3>{{localize 'SHADOWDARK.evolution_grid_type.nodesAtFirstLevel'}}</h3>
+                    <input type="number" name="system.evolutionGrid.choices.firstLevel" value="{{system.evolutionGrid.choices.firstLevel}}">
+                </div>
+                <div>
+                    <h3>{{localize 'SHADOWDARK.evolution_grid_type.nodesAtEvenLevel'}}</h3>
+                    <input type="number" name="system.evolutionGrid.choices.evenLevels" value="{{system.evolutionGrid.choices.evenLevels}}">
+                </div>
+                <div>
+                    <h3>{{localize 'SHADOWDARK.evolution_grid_type.nodesAtOddLevel'}}</h3>
+                    <input type="number" name="system.evolutionGrid.choices.oddLevels" value="{{system.evolutionGrid.choices.oddLevels}}">
+                </div>
+            </div>
+        </div>
+    </div>
 </section>

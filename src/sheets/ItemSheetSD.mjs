@@ -12,6 +12,17 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 	constructor(object) {
 		super(object);
 		this.#dragDrop = this.#createDragDropHandlers();
+		if (this.item.typeSlug === 'evolution-grid-type')
+		{
+			if (!this.item.system.evolutionGrid)
+				this.item.system.evolutionGrid = {
+					choices: {
+						firstLevel: 5,
+						evenLevels: 2,
+						oddLevels: 2
+					}
+			};
+		}
 	}
 
 	/* -------------------------------------------- */

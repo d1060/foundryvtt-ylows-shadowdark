@@ -21,7 +21,13 @@ export default class ActiveEffectsSD {
 				`SHADOWDARK.dialog.effect.choice.${parameter.type}`
 			);
 			parameter.uuid = foundry.utils.randomID();
-			if (parameter.options.length)
+			
+			let optionsLength = 0;
+			if (Array.isArray(parameter.options)) optionsLength = parameter.options.length;   // arrays
+  			if (parameter.options instanceof Map || parameter.options instanceof Set) optionsLength = parameter.options.size; // optional bonus
+  			if (typeof parameter.options === 'object') optionsLength = Object.keys(parameter.options).length;
+
+			if (optionsLength)
 				allOptionsEmpty = false;
 		}
 		if (allOptionsEmpty)
@@ -574,7 +580,7 @@ export default class ActiveEffectsSD {
 
 		var changes = await Promise.all(
 			effect.changes.map(async c => {
-				if (CONFIG.SHADOWDARK.EFFECT_ASK_INPUT.includes(c.key)) {
+				if (CONFIG.SHADOWDARK.EFFECT_ASK_INPUT.includes(c.key) && c.value === 'REPLACEME') {
 					const effectKey = (key) ? key : c.key.split(".")[2];
 
 					// Ask for user input
