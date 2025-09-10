@@ -255,7 +255,7 @@ export default class ItemSD extends Item {
 
 		const propertyItems = await this.propertyItems();
 		const propertyItem = propertyItems.find(
-			p => p.name.slugify() === property
+			p => p?.name?.slugify() === property
 		);
 
 		return propertyItem ? true : false;

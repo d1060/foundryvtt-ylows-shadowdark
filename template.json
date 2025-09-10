@@ -177,6 +177,7 @@
 			"Armor",
 			"Background",
 			"Basic",
+			"Body Parts",
 			"Boon",
 			"Class Ability",
 			"Class",
@@ -303,6 +304,12 @@
 			],
 			"scroll": false,
 			"treasure": false
+		},
+		"Body Parts": {
+			"templates": [
+				"common"
+			],
+			"bodyParts": []
 		},
 		"Boon": {
 			"templates": [

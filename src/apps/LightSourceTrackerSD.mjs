@@ -187,7 +187,7 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 			item,
 			{
 				source: itemOwner,
-				target: targetToken.document.actor,
+				target: targetToken?.document?.actor,
 				speaker: speaker ?? ChatMessage.getSpeaker(),
 				picked_up: false,
 				template: "systems/shadowdark/templates/chat/lightsource-drop.hbs",

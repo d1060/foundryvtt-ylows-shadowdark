@@ -252,6 +252,21 @@ export default class CompendiumsSD {
 		return this._collectionFromArray(documents);
 	}
 
+	static async bodySetups(filterSources=true) {
+		const documents = await CompendiumsSD._documents("Item", "Body Parts", filterSources);
+		return this._collectionFromArray(documents);
+	}
+
+	static async defaultBodySetup(filterSources=true) {
+		const documents = await CompendiumsSD._documents("Item", "Body Parts", filterSources);
+		const defaults = documents.filter(d => d.system.defaultBodySetup);
+		if (defaults.length)
+			return defaults[0];
+		else if (documents.length)
+			return documents[0];
+		return null;
+	}
+
 	static async britannianMagicEffects(filterSources=true) {
 		const documents = await CompendiumsSD._documents("Item", "Magic Power", filterSources);
 		let filteredDocuments = documents.filter(
@@ -354,6 +369,15 @@ export default class CompendiumsSD {
 
 	static async effects(filterSources=true) {
 		return CompendiumsSD._documents("Item", "Effect", filterSources);
+	}
+
+	static async hitLocationCondition(effect, filterSources=true) {
+		const documents = await CompendiumsSD._documents("Item", "Effect", filterSources);
+		if (!documents || !documents.contents.length) return null;
+		const conditions = documents.contents.filter(d => d.system.category == 'condition');
+		if (!conditions || !conditions.length) return null;
+		const condition = conditions.find(d => d.system.hitLocationEffect == effect);
+		return condition;
 	}
 
 	static async languages(subtypes=[], filterSources=true) {

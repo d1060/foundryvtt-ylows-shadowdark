@@ -29,6 +29,7 @@ export default class UtilitySD {
 	}
 
 	static isNumeric(str) {
+		if (typeof str === 'number') return true;
 		if (typeof str !== 'string' || str.length === 0) return false;
 
 		for (let i = 0, len = str.length; i < len; ++i) {
@@ -578,11 +579,17 @@ export default class UtilitySD {
 	static isNestedPropertyArray(obj, path) {
 		const keys = path?.split(".") ?? [];
 		const lastKey = keys.pop() ?? null;
-		const target = keys.reduce((o, key) => o[key], obj);
 
-		if (!target) return null;
+		let curr = obj;
+		for (const key of keys) {
+    		if (curr != null && Object.prototype.hasOwnProperty.call(curr, key)) {
+      			curr = curr[key];
+    		} else {
+      			return false;
+    		}
+  		}
 
-		if (Array.isArray(target[lastKey])) {
+		if (Array.isArray(curr[lastKey])) {
 			return true;
 		} else {
 			return false;
@@ -858,6 +865,13 @@ export default class UtilitySD {
 		const n = parseInt(number, 10);
 		if (Number.isNaN(n)) return 0
 		return n;
+	}
+
+	static parseIntIfNumeric(number) {
+		if (!this.isNumeric(number))
+			return number;
+		if (typeof number === 'number') return number;
+		return this.parseIntOrZero(number);
 	}
 
 	static normalize(v) {

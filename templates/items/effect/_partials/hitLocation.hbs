@@ -1,0 +1,12 @@
+{{#> ui/sd-box
+	header-class="light"
+	header-label=(localize "SHADOWDARK.item.effect.hitLocation.title")
+}}
+	<select name="system.hitLocationEffect">
+		{{selectOptions
+			config.HIT_LOCATIONS
+			selected=system.hitLocationEffect
+			localize=false
+		}}
+	</select>
+{{/ui/sd-box}}

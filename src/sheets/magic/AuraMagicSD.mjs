@@ -149,7 +149,7 @@ export default class AuraMagicSD {
 		};
 		options.target = spellDC;
 		options.power = auraMagicEffect;
-		options.spellName = game.i18n.localize("SHADOWDARK.seirizian_aura_magic");
+		options.spellName = auraMagicEffect.name;
 		options.callback = this._rollAuraMagicCallback;
 
 		await actor.rollMagic(magicCoreLevel, options, auraMagicEffect);

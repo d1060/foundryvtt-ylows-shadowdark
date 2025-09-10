@@ -1,0 +1,67 @@
+{{#if showHitLocation}}
+<div class="grid-2-columns">
+    <div class="SD-box">
+        <div class="header">
+            <label>{{localize 'SHADOWDARK.item.body_setup.label'}}</label>
+            <span></span>
+        </div>
+        <div class="content">
+            <div class="grid-1-columns">
+
+                {{#if bodySetup}}
+                    <div class="items flexrow">
+                        <div class="talent flexrow">
+                            <a
+                                class="fake-uuid-link"
+                                data-type="Item"
+                                data-uuid="{{bodySetup.uuid}}"
+                                title="Item"
+                            >
+                                {{#if editable}}
+                                    <i
+                                        class="fas fa-delete-right"
+                                        data-action="deleteChoice"
+                                        data-choices-key="{{bodySetupChoicesKey}}"
+                                        data-uuid="{{bodySetup.uuid}}"
+                                    ></i>
+                                {{/if}}
+                                {{bodySetup.name}}
+                            </a>
+                        </div>
+                    </div>
+                {{else}}
+                    <input
+                        data-choices-key="{{bodySetupChoicesKey}}"
+                        data-is-item="true"
+                        list="{{actor._id}}_{{bodySetupChoicesKey}}_list"
+                        placeholder="{{localize "SHADOWDARK.item.body_setup.prompt"}}"
+                        type="text"
+                        name="system.bodySetup"
+                        value=""
+                    />
+                    <datalist id="{{actor._id}}_{{bodySetupChoicesKey}}_list">
+                        {{#each bodySetups}}
+                            <option
+                                data-uuid="{{uuid}}"
+                                value="{{name}}"
+                            ></option>
+                        {{/each}}
+                    </datalist>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+{{/if}}
+    <div class="SD-box">
+        <div class="grid-colspan-2 grid-dark-adapted">
+            <h3 style="width: 160px; margin-left: 5px">{{localize 'SHADOWDARK.sheet.npc.has_vitals'}}</h3>
+            <input type="checkbox" name="system.hasVitals" style="width: 20px; height: 20px; align-self: center;" {{checked system.hasVitals}}>
+        </div>
+        <div class="grid-colspan-2 grid-dark-adapted">
+            <h3 style="width: 160px; margin-left: 5px">{{localize 'SHADOWDARK.sheet.npc.decapitateable'}}</h3>
+            <input type="checkbox" name="system.decapitateable" style="width: 20px; height: 20px; align-self: center;" {{checked system.decapitateable}}>
+        </div>
+    </div>
+{{#if showHitLocation}}
+</div>
+{{/if}}

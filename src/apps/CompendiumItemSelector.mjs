@@ -191,4 +191,111 @@ export default class CompendiumItemSelector extends HandlebarsApplicationMixin(A
 
 		if (this.closeOnSelection) this.close({force: true});
 	}
+
+	async _removeItemTalentsAndEffects(uuid) {
+		if (uuid == null || uuid == '') return;
+		if (!this.object) return;
+		const itemObj = await fromUuid(uuid);
+		if (!itemObj) return;
+
+		var effects = await itemObj.getEmbeddedCollection("ActiveEffect");
+		var documentEffects = await this.object.getEmbeddedCollection("ActiveEffect");
+		if (effects.contents.length && documentEffects.contents.length)
+		{
+			for (const effect of effects.contents)
+			{
+				for (const documentEffect of documentEffects.contents)
+				{
+					if (effect.name.slugify() == documentEffect.name.slugify())
+					{
+						this.object.deleteEmbeddedDocuments("ActiveEffect", [documentEffect.id]);
+						break;
+					}
+				}
+			}
+		}
+
+		let talents = [];
+		if (itemObj.system.fixedTalents) talents.push(...itemObj.system.fixedTalents);
+		if (itemObj.system.talents) talents.push(...itemObj.system.talents);
+		var documentTalents = await this.object.getEmbeddedCollection("Item");
+
+		if (talents.length && documentTalents.contents.length)
+		{
+			for (const talent of talents)
+			{
+				let talentObj = await fromUuid(talent);
+				if (!talentObj || talentObj.type != 'Talent') continue;
+				let alreadyHasTalent = false;
+				for (const documentTalent of documentTalents.contents ?? [])
+				{
+					if (documentTalent.type != 'Talent') continue;
+					if (talentObj.name.slugify() == documentTalent.name.slugify())
+					{
+						this.object.deleteEmbeddedDocuments("Item", [documentTalent.id]);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	async _addItemTalentsAndEffects(uuid) {
+		if (uuid == null || uuid == '') return;
+		if (!this.object) return;
+		const itemObj = await fromUuid(uuid);
+		if (!itemObj) return;
+		
+		var effects = await itemObj.getEmbeddedCollection("ActiveEffect");
+		var documentEffects = await this.object.getEmbeddedCollection("ActiveEffect");
+		if (effects.contents.length)
+		{
+			for (const effect of effects.contents)
+			{
+				let alreadyHasEffect = false;
+				for (const documentEffect of documentEffects.contents ?? [])
+				{
+					if (effect.name.slugify() == documentEffect.name.slugify())
+					{
+						alreadyHasEffect = true;
+						break;
+					}
+				}
+
+				if (!alreadyHasEffect)
+				{
+					this.object.createEmbeddedDocuments("ActiveEffect", [effect]);
+				}
+			}
+		}
+
+		let talents = [];
+		if (itemObj.system.fixedTalents) talents.push(...itemObj.system.fixedTalents);
+		if (itemObj.system.talents) talents.push(...itemObj.system.talents);
+
+		if (talents.length)
+		{
+			var documentTalents = await this.object.getEmbeddedCollection("Item");
+			for (const talent of talents)
+			{
+				let talentObj = await fromUuid(talent);
+				if (!talentObj || talentObj.type != 'Talent') continue;
+				let alreadyHasTalent = false;
+				for (const documentTalent of documentTalents.contents ?? [])
+				{
+					if (documentTalent.type != 'Talent') continue;
+					if (talentObj.name.slugify() == documentTalent.name.slugify())
+					{
+						alreadyHasTalent = true;
+						break;
+					}
+				}
+
+				if (!alreadyHasTalent)
+				{
+					this.object.createEmbeddedDocuments("Item", [talentObj]);
+				}
+			}
+		}
+	}
 }

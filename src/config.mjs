@@ -83,6 +83,7 @@ SHADOWDARK.DEFAULTS = {
 		"Armor": "icons/equipment/chest/breastplate-banded-steel-gold.webp",
 		"Background": "icons/environment/people/commoner.webp",
 		"Basic": "icons/containers/bags/pouch-simple-brown.webp",
+		"Body Parts": "icons/skills/social/intimidation-impressing.webp",
 		"Boon": "icons/skills/social/diplomacy-writing-letter.webp",
 		"Class Ability": "icons/tools/navigation/map-chart-tan.webp",
 		"Class": "icons/sundries/documents/document-sealed-brown-red.webp",
@@ -197,6 +198,7 @@ SHADOWDARK.EFFECT_ASK_INPUT = [
 	"system.bonuses.overdraw",
 	"system.bonuses.combatProficiency",
 	"system.bonuses.weaponProficiency",
+	"system.bonuses.2Hweapon",
 	"system.bonuses.2HweaponProficiency",
 	"system.bonuses.armorProficiency",
 	"system.bonuses.abilityCheckBonus",
@@ -211,6 +213,23 @@ SHADOWDARK.EFFECT_CATEGORIES = {
 	effect: "SHADOWDARK.item.effect.category.effect",
 	condition: "SHADOWDARK.item.effect.category.condition",
 };
+
+SHADOWDARK.HIT_LOCATIONS = {
+    none: "SHADOWDARK.item.effect.hitLocation.none",
+    movePenalty: "SHADOWDARK.item.effect.hitLocation.movePenalty",
+    toHitPenalty: "SHADOWDARK.item.effect.hitLocation.toHitPenalty",
+    flightPenalty: "SHADOWDARK.item.effect.hitLocation.flightPenalty",
+    dizzy: "SHADOWDARK.item.effect.hitLocation.dizzy",
+    decapitation: "SHADOWDARK.item.effect.hitLocation.decapitation",
+    blindness: "SHADOWDARK.item.effect.hitLocation.blindness",
+    bleeding: "SHADOWDARK.item.effect.hitLocation.bleeding",
+    maxDamage: "SHADOWDARK.item.effect.hitLocation.maxDamage",
+};
+
+SHADOWDARK.VITAL_HIT_LOCATIONS = [
+    'decapitation',
+    'maxDamage',
+];
 
 SHADOWDARK.EFFECT_DURATIONS = {
 	instant: "SHADOWDARK.spell_duration.instant",

@@ -2,6 +2,7 @@ import UtilitySD from "../utils/UtilitySD.mjs";
 import BritannianMagicSD from "../sheets/magic/BritannianMagicSD.mjs";
 import BritannianSpellSD from "../apps/BritannianSpellSD.mjs";
 import AuraMagicSD from "../sheets/magic/AuraMagicSD.mjs";
+import RollDialogSD from "./RollDialogSD.mjs";
 
 export default class RollSD extends Roll {
 
@@ -34,8 +35,6 @@ export default class RollSD extends Roll {
 	 * @returns {Promise<object>}
 	 */
 	static async Roll(parts, data, $form, adv=0, options={}) {
-		if (data.actor.isBurning()) data.actor.burnOut();
-		if (data.actor.isFrozen()) data.actor.thawFrost(); 
 		if (!data.target && options.target) data.target = options.target;
 
 		//shadowdark.debug(`RollSD Roll options.target=${options.target} data.rollType=${data.rollType} data.item?.type=${data.item?.type}`);
@@ -76,6 +75,7 @@ export default class RollSD extends Roll {
 		if (data.resistedBy) await this.rollResistance(data, options);
 
 		if (data.rollType === "ability") {
+			data.actor?.onActionPerformed();
 			return this._renderRoll(data, adv, options);
 		}
 
@@ -85,7 +85,6 @@ export default class RollSD extends Roll {
 
 		// Roll damage for NPCs attack types
 		if (data.item?.type === "NPC Attack" || data.item?.type === "NPC Special Attack") {
-
 			if (!options.flavor) {
 				if (options.targetToken) {
 					options.flavor = game.i18n.format(
@@ -104,6 +103,13 @@ export default class RollSD extends Roll {
 						}
 					);
 				}
+				if (data.hitLocation) {
+					options.flavor += ' ' + game.i18n.format(
+						"SHADOWDARK.roll.to_the",
+						{
+							location: data.hitLocation.name,
+					});
+				}
 			}
 
 			//data.extraFireDamage = data.actor.system.bonuses?.extraFireDamage ?? 0;
@@ -114,6 +120,7 @@ export default class RollSD extends Roll {
 			}
 			const result = await this._renderRoll(data, adv, options);
 			await this._applyDamageToTargets(result, options, data);
+			data.actor?.onActionPerformed();
 			return result;
 		}
 
@@ -143,6 +150,14 @@ export default class RollSD extends Roll {
 								name: data.item.name,
 							}
 						);
+					}
+
+					if (data.hitLocation) {
+						options.flavor += ' ' + game.i18n.format(
+							"SHADOWDARK.roll.to_the",
+							{
+								location: data.hitLocation.name,
+						});
 					}
 				}
 			}
@@ -212,6 +227,7 @@ export default class RollSD extends Roll {
 			data.actor?.reduceQuantity(data.item, 1);
 
 		await this._applyDamageToTargets(result, options, data);
+		data.actor?.onActionPerformed();
 		return result;
 	}
 
@@ -226,6 +242,11 @@ export default class RollSD extends Roll {
 				tokens.push(options.targetToken);
 			if (data.targetTokens)
 				tokens.push(...data.targetTokens);
+			for (const target of game.user.targets.values())
+			{
+				if (!tokens.some(t => t.id === target.id))
+					tokens.push(target);
+			}
 			
 			if (tokens.length) data.wasAnyoneHit = false;
 			data.resistanceRolls = [];
@@ -245,6 +266,11 @@ export default class RollSD extends Roll {
 				tokens.push(options.targetToken);
 			if (data.targetTokens)
 				tokens.push(...data.targetTokens);
+			for (const target of game.user.targets.values())
+			{
+				if (!tokens.some(t => t.id === target.id))
+					tokens.push(target);
+			}
 			
 			if (tokens.length) data.wasAnyoneHit = false;
 			for (let token of tokens) {
@@ -323,6 +349,11 @@ export default class RollSD extends Roll {
 				tokens.push(options.targetToken);
 			else if (result.targetTokens)
 				tokens = result.targetTokens;
+			for (const target of game.user.targets.values())
+			{
+				if (!tokens.some(t => t.id === target.id))
+					tokens.push(target);
+			}
 
 			for (var token of tokens)
 			{
@@ -372,6 +403,7 @@ export default class RollSD extends Roll {
 								data: {
 									tokenId: token.id,
 									damage: damageTotal,
+									hitLocation: result.hitLocation,
 								},
 							}
 						);
@@ -380,7 +412,7 @@ export default class RollSD extends Roll {
 				}
 				else
 				{
-					await this.applyDamageToToken(token, damageTotal);
+					await this.applyDamageToToken(token, damageTotal, result.hitLocation);
 				}
 
 				if (token.actor?.system?.bonuses?.automaticDamageOnCloseAttack && (options.attackType === 'melee' || options.attackType == null))
@@ -534,12 +566,14 @@ export default class RollSD extends Roll {
 		return damageTotal;
 	}
 
-	static async applyDamageToToken(token, damage)
-	{
+	static async applyDamageToToken(token, damage, hitLocation) {
 		if (damage < 0)
 			token.actor.applyHealing(-damage, 1);
 		else
 			token.actor.applyDamage(damage, 1);
+
+		if (hitLocation != null)
+			token.actor.applyHitLocationEffect(hitLocation);
 		
 		if (token.actor.type == "NPC" && token.actor.system.attributes.hp.value <= 0 && token.document && !token.document.hidden)
 		{
@@ -845,6 +879,9 @@ export default class RollSD extends Roll {
 
 			const damageParts = [baseDamageFormula, ...data.damageParts];
 
+			if (data.hitLocation != null && data.hitLocation.effect != null && data.hitLocation.effect == 'maxDamage')
+				data.maxDamage = true;
+
 			if (!data.rolls) data.rolls = { damage : {} };
 			if (data.actor.system.bonuses?.savageStrike)
 			{
@@ -1115,6 +1152,9 @@ export default class RollSD extends Roll {
 	}
 	
 	static async _rollDamage(data, dualWieldParts, oneHandedParts, twoHandedParts, damageDie1H, damageDie2H) {
+		if (data.hitLocation != null && data.hitLocation.effect != null && data.hitLocation.effect == 'maxDamage')
+			data.maxDamage = true;
+
 		var damageRoll;
 		if (data.actor.system.bonuses?.weaponDamageAdvantage && data.actor.system.bonuses?.weaponDamageAdvantage == data.item.name.slugify())
 		{
@@ -1279,6 +1319,11 @@ export default class RollSD extends Roll {
 			? options.dialogTemplate
 			: "systems/shadowdark/templates/dialog/roll-dialog.hbs";
 
+		if (data.item?.system?.damage != null && data.damage == null)
+			data.itemDamage = data.item?.system?.damage;
+		if (data.item?.system?.extraDamage != null && data.extraDamage == null)
+			data.itemExtraDamage = data.item?.system?.extraDamage;
+
 		const dialogData = {
 			data,
 			title: options.title,
@@ -1305,11 +1350,13 @@ export default class RollSD extends Roll {
 	 */
 	static async RollDialog(parts, data, options={}) {
 		if ( options.fastForward ) {
-			//shadowdark.debug(`Rolling from fast forward dialog options.handedness=${options.handedness}`);
 			return await this.Roll(parts, data, false, 0, options);
 		}
 
-		if (!options.title) {
+		let rollDialogSD = new RollDialogSD({parts, data, options});
+		rollDialogSD.render(true);
+
+		/*if (!options.title) {
 			options.title = game.i18n.localize("SHADOWDARK.dialog.roll");
 		}
 
@@ -1400,8 +1447,6 @@ export default class RollSD extends Roll {
 			data.talentBonus += data.actor?.system?.bonuses?.poisonPenalty;
 		}
 		
-		//shadowdark.debug(`RollDialog data.duration=${data.duration}`);
-
 		// Render the HTML for the dialog
 		let content = await this._getRollDialogContent(parts, data, options);
 		
@@ -1474,7 +1519,7 @@ export default class RollSD extends Roll {
 			},
 		};
 
-		return foundry.applications.api.DialogV2.wait(dialogData, options.dialogOptions);
+		return foundry.applications.api.DialogV2.wait(dialogData, options.dialogOptions);*/
 	}
 
 	static packTacticsBonus(actor) {
@@ -1525,11 +1570,12 @@ export default class RollSD extends Roll {
 	 * @param {number|false} target 	- Target value to beat with the roll
 	 * @return {object}								- Data for rendering a chatcard
 	 */
-	static _getChatCardData(rolls, speaker, target=false) {
+	static _getChatCardData(rolls, speaker, hitLocation, target=false) {
 		const chatData = {
 			user: game.user.id,
 			speaker: speaker,
 			alias: speaker,
+			hitLocation,
 			flags: {
 				"isRoll": {value: true},
 				"rolls": {value: rolls},
@@ -1628,11 +1674,10 @@ export default class RollSD extends Roll {
 		const chatData = await this._getChatCardData(
 			data.rolls,
 			(options.speaker) ? options.speaker : ChatMessage.getSpeaker(),
+			data.hitLocation,
 			options.target
 		);
 
-		// TODO: Write tests for this.
-		// Add whether the roll succeeded or not to the roll data
 		data.rolls.main.success = (chatData.flags.success)
 			? chatData.flags.success
 			: null;

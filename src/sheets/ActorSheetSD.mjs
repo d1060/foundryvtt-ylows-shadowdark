@@ -577,10 +577,10 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 
 		if (newAspect > imageAspect)
 			displayWidth = displayHeight * imageAspect;
-		else if (newAspect < imageAspect)
-			displayHeight = (displayWidth / imageAspect) + 30;
+		//else if (newAspect < imageAspect)
+			//displayHeight = (displayWidth / imageAspect) + 30;
 
-		displayHeight += fixedHeight;
+		//displayHeight += fixedHeight;
 
 		let buttons = [{
 				id: "close",
@@ -606,7 +606,7 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 			},
 			position: {
 				width: displayWidth,
-				height: displayHeight
+				height: "auto"
 			},
 			content: `<img class="portrait" src="${image}" name="portrait.img" data-tooltip="${name}" style="max-height: 100%" />`,
 			buttons: buttons, 

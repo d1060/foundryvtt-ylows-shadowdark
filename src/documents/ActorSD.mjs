@@ -3,6 +3,7 @@ import MetalMagicSD from "../sheets/magic/MetalMagicSD.mjs";
 import MistMagicSD from "../sheets/magic/MistMagicSD.mjs";
 import UtilitySD from "../utils/UtilitySD.mjs";
 import EvolutionGridSD from "../apps/EvolutionGridSD.mjs";
+import CompendiumsSD from "./CompendiumsSD.mjs";
 
 export default class ActorSD extends Actor {
 
@@ -442,6 +443,108 @@ export default class ActorSD extends Actor {
 		if (newHpValue <= 0) newHpValue = 1;
 		this.system.attributes.hp.value = newHpValue;
 		await this.update({"system.attributes.hp.value": newHpValue});
+	}
+
+	async onActionPerformed() {
+		if (this.isBurning()) this.burnOut();
+		if (this.isFrozen()) this.thawFrost(); 
+		this.easeHitLocationEffects(); 
+	}
+
+	async applyHitLocationEffect(hitLocation) {
+		if (hitLocation == null) return;
+		if (hitLocation.effect == null) return;
+		const hitLocationConditionObj = await CompendiumsSD.hitLocationCondition(hitLocation.effect);
+		const hitLocationCondition = await fromUuid(hitLocationConditionObj.uuid);
+
+		const items = await this.getEmbeddedCollection("Item");
+		const existingCondition = items.contents.find(i => i.system.category == 'condition' && i.system.hitLocationEffect == hitLocation.effect);
+
+		if (existingCondition)
+		{
+			for (let effect of existingCondition.effects) {
+				for (let change of effect.changes) {
+
+					const activeEffects = await existingCondition.getEmbeddedCollection("ActiveEffect");
+					const activeEffect = activeEffects.contents.find(e => e.changes.some(c => c.key == change.key));
+					if (activeEffect) {
+						const activeEffectChange = activeEffect.changes.find(c => c.key == change.key);
+						activeEffectChange.value = parseInt(activeEffectChange.value) - 1;
+
+						await existingCondition.updateEmbeddedDocuments("ActiveEffect", [
+							{
+								"_id": activeEffect.id,
+								"changes": activeEffect.changes,
+							},
+						]);
+					}
+				}
+			}
+			return;
+		}
+
+		this.createEmbeddedDocuments(
+			"Item",
+			[hitLocationCondition]
+		);
+	}
+
+	async easeHitLocationEffects() {
+		const items = await this.getEmbeddedCollection("Item");
+		const existingConditions = items.contents.filter(i => i.system.category == 'condition' && i.system.hitLocationEffect);
+		if (!existingConditions || !existingConditions.length) return;
+
+		let hasBled = 0;
+		for (let existingCondition of existingConditions) {
+			const effects = await existingCondition.getEmbeddedCollection("ActiveEffect");
+			let areAllChangeValues0 = true;
+			const updateData = [];
+			for (let effect of effects) {
+				for (let change of effect.changes) {
+					change.value = parseInt(change.value) + 1;
+					if (change.key == 'system.penalties.bleeding')
+						hasBled++;
+					if (change.value < 0) areAllChangeValues0 = false;
+					else if (change.value > 0) change.value = 0;
+				}
+
+				updateData.push({
+					"_id": effect.id,
+					"changes": effect.changes,
+				});
+			}
+
+			if (areAllChangeValues0) {
+				await this.deleteEmbeddedDocuments("Item", [existingCondition.id]);
+			} else {
+				await existingCondition.updateEmbeddedDocuments("ActiveEffect", updateData);
+			}
+		}
+
+		if (hasBled) {
+			const cardData = {
+				img: "icons/skills/wounds/bleeding-black-silver.png",
+				actor: this,
+				message: game.i18n.format(
+					"SHADOWDARK.chat.bleeding",
+					{
+						name: this.name,
+						amount: hasBled,
+					}
+				),
+			};
+
+			let template = "systems/shadowdark/templates/chat/bleeding.hbs";
+
+			const content = await foundry.applications.handlebars.renderTemplate(template, cardData);
+
+			await ChatMessage.create({
+				content,
+				rollMode: CONST.DICE_ROLL_MODES.PUBLIC,
+			});
+
+			this.applyDamage(hasBled, 1);
+		}
 	}
 
 	attackBonus(attackType) {
@@ -1024,9 +1127,10 @@ export default class ActorSD extends Actor {
 			abilityBonus: this.abilityModifier(abilityId),
 			baseDifficulty: characterClass?.system?.spellcasting?.baseDifficulty ?? 10,
 			talentBonus: this.system.bonuses.spellcastingCheckBonus,
+			injuryPenalty: this.system.penalties.toHit,
 		};
 
-		const parts = [game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20", "@abilityBonus", "@talentBonus"];
+		const parts = [game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20", "@abilityBonus", "@talentBonus", "@hitLocationBonus", "@injuryPenalty"];
 
 		// TODO: push to parts & for set talentBonus as sum of talents affecting
 		// spell rolls
@@ -1309,6 +1413,12 @@ export default class ActorSD extends Actor {
 		{
 			baseArmorClass += this.system.bonuses.bloodiedAC;
 			armorClassTooltip += "Bloodied AC bonus: " + this.system.bonuses.bloodiedAC + "<br>";
+		}
+
+		if (this.system.penalties?.dizzy)
+		{
+			newArmorClass += this.system.penalties.dizzy;
+			armorClassTooltip += "You are dizzy: " + this.system.penalties.dizzy + "<br>";
 		}
 
 		await this.update({"system.attributes.ac.value": newArmorClass});
@@ -2215,9 +2325,10 @@ export default class ActorSD extends Actor {
 		};
 
 		const bonuses = this.system.bonuses;
+		const penalties = this.system.penalties;
 
 		// Summarize the bonuses for the attack roll
-		const parts = [(game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20"), "@itemBonus", "@abilityBonus", "@talentBonus", "@targetLock"];
+		const parts = [(game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20"), "@itemBonus", "@abilityBonus", "@talentBonus", "@targetLock", "@hitLocationBonus", "@injuryPenalty"];
 		data.damageParts = [];
 
 		// Check damage multiplier
@@ -2272,6 +2383,7 @@ export default class ActorSD extends Actor {
 					data.abilityBonus = this.abilityModifier("str");
 				}
 
+				data.injuryPenalty = penalties?.toHit;
 				data.talentBonus = bonuses.meleeAttackBonus;
 				data.meleeDamageBonus = bonuses.meleeDamageBonus * damageMultiplier;
 				data.damageParts.push("@meleeDamageBonus");
@@ -2299,6 +2411,7 @@ export default class ActorSD extends Actor {
 					data.abilityBonus = this.abilityModifier("dex");
 				}
 
+				data.injuryPenalty = penalties?.toHit;
 				data.talentBonus = bonuses.rangedAttackBonus;
 				data.rangedDamageBonus = bonuses.rangedDamageBonus * damageMultiplier;
 				data.damageParts.push("@rangedDamageBonus");
@@ -2516,7 +2629,7 @@ export default class ActorSD extends Actor {
 	async rollMagic(magicCoreLevel, params={}, power=null) {
 		params.dialogTemplate = "systems/shadowdark/templates/dialog/roll-magic-dialog.hbs";
 		params.chatCardTemplate = "systems/shadowdark/templates/chat/magic-card.hbs";
-		const parts = [(game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20"), "@itemBonus", "@abilityBonus", "@talentBonus"];
+		const parts = [(game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20"), "@itemBonus", "@abilityBonus", "@talentBonus", "@hitLocationBonus"];
 
         if (params.powerLevel < magicCoreLevel && (power?.system.duration_increase || power?.system.damage_increase))
         {
@@ -2529,6 +2642,7 @@ export default class ActorSD extends Actor {
 			rollType: params.magicType,
 			powerLevel: params.powerLevel,
 			talentBonus: magicCoreLevel,
+			injuryPenalty: this.system.penalties.toHit,
 			magicCoreLevel: magicCoreLevel,
 			nanoPoints: params.nanoPoints,
 			cost: params.cost,

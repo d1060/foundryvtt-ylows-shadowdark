@@ -316,6 +316,34 @@ export default function registerSystemSettings() {
 		requiresReload: true,
 	});
 
+	// -------------------
+	//  Use Hit Location
+	// -------------------
+	//
+	game.settings.register("shadowdark", "hitLocation", {
+		name: "SHADOWDARK.settings.hitLocation.name",
+		hint: "SHADOWDARK.settings.hitLocation.hint",
+		scope: "world",
+		type: Boolean,
+		config: true,
+		default: false,
+		requiresReload: false,
+	});
+
+	// -------------------
+	//  Use Hit Location Armor Rules
+	// -------------------
+	//
+	game.settings.register("shadowdark", "hitLocationArmor", {
+		name: "SHADOWDARK.settings.hitLocationArmor.name",
+		hint: "SHADOWDARK.settings.hitLocationArmor.hint",
+		scope: "world",
+		type: Boolean,
+		config: true,
+		default: false,
+		requiresReload: false,
+	});
+
 	// ----------------
 	//  DEBUG SETTINGS
 	// ----------------

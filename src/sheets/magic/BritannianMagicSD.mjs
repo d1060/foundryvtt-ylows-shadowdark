@@ -508,6 +508,11 @@ export default class BritannianMagicSD {
     static async _addActiveSpell(actor, spell, result) {
         if (!actor.system.britannian_magic.active_spells) actor.system.britannian_magic.active_spells = [];
         var tokens = result.targetTokens ?? [];
+        for (const target of game.user.targets.values())
+        {
+            if (!tokens.some(t => t.id === target.id))
+                tokens.push(target);
+        }
 
         const effect = (await fromUuid(spell.effect.uuid)).toObject();
         spell.effect.img = effect.img;
@@ -521,6 +526,11 @@ export default class BritannianMagicSD {
     static async _applySpellToTargets(actor, spell, result) {
         if (!actor || !spell) return true;
         var tokens = result.targetTokens ?? [];
+        for (const target of game.user.targets.values())
+        {
+            if (!tokens.some(t => t.id === target.id))
+                tokens.push(target);
+        }
         if (!tokens.length) return true;
 
         const effect = await fromUuid(spell.effect.uuid);

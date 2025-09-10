@@ -1,6 +1,7 @@
 import UtilitySD from "../utils/UtilitySD.mjs";
 import ActorSheetSD from "./ActorSheetSD.mjs";
 import BritannianMagicSD from "./magic/BritannianMagicSD.mjs";
+import CompendiumsSD from "../documents/CompendiumsSD.mjs";
 
 export default class NpcSheetSD extends ActorSheetSD {
 
@@ -106,6 +107,7 @@ export default class NpcSheetSD extends ActorSheetSD {
 		context.showSpells = game.settings.get("shadowdark", "use_coreSpellcasting");
 		context.showSeirizianMagic = game.settings.get("shadowdark", "use_seiriziaSpellcasting");
 		context.showBritannianMagic = game.settings.get("shadowdark", "use_britannianRuneMagic");
+		context.showHitLocation = game.settings.get("shadowdark", "hitLocation");
 
 		switch (partId)
 		{
@@ -136,6 +138,13 @@ export default class NpcSheetSD extends ActorSheetSD {
 					}
 
 					context.characterRunesChoicesKey = 'characterRunes';
+				}
+
+				if (context.showHitLocation)
+				{
+					context.bodySetupChoicesKey = 'bodySetup';
+					context.bodySetups = await CompendiumsSD.bodySetups(false);
+					context.bodySetup = this.actor.system.bodySetup ? await fromUuid(this.actor.system.bodySetup) : null;
 				}
 				break;
 		}
@@ -239,6 +248,14 @@ export default class NpcSheetSD extends ActorSheetSD {
 				await this.actor.update({[event.target.name]: UtilitySD.getNestedProperty(this.actor, event.target.name)});
 			}
 		}
+		else if (event.target.list)
+		{
+			let uuid = UtilitySD.getSelectedUuid(form, event.target);
+			if (uuid)
+			{
+				await this.actor.update({[event.target.name]: uuid});
+			}
+		}
 		else if (event.target?.name === 'predefinedEffects')
 			shadowdark.effects.fromPreDefined(this.actor, event.target.value);
 		else if (event.target.type === 'checkbox')
@@ -250,6 +267,7 @@ export default class NpcSheetSD extends ActorSheetSD {
 	}
 
 	async _onRender(context, options) {
+		await super._onRender(context, options);
 		const proseMirror = this.element.querySelector('prose-mirror.editor.prosemirror');
 		const proseMirrorContent = this.element.querySelector('prose-mirror.editor.prosemirror > div.editor-content');
 		if (proseMirrorContent != null)
@@ -401,10 +419,20 @@ export default class NpcSheetSD extends ActorSheetSD {
 			.split(".")
 			.reduce((obj, path) => obj ? obj[path]: [], this.actor.system);
 
-		const newChoices = [];
-		for (const itemUuid of currentChoices) {
-			if (itemUuid === deleteUuid) continue;
-			newChoices.push(itemUuid);
+		let newChoices = [];
+		if (Array.isArray(currentChoices))
+		{
+			for (const itemUuid of currentChoices) {
+				if (itemUuid === deleteUuid) continue;
+				newChoices.push(itemUuid);
+			}
+		}
+		else
+		{
+			if (currentChoices === deleteUuid)
+				newChoices = null;
+			else
+				newChoices = currentChoices;
 		}
 
 		const dataKey = `system.${choicesKey}`;

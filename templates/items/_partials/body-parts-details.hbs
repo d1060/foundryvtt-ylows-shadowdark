@@ -1,0 +1,59 @@
+<section class="tab {{tabs.bodyPartsDetails.cssClass}} navigation-tab" data-tab="bodyPartsDetails" data-group="sheet" data-application-part="bodyPartsDetails">
+    <div style="display:grid; grid-template-columns: 1fr 290px" >
+        <div style="display:grid; grid-template-rows: 1fr 24px; row-gap: 5px">
+            <div class="SD-box" style="width: 320px;">
+                <div class="header">
+                    <label>
+                        {{localize "SHADOWDARK.item.body_parts.label"}}
+                    </label>
+                    <span>
+                        {{#if owner}}
+                            <a
+                                class="item-selector fas fa-plus-square-o edit-button"
+                                data-action="addBodyPart" >
+                            </a>
+                        {{/if}}
+                    </span>
+                </div>
+                <div class="content">
+                    {{#each parts}}
+                        {{#unless (eq @index 0)}}<hr />{{/unless}}
+                        <div class="body-part-setup">
+                            <div style="display:grid; grid-template-rows: 20px 20px; row-gap: 5px">
+                                <div style="display:grid; grid-template-columns: {{#unless (eq name 'Background')}}12px {{/unless}}4fr 1fr; column-gap: 5px">
+                                    {{#unless (eq name 'Background')}}
+                                    <a  style="font-size: 16px; align-self: center;"
+                                        class="item-selector fas fa-minus-square-o edit-button"
+                                        data-index="{{@index}}"
+                                        data-action="removeBodyPart" >
+                                    </a>
+                                    {{/unless}}
+                                    <input type="text" name="body-part-name" data-index="{{@index}}" value="{{name}}">
+                                    <input type="number" name="body-part-toHit" data-index="{{@index}}" value="{{toHit}}">
+                                </div>
+
+                                <select name="body-part-effect" data-index="{{@index}}">
+                                    {{selectOptions
+                                        config.HIT_LOCATIONS
+                                        selected=effect
+                                        localize=false
+                                    }}
+                                </select>
+                            </div>
+                            <img src="{{image}}" name="body-part-image" data-index="{{@index}}" data-edit="img" data-action="editBodyPartImage" style="height: 45px" />
+                        </div>
+                    {{/each}}
+                </div>
+            </div>
+            <div style="margin-left: 60px; display: flex; height: 24px; align-self: center;">
+                <input type="checkbox" name="system.defaultBodyPart" data-action="defaultBodySetup" style="width: 20px;" {{checked system.defaultBodySetup}}>
+                <h3 style="width: 145px; align-self: center;">{{localize 'SHADOWDARK.item.body_parts.default'}}</h3>
+            </div>
+        </div>
+        <div class="hitLocationMap" data-action="selectHitLocation">
+            {{#each parts}}
+                <canvas name="{{name}}" data-index="{{@index}}" data-tooltip="{{name}}. To hit: {{toHit}}" class="hitLocationCanvas" style="z-index: -{{@index}}" {{#unless (eq name 'Background')}}hidden{{/unless}}></canvas>
+            {{/each}}
+        </div>
+    </div>
+</section>

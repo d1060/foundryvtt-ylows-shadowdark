@@ -220,5 +220,4 @@ export default function registerHandlebarsHelpers() {
 		const html = options.fn(this);
 		return html.replace(rgx, "$& selected");
 	});
-
 }

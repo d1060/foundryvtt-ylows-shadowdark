@@ -23,6 +23,18 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 					}
 			};
 		}
+		else if (this.item.typeSlug === 'body-parts')
+		{
+			if (!this.item.system.bodyParts || this.item.system.bodyParts.length == 0)
+				this.item.system.bodyParts = [
+					{
+						name: "Background",
+						toHit: 0,
+						image: "systems/shadowdark/assets/body_parts/human-m-full.png",
+						effect: ""
+					}
+				];
+		}
 	}
 
 	/* -------------------------------------------- */
@@ -61,7 +73,12 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			removeSuffix: this.#onRemoveSuffix,
 			selectItem: this.#onItemSelection,
 			manageActiveEffect: this.#manageActiveEffect,
-			openEvolutionGrid: this.#onOpenEvolutionGrid
+			openEvolutionGrid: this.#onOpenEvolutionGrid,
+			addBodyPart: this.#onAddBodyPart,
+			removeBodyPart: this.#onRemoveBodyPart,
+			editBodyPartImage: this.#onEditBodyPartImage,
+			defaultBodySetup: this.#onDefaultBodySetup,
+			selectHitLocation: this.#onSelectHitLocation,
 		},
 		dragDrop: [{dropSelector: ".items"}],
  	}
@@ -82,6 +99,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		ancestryDetails:         { template: "systems/shadowdark/templates/items/ancestry/details-tab.hbs" },
 		armorDetails:            { template: "systems/shadowdark/templates/items/armor/details-tab.hbs" },
 		basicDetails:            { template: "systems/shadowdark/templates/items/basic/details-tab.hbs" },
+		bodyPartsDetails:		 { template: "systems/shadowdark/templates/items/_partials/body-parts-details.hbs" },
 		boonDetails:             { template: "systems/shadowdark/templates/items/boon/details-tab.hbs" },
 		classAbilityDetails:     { template: "systems/shadowdark/templates/items/class-ability/details-tab.hbs" },
 		classDetails:            { template: "systems/shadowdark/templates/items/class/details-tab.hbs" },
@@ -135,6 +153,11 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 				tabs.tabs.push({ id: 'basicDetails', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.details', cssClass: "navigation-tab active" })
 				this.assertVariableTab('effects', tabs, this.item.system.magicItem);
 				this.assertVariableTab('light', tabs, this.item.system.light.isSource);
+				tabs.tabs.push({ id: 'description', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.description', cssClass: "navigation-tab" })
+				tabs.tabs.push({ id: 'source', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.source', cssClass: "navigation-tab" })
+				break;
+			case "body-parts":
+				tabs.tabs.push({ id: 'bodyPartsDetails', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.bodyPartsDetails', cssClass: "navigation-tab active" })
 				tabs.tabs.push({ id: 'description', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.description', cssClass: "navigation-tab" })
 				tabs.tabs.push({ id: 'source', group: 'sheet', label: 'SHADOWDARK.sheet.item.tab.source', cssClass: "navigation-tab" })
 				break;
@@ -319,6 +342,28 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			const fieldName = proseMirror.getAttribute("name");
 			proseMirrorContent.addEventListener("focusout", (event) => {
 				this._onSetDescription(event, fieldName);
+			});
+		}
+
+		this.hitLocationContexts = [];
+		this.hitLocationCanvasses = [];
+		for (let bodyPart of this.item.system.bodyParts ?? []) {
+			let texture = await foundry.canvas.loadTexture(bodyPart.image);
+			const { frame, baseTexture } = texture;
+			const w = frame.width, h = frame.height;
+			const canvas = this.element.querySelector('.hitLocationMap canvas[name="' + bodyPart.name + '"]');
+			canvas.width = w; canvas.height = h;
+			const ctx = canvas.getContext('2d', { willReadFrequently: true });
+			this.hitLocationCanvasses.push(canvas);
+			this.hitLocationContexts.push(ctx);
+			const src = baseTexture.resource.source;
+			ctx.drawImage(src, frame.x, frame.y, w, h, 0, 0, w, h);
+		}
+		const hitLocation = this.element.querySelector('.hitLocationMap');
+		if (hitLocation != null)
+		{
+			hitLocation.addEventListener("mousemove", (event) => {
+				this._onHitLocationMouseMove(event);
 			});
 		}
 	}
@@ -674,6 +719,9 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			case "basic":
 				await this.getSheetDataForBasicItem(context);
 				break;
+			case "bodyPartsDetails":
+				await this.getSheetDataForBodyParts(context);
+				break;
 			case "class":
 				await this.getSheetDataForClassItem(context);
 				break;
@@ -863,6 +911,11 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			const lightRemainingSetting = (game.user.isGM)? 2 : game.settings.get("shadowdark", "playerShowLightRemaining");
 			context.showRemainingMins = lightRemainingSetting > 1;
 		}
+	}
+
+	async getSheetDataForBodyParts(context) {
+		context.owner = game.user.isGM;
+		context.parts = this.item.system.bodyParts;
 	}
 
 
@@ -1372,6 +1425,8 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			await this._onEditExtraDamage(event.target);
 		else if (this.item.type === 'Class' && event.target.name.startsWith("title."))
 			await this._onClassTitleUpdate(event.target);
+		else if (event.target.name.startsWith("body-part"))
+			await this._onUpdateBodyPart(event.target);
 		else if (event.target.id === 'effect-change-value')
 		{
 			let effectId = event.target.dataset.effectId;
@@ -1543,6 +1598,109 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		if (!this.evolutionGrid)
 			this.evolutionGrid = new EvolutionGridSD({type: this.item});
 		this.evolutionGrid.render(true);
+
+	}
+
+	static async #onAddBodyPart(event, target) {
+		let bodyPart = {
+			name: "Part",
+			toHit: 0,
+			image: "systems/shadowdark/assets/body_parts/human-m-full.png"
+		}
+
+		this.item.system.bodyParts.unshift(bodyPart);
+		await this.item.update({['system.bodyParts']: this.item.system.bodyParts});
+		this.render(true);
+	}
+
+	static async #onRemoveBodyPart(event, target) {
+		const index = target.dataset.index;
+		this.item.system.bodyParts.splice(index, 1);
+		await this.item.update({['system.bodyParts']: this.item.system.bodyParts});
+		this.render(true);
+	}
+
+	static async #onEditBodyPartImage(event, target) {
+		const index = target.dataset.index;
+		const current = this.item.system.bodyParts[index].image;
+
+		const fp = new foundry.applications.apps.FilePicker({
+			type: "image",
+			current: current,
+			callback: async(path) => {
+				this.item.system.bodyParts[index].image = path;
+				await this.item.update({['system.bodyParts']: this.item.system.bodyParts});
+				this.render();
+			}
+		});
+
+		await fp.render(true);
+	}
+
+	static async #onDefaultBodySetup(event, target) {
+		this.item.system.defaultBodySetup = target.checked;
+		await this.item.update({['system.defaultBodySetup']: this.item.system.defaultBodySetup});
+	}
+
+	async _onUpdateBodyPart(target) {
+		const index = target.dataset.index;
+		switch (target.name) {
+			case "body-part-name":
+				this.item.system.bodyParts[index].name = target.value;
+				break;
+			case "body-part-toHit":
+				this.item.system.bodyParts[index].toHit = target.value;
+				break;
+			case "body-part-effect":
+				this.item.system.bodyParts[index].effect = target.value;
+				break;
+			case "body-part-image":
+				this.item.system.bodyParts[index].image = target.value;
+				break;
+		}
+		await this.item.update({['system.bodyParts']: this.item.system.bodyParts});
+		this.render(true);
+	}
+
+	async _onHitLocationMouseMove(event) {
+		const baseCanvas = this.element.querySelector('.hitLocationMap canvas[name="Background"]');
+
+		const dispW = baseCanvas.clientWidth;
+		const dispH = baseCanvas.clientHeight;
+
+		const natW = baseCanvas.width;
+		const natH = baseCanvas.height;
+
+		let scaleX = natW / dispW;
+		let scaleY = natH / dispH;
+
+		const rect = event.currentTarget.getBoundingClientRect();
+
+		const x = (event.clientX - rect.left) * scaleX;
+		const y = (event.clientY - rect.top) * scaleY;
+
+		let selectedIndex = -1;
+		for (let i = 0; i < this.item.system.bodyParts.length; i++) {
+			if (this.item.system.bodyParts[i].name == 'Background')
+			{
+				this.hitLocationCanvasses[i].hidden = false;
+				continue;
+			}
+
+			let ctx = this.hitLocationContexts[i];
+			const { data } = ctx.getImageData(x|0, y|0, 1, 1);
+			let alpha = data[3];
+			if (alpha > 0 && selectedIndex == -1)
+			{
+				selectedIndex = i;
+				this.hitLocationCanvasses[i].hidden = false;
+			}
+			else
+				this.hitLocationCanvasses[i].hidden = true;
+		}
+	}
+
+	static async #onSelectHitLocation(event, target) {
 
 	}
 

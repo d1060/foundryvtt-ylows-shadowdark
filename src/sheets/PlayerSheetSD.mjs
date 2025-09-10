@@ -285,6 +285,10 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				context.abilities = this.actor.getCalculatedAbilities();
 				this.actor.system.move = await this.actor.getCalculatedMove();
 				context.move = this.actor.system.move;
+				if (this.actor.system.penalties?.move)
+				{
+					context.movePenalty = this.actor.system.penalties.move;
+				}
 
 				context.abilitiesOverrides = Object.keys(
 					foundry.utils.flattenObject(
@@ -496,6 +500,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			}
 			game.shadowdark.effectPanel.refresh();
 			this.render(true);
+			this.removeItemFromOriginalActor(data, item);
 			return;
 		}
 
@@ -537,7 +542,10 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			if (newItems.length > 0 && data.system.fromLoot.description)
 				await this._updateLootItem(newItems[0], data);
 		}
+		this.removeItemFromOriginalActor(data, item);
+	}
 
+	async removeItemFromOriginalActor(data, item) {
 		if (data.actor) {
 			if (game.user.isGM) {
 				item.actor.deleteEmbeddedDocuments(
@@ -558,6 +566,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				);
 			}
 		}
+
 	}
 
 	async _updateLootItem(item, data) {

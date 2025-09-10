@@ -492,6 +492,35 @@ export default class ActiveEffectsSD {
 			const chosen = await this.askEffectInput({name, type, options});
 			return chosen[type] ?? [value];
 		}
+		else if (key === "2Hweapon") {
+			const type = "proficiency";
+			const options = await shadowdark.utils.getSlugifiedItemList(
+				await shadowdark.compendiums.base2HWeapons()
+			);
+
+			const rangedWeaponOptions = await shadowdark.utils.getSlugifiedItemList(
+				await shadowdark.compendiums.rangedWeapons()
+			);
+
+			const existingWeaponProficiencies = (await actor?.weaponProficiencies()) ?? [];
+			for (const key of Object.keys(options))
+			{
+				var isRanged = rangedWeaponOptions[key] ? true : false;
+
+				for (var proficiency of existingWeaponProficiencies)
+				{
+					if (key !== proficiency && proficiency !== 'all' && !(isRanged && proficiency === 'allRanged') && !(!isRanged && proficiency === 'allMelee'))
+					{
+						delete options[key];
+						break;
+					}
+				}
+			}
+
+			if (Object.keys(options).length === 0) return [];
+			const chosen = await this.askEffectInput({name, type, options});
+			return chosen[type] ?? [value];
+		}
 		else if (key === "2HweaponProficiency") {
 			const type = "proficiency";
 			const options = await shadowdark.utils.getSlugifiedItemList(
@@ -832,6 +861,8 @@ export default class ActiveEffectsSD {
 				casterName: effect.system.casterName,
 				sourceName: (effect.system.origin && typeof effect.system.origin === "string") ? effect.system.origin : (effect.parent?.name ?? "Unknown"),
 			};
+
+			if (effect.parent && effect.parent.type == 'Talent') continue;
 
 			if (effect.disabled) {
 				categories.inactive.effects.push(decoratedEffect);

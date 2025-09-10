@@ -17,6 +17,8 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
     constructor(options) {
         super(options);
 
+		///let now = Date.now(); 
+		//shadowdark.log(`Building Evolution Grid.`);
 		let optionsKeys = Object.keys(options);
 		for (let key of optionsKeys) {
 			this[key] = options[key];
@@ -30,6 +32,10 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 		this.gridPosition = {left: 0, top: 0, zoom: 1 };
 		if (this.actor && this.actor.system.evolutionGrid.location) this.gridPosition = structuredClone(this.actor.system.evolutionGrid.location);
 		else if (this.type.system.grid) this.gridPosition = structuredClone(this.type.system.grid);
+		//let current = Date.now();
+		//let elapsed = current - now;
+		//now = current;
+		//shadowdark.log(`${elapsed} ms: Evolution Grid: Setting up Circle Arcs.`);
 		this.setupAllCircleArcs();
 
 		const lastStep = {
@@ -41,9 +47,23 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 		this._undoSteps.push(lastStep);
 
 		if (this.actor)
+		{
+			//current = Date.now();
+			//elapsed = current - now;
+			//now = current;
+			//shadowdark.log(`${elapsed} ms: Evolution Grid: Building Available Nodes List.`);
 			this.buildAvailableNodesList();
+		}
 
+		//current = Date.now();
+		//elapsed = current - now;
+		//now = current;
+		//shadowdark.log(`${elapsed} ms: Evolution Grid: Sanity Check.`);
 		this.sanityCheck();
+		//current = Date.now();
+		//elapsed = current - now;
+		//now = current;
+		//shadowdark.log(`${elapsed} ms: Evolution Grid: Startup Done.`);
 	}
 
    	/** @inheritdoc */
@@ -67,6 +87,7 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 			circleAlign: this.#onCircleAlign,
 			circleFit: this.#onCircleFit,
 			squareGrid: this.#onSquareGrid,
+			diagonalGrid: this.#onDiagonalGrid,
 			triangularGrid: this.#onTriangularGrid,
 			undo: this.#onUndo,
 			startingNodes: this.#onStartingNodes
@@ -113,7 +134,7 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 	}
 
 	get gridSpacing() {
-		return 128;
+		return 96;
 	}
 
 	get remaningChoices() {
@@ -131,6 +152,9 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 				else
 					availableChoices += this.type.system.evolutionGrid?.choices?.oddLevels ?? 0
 			}
+
+			if (this.actor.system.bonuses.fixedExtraTalentChoices)
+				availableChoices += this.actor.system.bonuses.fixedExtraTalentChoices;
 
 			if (this.actor.system.bonuses.extraTalentChoices)
 				availableChoices += this.actor.system.bonuses.extraTalentChoices * this.actor.system.level.grid;
@@ -203,6 +227,11 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 					this._multiSelectedNodes = null;
 
 				for (let multiSelectedNode of this._multiSelectedNodes) {
+					if (multiSelectedNode.uuid == gridTalentId) {
+						multiSelectedNode.originalDivX = this._draggedTalent.originalDivX;
+						multiSelectedNode.originalDivY = this._draggedTalent.originalDivY;
+					}
+
 					const gridTalent = this.type.system.gridTalents.find(t => t.uuid === multiSelectedNode.uuid);
 					for (const arc of gridTalent.arcs ?? []) {
 						const circle = this.type.system.gridCircles.find(c => c.uuid == arc.circle);
@@ -307,12 +336,11 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 			gridClick.y += (this.iconSize / 2);
 		}
 		let snappedGridClick = this.snapToGrid(gridClick, event.altKey);
-
 		let dropCoordinates = {x: snappedGridClick.x - (this.iconSize / 2), y: snappedGridClick.y - (this.iconSize / 2)};
 
 		if (uuid)
 		{
-			let item = await fromUuid(uuid);
+			let item = fromUuidSync(uuid);
 			if (!item || item.type != "Talent") return;
 
 			if (!this.type.system.gridTalents) this.type.system.gridTalents = [];
@@ -335,11 +363,18 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 			const div = event.target.closest('div');
 			let gridTalentId = div.dataset.id;
 			let gridTalent = this.type.system.gridTalents.find(t => t.uuid == gridTalentId);
+
+			let circles = [];
 			if (gridTalent)
 			{
 				// Clear dynamic lines before updating coordinates.
 				this.clearDynamic();
 				gridTalent.coordinates = {x: dropCoordinates.x, y: dropCoordinates.y};
+				for (const arc of gridTalent.arcs ?? []) {
+					const circle = this.type.system.gridCircles.find(c => c.uuid == arc.circle);
+					if (circle)
+						circles.push(circle);
+				}
 			}
 			//shadowdark.log(`onDrop Cleared Dynamic`);
 			div.style.left = dropCoordinates.x + 'px';
@@ -347,24 +382,48 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 
 			if (this._multiSelectedNodes) {
 				const dropSnapDelta = {x: snappedGridClick.x - gridClick.x, y: snappedGridClick.y - gridClick.y};
+				const mainMultiSelectNode = this._multiSelectedNodes.find(n => n.uuid == gridTalentId);
 				for (let node of this._multiSelectedNodes) {
 					if (node.uuid === gridTalentId) continue;
 
 					const nodeTalent = this.type.system.gridTalents.find(t => t.uuid === node.uuid);
 					if (nodeTalent)
 					{
-						let dropCoordinates = this.snapToGrid({x: nodeTalent.coordinates.x + (this.iconSize / 2), y: nodeTalent.coordinates.y + (this.iconSize / 2)}, event.altKey);
-						nodeTalent.coordinates = {x: dropCoordinates.x - (this.iconSize / 2), y: dropCoordinates.y - (this.iconSize / 2)};
-						node.content.style.left = (dropCoordinates.x - (this.iconSize / 2)) + 'px';
-						node.content.style.top = (dropCoordinates.y - (this.iconSize / 2)) + 'px';
-						node.originalEventX = dropCoordinates.x;
-						node.originalEventY = dropCoordinates.y;
-						node.originalDivX = (dropCoordinates.x - (this.iconSize / 2));
-						node.originalDivY = (dropCoordinates.y - (this.iconSize / 2));
+						let nodeDropCoordinates = {
+							x: (node.originalDivX - mainMultiSelectNode.originalDivX) + dropCoordinates.x, 
+							y: (node.originalDivY - mainMultiSelectNode.originalDivY) + dropCoordinates.y};
+
+						nodeTalent.coordinates = {x: nodeDropCoordinates.x, y: nodeDropCoordinates.y};
+						node.content.style.left = nodeDropCoordinates.x + 'px';
+						node.content.style.top = nodeDropCoordinates.y + 'px';
+						node.originalEventX = nodeDropCoordinates.x + (this._draggedTalent.originalEventX - this._draggedTalent.originalDivX);
+						node.originalEventY = nodeDropCoordinates.y + (this._draggedTalent.originalEventY - this._draggedTalent.originalDivY);
+						node.originalDivX = nodeDropCoordinates.x;
+						node.originalDivY = nodeDropCoordinates.y;
+
+						for (const arc of nodeTalent.arcs ?? []) {
+							const circle = this.type.system.gridCircles.find(c => c.uuid == arc.circle);
+							if (circle)
+								circles.push(circle);
+						}
 					}
 				}
 			}
+			circles = UtilitySD.uniqBy(circles, c => c.uuid);
 
+			if (this._draggedTalent)
+			{
+				let eventDeltaX = (snappedGridClick.x - (this._draggedTalent.originalDivX + (this.iconSize / 2)));
+				let eventDeltaY = (snappedGridClick.y - (this._draggedTalent.originalDivY + (this.iconSize / 2)));
+				for (const circle of circles)
+				{
+					circle.c = {x: circle.originalCenter.x + eventDeltaX, y: circle.originalCenter.y + eventDeltaY};
+					circle.originalCenter = circle.c;
+				}
+			}
+
+			if (circles.length)
+				this.scheduleDrawCircles();
 			this.scheduleDrawStatic(lines);
 			this.setDebugText(`Dragged Talent at left: ${UtilitySD.roundTo(dropCoordinates.x, 2)}, top: ${UtilitySD.roundTo(dropCoordinates.y, 2)} ${this._multiSelectedNodes ? 'and' + this._multiSelectedNodes.length + ' more' : ''}`);
 		}
@@ -389,22 +448,43 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
   	}
 
 	async renderAll() {
-		//shadowdark.log(`_onRender Start.`);
+		//let now = Date.now(); 
+		//shadowdark.log(`Evolution Grid _onRender Start.`);
 		this.grid = this.element.querySelector(".evolution-grid");
 		this.talentsGrid = this.element.querySelector(".evolution-grid-talents");
-		//shadowdark.log(`_onRender drawTalents.`);
+
+		//let current = Date.now();
+		//let elapsed = current - now;
+		//now = current;
+		//shadowdark.log(`${elapsed} ms: Evolution Grid _onRender drawTalents.`);
+
 		await this.drawTalents();
-		//shadowdark.log(`_onRender refreshMultiSelectNodes.`);
+
+		//current = Date.now();
+		//elapsed = current - now;
+		//now = current;
+		//shadowdark.log(`${elapsed} ms: Evolution Grid _onRender refreshMultiSelectNodes.`);
 		this.refreshMultiSelectNodes();
-		//shadowdark.log(`_onRender updateNodeStatus.`);
+
+		//current = Date.now();
+		//elapsed = current - now;
+		//now = current;
+		//shadowdark.log(`${elapsed} ms: Evolution Grid _onRender updateNodeStatus.`);
 		this.updateNodeStatus();
-		//shadowdark.log(`_onRender updateGridTypeVisibility.`);
+
+		//current = Date.now();
+		//elapsed = current - now;
+		//now = current;
+		//shadowdark.log(`${elapsed} ms: Evolution Grid _onRender updateGridTypeVisibility.`);
 		this.updateGridTypeVisibility();
 		if ((this._multiSelectedNodes ?? []).length > 1)
 			this.showAlignMenu();
 		this.showOrHideRemainingChoices();
 
-		//shadowdark.log(`_onRender schedulers.`);
+		//current = Date.now();
+		//elapsed = current - now;
+		//now = current;
+		//shadowdark.log(`${elapsed} ms: Evolution Grid _onRender schedulers.`);
 		if (this.editing) this.scheduleGrid();
 
 		this.circleCanvas = this.element.querySelector(".evolution-grid-circles");
@@ -424,7 +504,10 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 		this.resizeCanvas(this.canvas, this.ctx);
 		this.scheduleDraw();
 
-		//shadowdark.log(`_onRender end.`);
+		//current = Date.now();
+		//elapsed = current - now;
+		//now = current;
+		//shadowdark.log(`${elapsed} ms: Evolution Grid _onRender end.`);
 		this.#dragDrop.forEach((d) => d.bind(this.element));
 	}
 
@@ -633,6 +716,23 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 			multiSelectedNode.originalDivX = aligned.x;
 		}
 
+		let groupedNodes = [];
+		for (let node of nodes) {
+			let closest = Number.MAX_VALUE;
+			let closestNode = null;
+			for (let node2 of nodes) {
+				if (node.uuid == node2.uuid) continue;
+				const d = Math.hypot(node.coordinates.x - node2.coordinates.x, node.coordinates.y - node2.coordinates.y);
+				if (d < closest && !groupedNodes.some(gn => (gn.n1 === node.uuid && gn.n2 == node2.uuid) || (gn.n1 === node2.uuid && gn.n2 == node.uuid)))
+				{
+					closest = d;
+					closestNode = node2;
+				}
+			}
+			let groupedNode = {n1: node.uuid, n2: closestNode.uuid};
+			groupedNodes.push(groupedNode);
+		}
+
 		const circle = {
 			uuid: UtilitySD.generateUUID(),
 			n: points.length,
@@ -640,8 +740,9 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 			r,
     		theta0: Math.atan2(points[0].y - c.y, points[0].x - c.x),
     		visible: Array(points.length).fill(true),
-			nodes: Array(points.length).fill(null),
+			nodes: groupedNodes,
 		};
+
 		this.setupCircleArcs(circle, nodes);
 
 		this.type.system.gridCircles.push(circle);
@@ -692,6 +793,11 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 
 	static async #onSquareGrid() {
 		this.type.system.grid.type = 'square';
+		this.render(true);
+	}
+
+	static async #onDiagonalGrid() {
+		this.type.system.grid.type = 'diagonal';
 		this.render(true);
 	}
 
@@ -768,11 +874,25 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 		if (altKey) return coordinates;
 
 		if (this.type.system.grid.type == 'square') {
-			let xRate = (coordinates.x - Math.floor(coordinates.x / this.gridSpacing) * this.gridSpacing) / this.gridSpacing;
-			let yRate = (coordinates.y - Math.floor(coordinates.y / this.gridSpacing) * this.gridSpacing) / this.gridSpacing;
+			const xRate = (coordinates.x - Math.floor(coordinates.x / this.gridSpacing) * this.gridSpacing) / this.gridSpacing;
+			const yRate = (coordinates.y - Math.floor(coordinates.y / this.gridSpacing) * this.gridSpacing) / this.gridSpacing;
 
 			coordinates.x = (Math.floor(coordinates.x / this.gridSpacing) + (xRate >= 0.5 ? 1 : 0)) * this.gridSpacing;
 			coordinates.y = (Math.floor(coordinates.y / this.gridSpacing) + (yRate >= 0.5 ? 1 : 0)) * this.gridSpacing;
+		} else if (this.type.system.grid.type == 'diagonal') {
+			const diagonalSpacing = this.gridSpacing * Math.sqrt(2) / 2;
+
+  			// Coefficients along the diagonal basis
+  			let u = (coordinates.x + coordinates.y) / 2;   // along (1, 1)
+  			let v = (coordinates.x - coordinates.y) / 2;   // along (1, -1)
+
+  			// Round each coefficient to nearest multiple of step
+  			u = Math.round(u / diagonalSpacing) * diagonalSpacing;
+  			v = Math.round(v / diagonalSpacing) * diagonalSpacing;
+
+			coordinates.x = u + v;
+			coordinates.y = u - v;
+
 		} else {
 			const yPaces = Math.floor(coordinates.y / this.gridSpacing);
 			const xPace = 2 * this.gridSpacing / Math.sqrt(3);
@@ -848,6 +968,8 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 				this.setDebugText(`CTRL-Left Click at: ${UtilitySD.roundTo(gridClick.x, 2)}, ${UtilitySD.roundTo(gridClick.y, 2)} found NO node`);
 		}
 		if (event.button === 0 && !event.ctrlKey && event.shiftKey && !this._dragging) {
+			if (!this.editing) return;
+			this.startMultiselect(event);
 		}
 		else if (event.button === 2 && !event.ctrlKey && !event.shiftKey ) {
 			
@@ -1052,12 +1174,15 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 	}
 
 	async drawTalents() {
+		//let now = Date.now(); 
+		//shadowdark.log(`Evolution Grid drawTalents Start.`);
+
 		if (this.type.system.gridTalents) {
 			let allTalents = '';
 			for (let i = 0; i < this.type.system.gridTalents.length; i++)
 			{
 				let gridTalent = this.type.system.gridTalents[i];
-				let item = await fromUuid(gridTalent.itemUuid);
+				let item = fromUuidSync(gridTalent.itemUuid);
 				if (!item || item.type != "Talent")
 				{
 					this.type.system.gridTalents.splice(i, 1);
@@ -1067,9 +1192,17 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 
 				allTalents += this.getTalentDiv(gridTalent, item);
 			}
+			//let current = Date.now();
+			//let elapsed = current - now;
+			//now = current;
+			//shadowdark.log(`${elapsed} ms: Evolution Adding all Talent Div.`);
 			this.talentsGrid.innerHTML += allTalents;
 			this.#dragDrop.forEach((d) => d.bind(this.element));
 		}
+		//let current = Date.now();
+		//let elapsed = current - now;
+		//now = current;
+		//shadowdark.log(`${elapsed} ms: Evolution Grid drawTalents End.`);
 	}
 
 	findNode(gridClick)
@@ -1146,7 +1279,8 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 				buttons: [
 					{
 						action: 'Yes',
-						icon: "<i class=\"fa fa-check\"></i>",
+						default: true,
+						icon: "fa fa-check",
 						label: `${game.i18n.localize("SHADOWDARK.dialog.general.yes")}`,
 						callback: async () => {
 							if (!this.actor.system.evolutionGrid?.openNodes) this.actor.system.evolutionGrid.openNodes = [];
@@ -1185,7 +1319,7 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 					},
 					{
 						action: 'Cancel',
-						icon: "<i class=\"fa fa-times\"></i>",
+						icon: "fa fa-times",
 						label: `${game.i18n.localize("SHADOWDARK.dialog.general.cancel")}`,
 					},
 				],
@@ -1200,21 +1334,27 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 		if (node)
 		{
 			if (!this._multiSelectedNodes) this._multiSelectedNodes = [];
-
 			const talentDiv = this.element.querySelector('div.evolutionTalent[data-id="'+node.uuid+'"]');
-			talentDiv.classList.add("selected");
 
-			const selectedNode = {
-				uuid: node.uuid,
-				content: talentDiv,
-				originalDivX: UtilitySD.parseIntOrZero(talentDiv.style.left),
-				originalDivY: UtilitySD.parseIntOrZero(talentDiv.style.top)
-			};
+			let existingIndex = this._multiSelectedNodes.findIndex(n => n.uuid == node.uuid);
+			if (existingIndex >= 0) {
+				this._multiSelectedNodes.splice(existingIndex, 1);
+				talentDiv.classList.remove("selected");
+			} else {
+				talentDiv.classList.add("selected");
 
-			this._multiSelectedNodes.push(selectedNode);
+				const selectedNode = {
+					uuid: node.uuid,
+					content: talentDiv,
+					originalDivX: UtilitySD.parseIntOrZero(talentDiv.style.left),
+					originalDivY: UtilitySD.parseIntOrZero(talentDiv.style.top)
+				};
 
-			if (this._multiSelectedNodes.length + (this._multiSelectedNodes ?? []).length > 1)
-				this.showAlignMenu();
+				this._multiSelectedNodes.push(selectedNode);
+
+				if (this._multiSelectedNodes.length + (this._multiSelectedNodes ?? []).length > 1)
+					this.showAlignMenu();
+			}
 		}
 		else
 		{
@@ -1571,18 +1711,40 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 				this.gridCtx.lineTo(this.gridSize, yPix);
 			}
 			this.gridCtx.stroke();
-		} else {
+		} else if (kind === 'diagonal') {
+
+			this.gridCtx.save();
+			this.gridCtx.setTransform(1, 0, 0, 1, 0, 0);
+			this.gridCtx.beginPath();
+
+			const spacing = Math.sqrt(2) * this.gridSpacing;
+			const gridOverflow = Math.sqrt(2) * this.gridSize;
+
+			for (let x = 0; x <= this.gridSize + gridOverflow; x += spacing) {
+				const xPix = Math.round(x) + 0.5; // crisp 1px lines
+				this.gridCtx.moveTo(xPix, 0);
+				this.gridCtx.lineTo(xPix - gridOverflow, gridOverflow);
+			}
+
+			for (let x = -gridOverflow + 12; x <= this.gridSize; x += spacing) {
+				const xPix = Math.round(x) + 0.5; // crisp 1px lines
+				this.gridCtx.moveTo(xPix, 0);
+				this.gridCtx.lineTo(xPix + gridOverflow, gridOverflow);
+			}
+			this.gridCtx.stroke();
+			this.gridCtx.restore();
+		} else if (kind === 'triangular') {
 			// Triangular grid = 3 families of parallel lines at 0°, 60°, 120°
 			const angles = [0, Math.PI / 3, (2 * Math.PI) / 3];
-			const translations = [-0.25 * this.gridSpacing, this.gridSpacing / 2, 0];
-			const offset = {x : (1 * this.gridSpacing / Math.sqrt(3)) * 0.16, y : -this.gridSpacing * 0.03};
+			const translations = [-0.35 * this.gridSpacing, 0.67 * this.gridSpacing, 0.67 * this.gridSpacing];
+			const offset = {x : 0, y : 0};
 
 			for (let i = 0; i < angles.length; i++) {
 				const angle = angles[i];
 				const xTranslation = translations[i];
 				this.gridCtx.save();
 				// Draw in a rotated frame so we can lay lines horizontally
-				this.gridCtx.translate(offset.x + this.gridSize / 2, offset.y + this.gridSize / 2);
+				this.gridCtx.translate(offset.x, offset.y);
 				this.gridCtx.rotate(angle);
 
 				this.gridCtx.beginPath();
@@ -2026,6 +2188,8 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 	}
 
 	setupCircleArcs(circle, nodes, angles) {
+		if (circle.n != circle.nodes.length) circle.n = circle.nodes.length;
+
 		const step = (Math.PI * 2) / circle.n;
 
 		if (!circle.nodes)
@@ -2148,6 +2312,18 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 				shadowdark.debug(`sanityCheck: No node connected to line ${line.uuid}`);
 				this.type.system.gridLines.splice(i, 1);
 				i--;
+			}
+
+			if (!node1.lines.some(l => l == line.uuid))
+			{
+				shadowdark.debug(`sanityCheck: Node ${node1.uuid} not connected to line ${line.uuid}`);
+				node1.lines.push(line.uuid);
+			}
+
+			if (!node2.lines.some(l => l == line.uuid))
+			{
+				shadowdark.debug(`sanityCheck: Node ${node2.uuid} not connected to line ${line.uuid}`);
+				node2.lines.push(line.uuid);
 			}
 		}
 
