@@ -358,6 +358,16 @@ export default function registerSystemSettings() {
 		requiresReload: true,
 	});
 
+	game.settings.register("shadowdark", "performanceLogger", {
+		name: "SHADOWDARK.settings.performanceLogger.name",
+		hint: "SHADOWDARK.settings.performanceLogger.hint",
+		scope: "world",
+		type: Boolean,
+		config: true,
+		default: false,
+		requiresReload: true,
+	});
+
 	game.settings.register("shadowdark", "systemVersion", {
 		name: "SHADOWDARK.settings.systemVersion.name",
 		hint: "SHADOWDARK.settings.systemVersion.hint",

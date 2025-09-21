@@ -84,7 +84,7 @@ export default class RollAbilitySD extends HandlebarsApplicationMixin(Applicatio
 			if (context.rawAdvantage) context.rawAdvantage = false;
 			else context.rawDisadvantage = true;
 		}
-		
+
 		context.rollModes = CONFIG.Dice.rollModes;
 		context.rollMode =  this.rollMode;
 		context.data = this.params.data;

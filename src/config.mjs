@@ -149,6 +149,7 @@ SHADOWDARK.PROPERTY_TYPES = {
 	magic_melee_weapon: "SHADOWDARK.property.type.option.magic_melee_weapon",
 	magic_ranged_weapon: "SHADOWDARK.property.type.option.magic_ranged_weapon",
 	magic_item: "SHADOWDARK.property.type.option.magic_item",
+	magic_energy_source: "SHADOWDARK.property.type.option.magic_energy_source",
 };
 
 SHADOWDARK.RANGES = {
@@ -835,6 +836,7 @@ SHADOWDARK.PREDEFINED_EFFECTS = {
 	//system.bonuses.permanenceMastery
 	//system.bonuses.abilityBonus
 	//system.penalties.abilityPenalty
+	//system.bonuses.platedBulwark
 
 	//TODO:
 	//system.bonuses.injector On hit, injects a random drug on the target. Roll DC 12 CON. On a failure, roll 1d6:

@@ -296,11 +296,23 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 		this.dirty = true;
 	}
 
+	async removeItemFromActorUuid(ownerId, itemId) {
+		const owner = await fromUuid(ownerId);
+		if (owner) {
+			return this.removeItemFromActor(owner, itemId);
+		}
+	}
+
 	async removeItemFromActor(owner, itemId) {
-		owner.deleteEmbeddedDocuments(
+		owner?.deleteEmbeddedDocuments(
 				"Item",
 				[itemId]
 			);
+	}
+
+	async createItemOnActor(item, ownerId) {
+		const owner = await fromUuid(ownerId);
+		owner.createItemOnActor(item);
 	}
 
 	/** @override */

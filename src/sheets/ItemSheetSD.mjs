@@ -12,29 +12,6 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 	constructor(object) {
 		super(object);
 		this.#dragDrop = this.#createDragDropHandlers();
-		if (this.item.typeSlug === 'evolution-grid-type')
-		{
-			if (!this.item.system.evolutionGrid)
-				this.item.system.evolutionGrid = {
-					choices: {
-						firstLevel: 5,
-						evenLevels: 2,
-						oddLevels: 2
-					}
-			};
-		}
-		else if (this.item.typeSlug === 'body-parts')
-		{
-			if (!this.item.system.bodyParts || this.item.system.bodyParts.length == 0)
-				this.item.system.bodyParts = [
-					{
-						name: "Background",
-						toHit: 0,
-						image: "systems/shadowdark/assets/body_parts/human-m-full.png",
-						effect: ""
-					}
-				];
-		}
 	}
 
 	/* -------------------------------------------- */
@@ -314,7 +291,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 	async _onRender(context, options) {
 		this.#dragDrop.forEach((d) => d.bind(this.element));
 		const prefixes = this.element.querySelectorAll('[data-action="prefix"]');
-		if (prefixes.length > 0)
+		if (prefixes && prefixes.length > 0)
 		{
 			for (let prefix of prefixes)
 			{
@@ -325,7 +302,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		}
 
 		const suffixes = this.element.querySelectorAll('[data-action="suffix"]');
-		if (suffixes.length > 0)
+		if (suffixes && suffixes.length > 0)
 		{
 			for (let suffix of suffixes)
 			{
@@ -349,9 +326,13 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		this.hitLocationCanvasses = [];
 		for (let bodyPart of this.item.system.bodyParts ?? []) {
 			let texture = await foundry.canvas.loadTexture(bodyPart.image);
+			if (!texture) continue;
+
 			const { frame, baseTexture } = texture;
 			const w = frame.width, h = frame.height;
 			const canvas = this.element.querySelector('.hitLocationMap canvas[name="' + bodyPart.name + '"]');
+			if (!canvas) continue;
+
 			canvas.width = w; canvas.height = h;
 			const ctx = canvas.getContext('2d', { willReadFrequently: true });
 			this.hitLocationCanvasses.push(canvas);
@@ -690,10 +671,9 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		};
 	}
 
-
 	/** @override */
 	async _preparePartContext(partId, context, options) {
-		await super._preparePartContext(partId, context, options);
+		context = await super._preparePartContext(partId, context, options);
 
 		switch (partId)
 		{
@@ -805,6 +785,35 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		}
 
 		const context = await super._prepareContext(options);
+		if (this.item.typeSlug === 'evolution-grid-type')
+		{
+			if (!this.item.system.evolutionGrid)
+			{
+				this.item.system.evolutionGrid = {
+					choices: {
+						firstLevel: 5,
+						evenLevels: 2,
+						oddLevels: 2
+					}
+				};
+				this.item.update({'system.evolutionGrid': this.item.system.evolutionGrid});
+			}
+		}
+		else if (this.item.typeSlug === 'body-parts')
+		{
+			if (!this.item.system.bodyParts || this.item.system.bodyParts.length == 0)
+			{
+				this.item.system.bodyParts = [
+					{
+						name: "Background",
+						toHit: 0,
+						image: "systems/shadowdark/assets/body_parts/human-m-full.png",
+						effect: ""
+					}
+				];
+				this.item.update({'system.bodyParts': this.item.system.bodyParts});
+			}
+		}
 
 		context.item = this.item;
 
@@ -917,7 +926,6 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		context.owner = game.user.isGM;
 		context.parts = this.item.system.bodyParts;
 	}
-
 
 	async getSheetDataForClassItem(context) {
 		await this.getClassSelectorConfigs(context);
@@ -1380,11 +1388,17 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 				new select.ClassSelector(this.item).render(true);
 				break;
 			case "itemProperty":
-				if (itemType === "armor") {
+				if (itemType === "armor" && !this.item.system.magicItem) {
 					new select.ArmorPropertySelector(this.item).render(true);
 				}
-				else if (itemType === "weapon") {
+				else if (itemType === "armor" && this.item.system.magicItem) {
+					new select.MagicArmorPropertySelector(this.item).render(true);
+				}
+				else if (itemType === "weapon" && !this.item.system.magicItem) {
 					new select.WeaponPropertySelector(this.item).render(true);
+				}
+				else if (itemType === "weapon" && this.item.system.magicItem) {
+					new select.MagicWeaponPropertySelector(this.item).render(true);
 				}
 				break;
 		}
@@ -1464,7 +1478,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			default:
 				break;
 		}
-		this.render();
+		await this.render();
 	}
 
 	_onTalentTypeProperties(event) {
@@ -1659,11 +1673,11 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 				break;
 		}
 		await this.item.update({['system.bodyParts']: this.item.system.bodyParts});
-		this.render(true);
 	}
 
 	async _onHitLocationMouseMove(event) {
 		const baseCanvas = this.element.querySelector('.hitLocationMap canvas[name="Background"]');
+		if (!baseCanvas) return;
 
 		const dispW = baseCanvas.clientWidth;
 		const dispH = baseCanvas.clientHeight;

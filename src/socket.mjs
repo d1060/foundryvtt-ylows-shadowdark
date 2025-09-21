@@ -1,4 +1,6 @@
 import BritannianMagicSD from "./sheets/magic/BritannianMagicSD.mjs";
+import PlayerSheetSD from "./sheets/PlayerSheetSD.mjs";
+import RandomizerSD from "./apps/RandomizerSD.mjs";
 
 export default function listenOnSocket() {
 
@@ -15,6 +17,17 @@ export default function listenOnSocket() {
 				event.payload.userId,
 				event.payload.level0
 			);
+		}
+
+		if (event.type === "createRandomizedCharacter" && game.user.isGM) {
+			PlayerSheetSD.newRandomPlayerSheet(event.payload.owner);
+		}
+
+		if (event.type === "openCharacter") {
+			if (event.payload.userId === game.userId) {
+				const actor = game.actors.get(event.payload.actorId);
+				actor.sheet.render(true);
+			}
 		}
 
 		if (event.type === "dropLightSourceOnScene" && game.user.isGM) {
@@ -38,11 +51,23 @@ export default function listenOnSocket() {
 		}
 
 		if (event.type === "removeItemFromActor" && game.user.isGM) {
-			shadowdark.log(`Received event removeItemFromActor ${event.data.itemOwner.id} ${event.data.item.id}`);
-			game.shadowdark.lightSourceTracker.removeItemFromActor(
-				event.data.itemOwner,
-				event.data.item.id
+			shadowdark.log(`Received event removeItemFromActor ${event.data.itemOwnerId} ${event.data.itemId}`);
+			game.shadowdark.lightSourceTracker.removeItemFromActorUuid(
+				event.data.itemOwnerId,
+				event.data.itemId
 			);
+		}
+
+		if (event.type === "createItemOnActor" && game.user.isGM) {
+			fromUuid(event.data.itemUuid).then(item => {
+				shadowdark.log(`Received event createItemOnActor ${event.data.item.name} ${event.data.newOwnerId}`);
+				game.shadowdark.lightSourceTracker.createItemOnActor(
+					item,
+					event.data.newOwnerId,
+					event.data.itemUuid,
+					event.data.originalItemOwnerId,
+				);
+			});
 		}
 
 		if (event.type === "openNewCharacter") {

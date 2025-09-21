@@ -56,6 +56,8 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 
 
 	async _prepareContext(options) {
+		shadowdark.resetTimestamp();
+		shadowdark.logTimestamp(`RollDialogSD _prepareContext START`);
 		//const context = await super._prepareContext(options);
 		this.advantageTooltip = this.rollOptions.advantageTooltip ?? "";
 		if (this.data.advantage && this.advantageTooltip === "")    this.advantageTooltip = game.i18n.localize("SHADOWDARK.dialog.tooltip.talent_advantage");
@@ -187,7 +189,7 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 				{
 					let bodyPart = this.bodyType.system.bodyParts[i];
 					bodyPart.idx = i;
-					if (!CONFIG.SHADOWDARK.VITAL_HIT_LOCATIONS.includes(bodyPart.effect) || this.data.actor?.system.bonuses.vitalStrike)
+					if (!CONFIG.SHADOWDARK.VITAL_HIT_LOCATIONS.includes(bodyPart.effect) || this.data.actor?.system.bonuses?.vitalStrike)
 						context.bodyParts.push(bodyPart);
 				}
 			}
@@ -198,13 +200,13 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 				if (this.data.actor.type == 'NPC') {
 					this.data.hitLocationIndex = 'random';
 				} else {
-					this.data.hitLocationIndex = this.bodyType.system.bodyParts.length - 2;
+					this.data.hitLocationIndex = this.bodyType?.system.bodyParts.length - 2;
 					if (this.data.hitLocationIndex < 0) this.data.hitLocationIndex = 0;
 				}
 			}
 
 			context.hitLocationIndex = UtilitySD.parseIntIfNumeric(this.data.hitLocationIndex);
-			this.data.hitLocation = RollDialogSD.getBodyPartFromIndex(this.bodyType.system.bodyParts, this.data.hitLocationIndex, this.data.actor);
+			this.data.hitLocation = RollDialogSD.getBodyPartFromIndex(this.bodyType?.system.bodyParts, this.data.hitLocationIndex, this.data.actor);
         }
 
         if (this.data.actor?.hasAdvantage(this.data))
@@ -219,10 +221,12 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
             context.disadvantageHighlight = "talent-highlight";
         }
 
+		shadowdark.logTimestamp(`RollDialogSD _prepareContext END`);
 		return context;
 	}
 
 	async _onRender(context, options) {
+		shadowdark.logTimestamp(`RollDialogSD _onRender START`);
 		await super._onRender(context, options);
 
         let showHitLocation = game.settings.get("shadowdark", "hitLocation");
@@ -248,16 +252,19 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 
                 this.hitLocationContexts = [];
                 this.hitLocationCanvasses = [];
+				shadowdark.logTimestamp(`RollDialogSD _onRender Loading Body Parts`);
                 for (let bodyPart of this.bodyType.system.bodyParts) {
-					if (CONFIG.SHADOWDARK.VITAL_HIT_LOCATIONS.includes(bodyPart.effect) && !(this.data.actor?.system.bonuses.vitalStrike))
+					if (CONFIG.SHADOWDARK.VITAL_HIT_LOCATIONS.includes(bodyPart.effect) && !(this.data.actor?.system.bonuses?.vitalStrike))
 						continue;
 
+					shadowdark.logTimestamp(`RollDialogSD _onRender Loading Body Part ${bodyPart.name}`);
                     let texture = await foundry.canvas.loadTexture(bodyPart.image);
                     const { frame, baseTexture } = texture;
                     //const w = frame.width;
                     //const h = frame.height;
                     const canvas = this.element.querySelector('.hitLocationSelector canvas[name="' + bodyPart.name + '"]');
                     const src = baseTexture.resource.source;
+					shadowdark.logTimestamp(`RollDialogSD _onRender Loading Body Part ${bodyPart.name} - Loaded Image`);
 
 					canvas.width = Math.max(1, Math.round(this.hitLocationPanelWidth * dpr));
 					canvas.height = Math.max(1, Math.round(parentH * dpr));
@@ -271,6 +278,7 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 
 					// 3) Draw scaled to the canvas size
 					const ctx = canvas.getContext('2d', { willReadFrequently: true });
+					shadowdark.logTimestamp(`RollDialogSD _onRender Loading Body Part ${bodyPart.name} - Got Context`);
 					ctx.setTransform(dpr, 0, 0, dpr, 0, 0);   // map CSS px to device px for crispness
 					ctx.clearRect(0, 0, this.hitLocationPanelWidth, parentH);
 					ctx.drawImage(
@@ -281,6 +289,7 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 
                     this.hitLocationCanvasses.push(canvas);
                     this.hitLocationContexts.push(ctx);
+					shadowdark.logTimestamp(`RollDialogSD _onRender Loaded Body Part ${bodyPart.name}`);
                 }
 				
                 if (hitLocation != null)
@@ -295,6 +304,7 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 				}
             }
         }
+		shadowdark.logTimestamp(`RollDialogSD _onRender END`);
     }
 
 	static async #onSubmit(event, form, formData) {
@@ -318,6 +328,9 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 			case "damage":
 				this.data.itemDamage.value = event.target.value;
 				break;
+			case "weapon-backstab":
+				this.data.backstab = event.target.checked;
+				break;
 			case "hitLocation":
 				this.data.hitLocationIndex = event.target.value;
 				this.data.hitLocation = RollDialogSD.getBodyPartFromIndex(this.bodyType.system.bodyParts, this.data.hitLocationIndex, this.data.actor);
@@ -330,7 +343,7 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
         }
 
 		this.render(true);
-	}	
+	}
 	static async #onRoll(event, html) {
 		const rollButton = event.target.dataset.button;
 
@@ -342,8 +355,11 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 
 		if (game.settings.get("shadowdark", "hitLocation"))
 		{
-			this.data.hitLocationBonus = this.data.hitLocation.toHit;
+			this.data.hitLocationBonus = this.data.hitLocation?.toHit ?? 0;
 		}
+
+		// At this point, damage parts must have already been resolved.
+		if (this.data.damageParts && this.data.damageParts.length) this.data.damageParts = [];
 
         CONFIG.DiceSD.Roll(this.rollParts, this.data, event.currentTarget, advantage, this.rollOptions);
         this.close();
@@ -354,7 +370,7 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 
 		for (let i = 0, a = 0; i < this.bodyType.system.bodyParts.length; i++) {
 			let bodyPart = this.bodyType.system.bodyParts[i];
-			if (CONFIG.SHADOWDARK.VITAL_HIT_LOCATIONS.includes(bodyPart.effect) && !(this.data.actor?.system.bonuses.vitalStrike))
+			if (CONFIG.SHADOWDARK.VITAL_HIT_LOCATIONS.includes(bodyPart.effect) && !(this.data.actor?.system.bonuses?.vitalStrike))
 				continue;
 
 			if (bodyPart.name == 'Background')
@@ -399,7 +415,7 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 
 		for (let i = 0, a = 0; i < this.bodyType.system.bodyParts.length; i++) {
 			let bodyPart = this.bodyType.system.bodyParts[i];
-			if (CONFIG.SHADOWDARK.VITAL_HIT_LOCATIONS.includes(bodyPart.effect) && !(this.data.actor?.system.bonuses.vitalStrike))
+			if (CONFIG.SHADOWDARK.VITAL_HIT_LOCATIONS.includes(bodyPart.effect) && !(this.data.actor?.system.bonuses?.vitalStrike))
 				continue;
 
 			if (bodyPart.name == 'Background')
@@ -422,6 +438,8 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 	}
 
 	static getBodyPartFromIndex(bodyParts, index, actor) {
+		if (!bodyParts)
+			return null;
 		if (UtilitySD.isNumeric(index) && index >= 0 && index < bodyParts.length) {
 			return bodyParts[index];
 		}
@@ -430,7 +448,7 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 		let invSum = 0;
 		for (let bodyPart of processedBodyParts) {
 			if (bodyPart.name === "Background") continue;
-			if (CONFIG.SHADOWDARK.VITAL_HIT_LOCATIONS.includes(bodyPart.effect) && !(actor.system.bonuses.vitalStrike))
+			if (CONFIG.SHADOWDARK.VITAL_HIT_LOCATIONS.includes(bodyPart.effect) && !(actor.system.bonuses?.vitalStrike))
 				continue;
 			bodyPart.invToHit = 1 / (-bodyPart.toHit + 1);
 			invSum += bodyPart.invToHit;
@@ -440,7 +458,7 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 
 		for (let i = 0; i < bodyParts.length; i++) {
 			if (processedBodyParts[i].name === "Background") continue;
-			if (CONFIG.SHADOWDARK.VITAL_HIT_LOCATIONS.includes(processedBodyParts[i].effect) && !(actor.system.bonuses.vitalStrike))
+			if (CONFIG.SHADOWDARK.VITAL_HIT_LOCATIONS.includes(processedBodyParts[i].effect) && !(actor.system.bonuses?.vitalStrike))
 				continue;
 			accumSum += processedBodyParts[i].invToHit;
 			if (randomStrike <= accumSum)

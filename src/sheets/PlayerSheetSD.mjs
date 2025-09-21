@@ -163,31 +163,31 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				name: "ancestry",
 				label: game.i18n.localize("TYPES.Item.Ancestry"),
 				tooltip: game.i18n.localize("SHADOWDARK.sheet.player.ancestry.tooltip"),
-				item: await fromUuid(system.ancestry) ?? null,
+				item: fromUuidSync(system.ancestry) ?? null,
 			},
 			background: {
 				name: "background",
 				label: game.i18n.localize("TYPES.Item.Background"),
 				tooltip: game.i18n.localize("SHADOWDARK.sheet.player.background.tooltip"),
-				item: await fromUuid(system.background) ?? null,
+				item: fromUuidSync(system.background) ?? null,
 			},
 			class: {
 				name: "class",
 				label: game.i18n.localize("TYPES.Item.Class"),
 				tooltip: game.i18n.localize("SHADOWDARK.sheet.player.class.tooltip"),
-				item: await fromUuid(system.class) ?? null,
+				item: fromUuidSync(system.class) ?? null,
 			},
 			deity: {
 				name: "deity",
 				label: game.i18n.localize("TYPES.Item.Deity"),
 				tooltip: game.i18n.localize("SHADOWDARK.sheet.player.deity.tooltip"),
-				item: await fromUuid(system.deity) ?? null,
+				item: fromUuidSync(system.deity) ?? null,
 			},
 			patron: {
 				name: "patron",
 				label: game.i18n.localize("TYPES.Item.Patron"),
 				tooltip: game.i18n.localize("SHADOWDARK.sheet.player.patron.tooltip"),
-				item: await fromUuid(system.patron) ?? null,
+				item: fromUuidSync(system.patron) ?? null,
 			},
 		};
 
@@ -195,6 +195,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 	}
 
 	async _onFirstRender(context, options) {
+		shadowdark.logTimestamp("PlayerSheetSD _onFirstRender Start.");
 		if (game.settings.get("shadowdark", "use_britannianRuneMagic"))
 		{
 			options.position.width = 794;
@@ -202,12 +203,16 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		}
 
 		super._onFirstRender(context, options);
+		shadowdark.logTimestamp("PlayerSheetSD _onFirstRender End.");
 	}
 
 	async _onRender(context, options) {
+		shadowdark.logTimestamp("PlayerSheetSD _onRender Start.");
 		await super._onRender(context, options);
+		shadowdark.logTimestamp("PlayerSheetSD after super._onRender.");
 		await AbyssalMagicSD.addEventListeners(this);
 		await BritannianMagicSD.addEventListeners(this);
+		shadowdark.logTimestamp("PlayerSheetSD added Event Listeners.");
 
 		if (this.actor.system.showLevelUp) {
 			this.actor.update({"system.showLevelUp": false});
@@ -223,10 +228,14 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				this._onSetDescription(event, fieldName);
 			});
 		}
+		shadowdark.logTimestamp("PlayerSheetSD _onRender End.");
 	}
 
 	/** @override */
 	async _preparePartContext(partId, context, options) {
+		shadowdark.resetTimestamp();
+		shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' START.`);
+		context = await super._preparePartContext(partId, context, options);
 
 		switch (partId)
 		{
@@ -246,20 +255,30 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				if (context.evolutionGrid) {
 					context.evolutionGridItems = [];
 					for (let node of this.actor.system.evolutionGrid?.openNodes ?? []) {
-						let nodeItem = await fromUuid(node.itemUuid);
+						let nodeItem = fromUuidSync(node.itemUuid);
 						context.evolutionGridItems.push(nodeItem);
 					}
 				}
+				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got Evolution Grid Items.`);
 				context.xpNextLevel = this.actor.level * 10;
 				context.levelUp = (context.system.level.xp >= context.xpNextLevel);
 				context.knownLanguages = await this.actor.languageItems();
+				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got Languages.`);
 				context.backgroundSelectors = await this.getBackgroundSelectors();
+				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got Background Selectors.`);
 				context.characterClass = await this.actor.getClass();
+				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got Class.`);
 				context.classHasPatron = context.characterClass?.system?.patron?.required ?? false;
 				context.classTitle = await this.actor.getTitle();
+				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got Title.`);
 				context.characterPatron = await this.actor.getPatron();
+				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got Patron.`);
 				break;
 			case "abilities":
+				if (game.settings.get("shadowdark", "evolutionGrid")) {
+					this.actor.recalculateHp();
+				}
+
 				if (!this.actor.system.luck.tokens || !Array.isArray(this.actor.system.luck.tokens)) {
 					this.actor.system.luck.tokens = [true];
 				}
@@ -275,20 +294,25 @@ export default class PlayerSheetSD extends ActorSheetSD {
 					for (let i = this.actor.system.luck.tokens.length; i > (this.actor.system.bonuses.luckTokens ?? 0) + 1; i--)
 						this.actor.system.luck.tokens.pop();
 				}
+				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Starting checks.`);
 
 				context.luckTokens = this.actor.system.luck.tokens;
 				[context.system.attributes.ac.value, context.system.attributes.ac.tooltip] = await this.actor.getArmorClass();
+				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got AC.`);
 				context.hasTempHP = this.actor.system.attributes.hp.temp && this.actor.system.attributes.hp.temp > 0;
 				context.actor.system.attributes.hp.temp = this.actor.system.attributes.hp.temp;
 				context.maxHp = this.actor.system.attributes.hp.base
 					+ this.actor.system.attributes.hp.bonus;
 				context.abilities = this.actor.getCalculatedAbilities();
+				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got Abilities.`);
 				this.actor.system.move = await this.actor.getCalculatedMove();
+				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got Move.`);
 				context.move = this.actor.system.move;
 				if (this.actor.system.penalties?.move)
 				{
 					context.movePenalty = this.actor.system.penalties.move;
 				}
+				context.statPoints = this.actor.statPoints();
 
 				context.abilitiesOverrides = Object.keys(
 					foundry.utils.flattenObject(
@@ -304,6 +328,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				
 				context.editingHp = this.editingHp;
 				context.editingStats = this.editingStats;
+
 				break;
 			case "spells":
 				context.isSpellCaster = await this.actor.isSpellCaster();
@@ -354,6 +379,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 
 		context.usePulpMode = game.settings.get("shadowdark", "usePulpMode");
 
+		shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' END.`);
 		return context;
 	}
 
@@ -470,34 +496,10 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		// Items with Effects may need some user input
 		var effects = await item.getEmbeddedCollection("ActiveEffect");
 		if (!item.isPotion() && effects.contents.length > 0) {
-			
-			var alreadyHasAtempHPeffect = this.actor.items.some(i => i.effects.some(e => e.changes.some(c => c.key === "system.bonuses.tempHP")));
-			if (alreadyHasAtempHPeffect) {
-				if (await this.actor.applyTempHp(item)) {
-					this.render();
-					return;
-				}
-			}
-
 			// add item to actor
-			item = await fromUuid(data.uuid);
+			//item = await fromUuid(data.uuid);
 			item.schema.name = item.documentName + '.schema';
-			let itemObj = await shadowdark.effects.createItemWithEffect(item, this.actor);
-			if (itemObj)
-			{
-				itemObj.system.level = this.actor?.system?.level?.value;
-
-				//await super._onDropItem(event, item);
-				await this.actor.createEmbeddedDocuments(item.documentName, [itemObj]);
-				const newItem = this.actor.getEmbeddedDocument(item.documentName, item.id);
-
-				if (itemObj.effects.some(e => e.changes.some(c => c.key === "system.light.template"))) {
-					this._toggleLightSource(newItem);
-				}
-
-				await this.actor.applyTempHp(item);
-				await this.actor.applyBonusHp(item);
-			}
+			this.actor.createItemOnActor(item);
 			game.shadowdark.effectPanel.refresh();
 			this.render(true);
 			this.removeItemFromOriginalActor(data, item);
@@ -546,12 +548,18 @@ export default class PlayerSheetSD extends ActorSheetSD {
 	}
 
 	async removeItemFromOriginalActor(data, item) {
+		shadowdark.log(`removeItemFromOriginalActor`);
 		if (data.actor) {
 			if (game.user.isGM) {
-				item.actor.deleteEmbeddedDocuments(
-						"Item",
-						[item.id]
-					);
+				const existingItem = item.actor.getEmbeddedDocument("Item", item.id);
+
+				if (existingItem)
+				{
+					item.actor.deleteEmbeddedDocuments(
+							"Item",
+							[item.id]
+						);
+				}
 			} else {
 				shadowdark.log(`emiting removeItemFromActor for ${item.actor.name} ${item.name}`);
 				game.socket.emit(
@@ -559,14 +567,13 @@ export default class PlayerSheetSD extends ActorSheetSD {
 					{
 						type: "removeItemFromActor",
 						data: {
-							item,
-							itemOwner: item.actor,
+							itemId: item.id,
+							itemOwnerId: item.actor.uuid,
 						},
 					}
 				);
 			}
 		}
-
 	}
 
 	async _updateLootItem(item, data) {
@@ -603,8 +610,9 @@ export default class PlayerSheetSD extends ActorSheetSD {
 							changes: [],
 							disabled: false,
 							origin: item.uuid,
-							transfer: true,
-							description: property.description
+							description: property.description,
+							active: true,
+							transfer: false
 						},
 					];
 
@@ -1349,9 +1357,13 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				const quantity = i.system.quantity;
 				var slotsUsed = i.system.slots.slots_used;
 
-				if (i.type === "Armor" && i.system.equipped && this.actor.system.bonuses.armorConditioning && this.actor.system.bonuses.armorConditioning == i.name.slugify())
+				if (i.type === "Armor" && i.system.equipped)
 				{
-					slotsUsed--;
+					if (this.actor.system.bonuses.armorConditioning && this.actor.system.bonuses.armorConditioning == i.name.slugify())
+						slotsUsed--;
+					if (this.actor.system.bonuses.armorBorn)
+						slotsUsed--;
+
 					if (slotsUsed < 0)
 						slotsUsed = 0;
 				}
@@ -1802,5 +1814,24 @@ export default class PlayerSheetSD extends ActorSheetSD {
 	}
 	static async #onCancelActiveBritannianSpell(event, target) {
 		BritannianMagicSD._onCancelSpell(event, this.actor, this, target);
+	}
+
+	static async newRandomPlayerSheet(ownerId) {
+		const newActor = await Actor.create(RandomizerSD.newCharacter());
+		newActor.ownership[ownerId] = 3;
+        await newActor.update({
+            ownership: newActor.ownership
+        });
+
+		if (ownerId !== game.userId) {
+			game.socket.emit("system.shadowdark", {
+				type: "openCharacter",
+				payload: {actorId: newActor.id, userId: ownerId},
+			});
+		}
+		else
+		{
+			newActor.sheet.render(true);
+		}
 	}
 }

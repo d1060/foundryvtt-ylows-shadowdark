@@ -1,12 +1,14 @@
 export default class AuraMagicSD {
 
 	static async _prepareAuraMagic(actor, context) {
+		shadowdark.logTimestamp(`PlayerSheetSD _prepareAuraMagic Start.`);
 		if (actor.system.magic.type === "auraMagic")
 			context.showAuraMagic = true;
 		else
 			return;
 		
 		context.knownAuraMagicTalents = await actor.auraMagicTalents();
+		shadowdark.logTimestamp(`PlayerSheetSD _prepareAuraMagic Got Talents.`);
 		if (!actor.system.magic.auralCore)
 			actor.system.magic.auralCore = { 
 				value: context.magicCoreLevel,
@@ -30,6 +32,7 @@ export default class AuraMagicSD {
 		
 		var auraCorePenalty = await actor.auraCorePenalty();
 		context.magicCoreLevel -= auraCorePenalty;
+		shadowdark.logTimestamp(`PlayerSheetSD _prepareAuraMagic Got Penalty.`);
 		
 		context.auralPowerBonus = 0;
 		context.magneticVigor = 0;
@@ -63,10 +66,12 @@ export default class AuraMagicSD {
 				}
 			}
 		}
+		shadowdark.logTimestamp(`PlayerSheetSD _prepareAuraMagic Got Modifiers.`);
 		
 		context.magicCoreLevel += context.auralPowerBonus;
 		
 		var newAuraMagicEffects = await actor.getAuraMagicEffects();
+		shadowdark.logTimestamp(`PlayerSheetSD _prepareAuraMagic Got Effects.`);
 
 		if (actor?.system?.magic?.auraMagicEffects)
 		{
@@ -112,6 +117,7 @@ export default class AuraMagicSD {
 				context.chosenRedundantPatternways++;
 			}
 		}
+		shadowdark.logTimestamp(`PlayerSheetSD _prepareAuraMagic Processed Effects.`);
 		
 		if (context.chosenRedundantPatternways >= context.redundantPatternways)
 			context.redundantPatternways = 0;
@@ -119,6 +125,7 @@ export default class AuraMagicSD {
 		context.auraMagicEffects = actor?.system?.magic?.auraMagicEffects ?? [];
 		context.actor.system.magic = actor.system.magic;
 		context.auralPowerLost = actor.system.magic.auralCore.lost > 0;
+		shadowdark.logTimestamp(`PlayerSheetSD _prepareAuraMagic End.`);
 	}
 
 	static async _onRollAuraMagic(actor, event, target)

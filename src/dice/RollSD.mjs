@@ -514,6 +514,9 @@ export default class RollSD extends Roll {
 		if (target.system.bonuses?.immunity && !Array.isArray(target.system.bonuses.immunity)) target.system.bonuses.immunity = [target.system.bonuses.immunity];
 		if (target.system.bonuses?.resistance && !Array.isArray(target.system.bonuses.resistance)) target.system.bonuses.resistance = [target.system.bonuses.resistance];
 
+		if (target.system.bonuses.platedBulwark && !(await weapon.isMagicItem()) && !(await weapon.isMagicDamage()) && target.isEquippingHeavyArmor)
+			damageTotal -= parseInt(target.system.bonuses.platedBulwark);
+
 		if (target.system.bonuses?.livingMetalResistance &&
 			(attackDamageType === 'bludgeoning' || attackDamageType === 'slashing' || attackDamageType === 'piercing'))
 			damageTotal = Math.floor(damageTotal/2);
@@ -1120,7 +1123,8 @@ export default class RollSD extends Roll {
 				twoHandedParts?.push(dualBonus);
 			}
 
-			if (data.actor.system.bonuses?.savageStrike)
+			if ((data.actor.system.bonuses?.weaponDamageAdvantage && data.actor.system.bonuses?.weaponDamageAdvantage == data.item.name.slugify()) ||
+				(data.actor.system.bonuses?.savageStrike))
 			{
 				var damageRoll1 = await this._rollDamage(data, dualWieldParts, oneHandedParts, twoHandedParts, damageDie1H, damageDie2H);
 				var damageRoll2 = await this._rollDamage(data, dualWieldParts, oneHandedParts, twoHandedParts, damageDie1H, damageDie2H);
@@ -1156,28 +1160,28 @@ export default class RollSD extends Roll {
 			data.maxDamage = true;
 
 		var damageRoll;
-		if (data.actor.system.bonuses?.weaponDamageAdvantage && data.actor.system.bonuses?.weaponDamageAdvantage == data.item.name.slugify())
-		{
-			switch (data.handedness) {
-				case "dw":
-					damageRoll = await this._rollAdvantage(dualWieldParts, data, 1);
-					break;
-				case "1h":
-					damageRoll = await this._rollAdvantage(oneHandedParts, data, 1);
-					break;
-				case "2h":
-					damageRoll = await this._rollAdvantage(twoHandedParts, data, 1);
-					break;
-				case undefined:
-					if (damageDie1H && damageDie2H) {
-						damageRoll = await this._rollAdvantage(oneHandedParts, data, 1);
-						data.rolls.secondaryDamage = await this._rollAdvantage(twoHandedParts, data, 1);
-					}
-					else {
-						damageRoll = await this._rollAdvantage(oneHandedParts ?? twoHandedParts, 1);
-					}
-			}
-		}
+		// if (data.actor.system.bonuses?.weaponDamageAdvantage && data.actor.system.bonuses?.weaponDamageAdvantage == data.item.name.slugify())
+		// {
+		// 	switch (data.handedness) {
+		// 		case "dw":
+		// 			damageRoll = await this._rollAdvantage(dualWieldParts, data, 1);
+		// 			break;
+		// 		case "1h":
+		// 			damageRoll = await this._rollAdvantage(oneHandedParts, data, 1);
+		// 			break;
+		// 		case "2h":
+		// 			damageRoll = await this._rollAdvantage(twoHandedParts, data, 1);
+		// 			break;
+		// 		case undefined:
+		// 			if (damageDie1H && damageDie2H) {
+		// 				damageRoll = await this._rollAdvantage(oneHandedParts, data, 1);
+		// 				data.rolls.secondaryDamage = await this._rollAdvantage(twoHandedParts, data, 1);
+		// 			}
+		// 			else {
+		// 				damageRoll = await this._rollAdvantage(oneHandedParts ?? twoHandedParts, 1);
+		// 			}
+		// 	}
+		// }
 
 		switch (data.handedness) {
 			case "dw":
@@ -1580,7 +1584,7 @@ export default class RollSD extends Roll {
 				"isRoll": {value: true},
 				"rolls": {value: rolls},
 				"core.canPopout": {value: true},
-				"hasTarget": {value: target !== false},
+				"hasTarget": {value: target !== null && target !== false},
 				"critical": {value: rolls?.main?.critical},
 			},
 		};
@@ -1637,7 +1641,11 @@ export default class RollSD extends Roll {
 			templateData.propertyNames = propertyNames;
 		}
 		if ((data.auraMagic && data.damage) || (data.abyssalMagic && data.damage) || (data.mistMagic && data.damage) || (data.nanoMagic && data.damage) || (data.rollType?.includes('-magic') && data.damage))
+		{
 			templateData.isMagicWithDamage = true;
+			if (data.rolls.main.critical == "failure")
+				templateData.data.showDamage = false;
+		}
 
 		return templateData;
 	}
@@ -1686,7 +1694,18 @@ export default class RollSD extends Roll {
 		if ( options.rollMode === "blindroll" ) data.rolls.main.blind = true;
 		if(!data.acMisses) data.acMisses = [];
 		data.showDamage = true;
-		if ((data.acMisses.length || data.resistanceRolls?.length) && !data.wasAnyoneHit) data.showDamage = false;
+		if (data.acMisses.length && !data.wasAnyoneHit)
+			data.showDamage = false;
+		if (data.resistanceRolls?.length)
+		{
+			let showDamage = false;
+			for (const resistanceRoll of data.resistanceRolls)
+			{
+				if (!resistanceRoll.main.success.value)
+					showDamage = true;
+			}
+			data.showDamage = showDamage;
+		}
 
 		const content = await this._getChatCardContent(data, options);
 
@@ -1749,15 +1768,14 @@ export default class RollSD extends Roll {
 	static async _rollDiceSoNice(rolls, chatData, chatMessage, rollMode) {
 		const rollsToShow = [rolls.main.roll];
 
-		if ( rolls.damage ) {
+		if ( rolls.damage )
 			rollsToShow.push(rolls.damage.roll);
-		}
-		if ( rolls.secondaryDamage ) {
+		if ( rolls.damage2 )
+			rollsToShow.push(rolls.damage2.roll);
+		if ( rolls.secondaryDamage )
 			rollsToShow.push(rolls.secondaryDamage.roll);
-		}
-		if (rolls.extraDamage) {
+		if (rolls.extraDamage)
 			rollsToShow.push(...rolls.extraDamage.map(e => e.roll));
-		}
 
 		const { whisper, blind } = this.getRollModeSettings(rollMode);
 

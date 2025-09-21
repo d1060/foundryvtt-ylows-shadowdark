@@ -118,6 +118,10 @@ export default class CompendiumsSD {
 		return CompendiumsSD.properties("armor", filterSources);
 	}
 
+	static async magicArmorProperties(filterSources=true) {
+		return CompendiumsSD.properties("magic_armor", filterSources);
+	}
+
 	static async backgrounds(filterSources=true) {
 		return CompendiumsSD._documents("Item", "Background", filterSources);
 	}
@@ -533,7 +537,23 @@ export default class CompendiumsSD {
 		return CompendiumsSD.properties("weapon", filterSources);
 	}
 
+	static async magicWeaponProperties(filterSources=true) {
+		return CompendiumsSD.properties("magic_weapon", filterSources);
+	}
+
+	static async magicMeleeWeaponProperties(filterSources=true) {
+		return CompendiumsSD.properties("magic_melee_weapon", filterSources);
+	}
+
+	static async magicRangedWeaponProperties(filterSources=true) {
+		return CompendiumsSD.properties("magic_ranged_weapon", filterSources);
+	}
+
 	static async weapons(filterSources=true) {
 		return CompendiumsSD._documents("Item", "Weapon", filterSources);
+	}
+
+	static async energySources(filterSources=true) {
+		return CompendiumsSD.properties("magic_energy_source", filterSources);
 	}
 }

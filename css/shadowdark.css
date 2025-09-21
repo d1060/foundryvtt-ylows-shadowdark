@@ -1968,6 +1968,7 @@ picture {
   width: 24px;
   height: 24px;
   opacity: 0.75;
+  color: unset;
 }
 .shadowdark header button:hover {
   opacity: 1;
@@ -2125,6 +2126,10 @@ picture {
   --fa: "\f147";
 }
 
+.fa-handshake-o {
+  --fa: "\f2b5";
+}
+
 .shadowdark .rollable-visible {
   visibility: visible;
   opacity: 0.4;
@@ -2243,7 +2248,7 @@ picture {
 }
 .shadowdark-dialog.pickup-lightsource .actor-selector {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
 }
 .shadowdark-dialog.pickup-lightsource .actor-selector .actor input[type=radio] {
   display: none;

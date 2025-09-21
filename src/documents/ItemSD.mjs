@@ -249,6 +249,22 @@ export default class ItemSD extends Item {
 		return roll;
 	}
 
+	async hasProperties(properties) {
+		if (!Array.isArray(properties) || properties.length <= 0) return false;
+		const propertyItems = await this.propertyItems();
+
+		for (let property of properties)
+		{
+			property = property.slugify();
+
+			const propertyItem = propertyItems.find(
+				p => p?.name?.slugify() === property
+			);
+
+			if(propertyItem) return true;
+		}
+		return false;
+	}
 
 	async hasProperty(property) {
 		property = property.slugify();
@@ -354,7 +370,7 @@ export default class ItemSD extends Item {
 	}
 
 	async isMetallicArmor() {
-		return (await this.hasProperty("metallic-chainmail") || await this.hasProperty("metallic-platemail") || await this.hasProperty("metallic-shield"));
+		return await this.hasProperties(["metallic-chainmail", "metallic-platemail", "metallic-shield"]);
 	}
 
 	isTwoHanded() {
@@ -384,7 +400,7 @@ export default class ItemSD extends Item {
 
 		if (this.type === "Armor" || this.type === "Weapon") {
 			for (const property of await this.propertyItems()) {
-				if (excludeProperty && excludeProperty.slugify() !== property.name.slugify())
+				if (!excludeProperty || (excludeProperty && property && property.name && excludeProperty.slugify() !== property.name?.slugify()))
 					properties.push(property.name);
 			}
 		}
@@ -411,7 +427,7 @@ export default class ItemSD extends Item {
 		const propertyItems = [];
 
 		for (const uuid of this.system.properties ?? []) {
-			propertyItems.push(await fromUuid(uuid));
+			propertyItems.push(fromUuidSync(uuid));
 		}
 
 		return propertyItems;

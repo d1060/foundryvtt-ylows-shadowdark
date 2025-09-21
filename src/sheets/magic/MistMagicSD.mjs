@@ -40,7 +40,7 @@ export default class MistMagicSD {
 			if (!this.isPowerAvailable(power, context.mistMagicPowers))
 				continue;
 			
-			context.mistMagicPowers.push(await fromUuid(power.uuid));
+			context.mistMagicPowers.push(fromUuidSync(power.uuid));
 		}
 		
 		context.hasSelectedAtLeastOneMistMagicPower = context.mistMagicPowers.length > 0;

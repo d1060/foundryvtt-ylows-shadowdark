@@ -3,6 +3,7 @@ import { ChatMessageHooks } from "./hooks/chat-messages.mjs";
 import { DropLightsourceHooks } from "./hooks/drop-lightsource-on-scene.mjs";
 import { DropItemHooks } from "./hooks/drop-item-on-scene.mjs";
 import { DropItemOnSheetHooks } from "./hooks/drop-item-on-sheet.mjs";
+import { PopOut } from "./hooks/popOut.mjs";
 import { PlayerActorTokenHooks } from "./hooks/player-actor-token.mjs";
 import { EffectHooks } from "./hooks/effects.mjs";
 import { EffectPanelHooks } from "./hooks/effect-panel.mjs";
@@ -20,6 +21,7 @@ export const HooksSD = {
 			DropLightsourceHooks,
 			DropItemHooks,
 			DropItemOnSheetHooks,
+			PopOut,
 			PlayerActorTokenHooks,
 			EffectHooks,
 			LightSourceTrackerHooks,

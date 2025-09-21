@@ -100,7 +100,7 @@ export default class AbyssalMagicSD {
 			
 			var knownPower = context.abyssalMagicPowers.find(p => p && p.name.slugify() === power.name.slugify());
 			if (!knownPower)
-				context.unknownAbyssalMagicPowers.push(await fromUuid(power.uuid));
+				context.unknownAbyssalMagicPowers.push(fromUuidSync(power.uuid));
 			else
 			{
 				if (power.system.allowMultipleChoice)

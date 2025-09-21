@@ -101,33 +101,29 @@
 
 	{{#if isMagicWithDamage}}
 	{{#if data.showDamage}}
-		{{#ifNeq data.rolls.main.critical "failure"}}
-			<div class="card-damage-rolls">
-				<div
-					class="card-damage-roll-single blindable"
-					data-blind="{{data.rolls.main.blind}}"
-				>
-					<h3>{{damageRollName}}</h3>
-					{{{data.rolls.damage.renderedHTML}}}
-				</div>
+		<div class="card-damage-rolls">
+			<div
+				class="card-damage-roll-single blindable"
+				data-blind="{{data.rolls.main.blind}}"
+			>
+				<h3>{{damageRollName}}</h3>
+				{{{data.rolls.damage.renderedHTML}}}
 			</div>
-		{{/ifNeq}}
+		</div>
 	{{/if}}
 	{{/if}}
 
 	{{#if isNPC}}
 		{{#ifEq data.item.type "NPC Attack"}}
-			{{#ifNeq data.rolls.main.critical "failure"}}
-				<div class="card-damage-rolls">
-					<div
-						class="card-damage-roll-single blindable"
-						data-blind="{{data.rolls.main.blind}}"
-					>
-						<h3>{{localize "SHADOWDARK.roll.damage"}}:</h3>
-						{{{data.rolls.damage.renderedHTML}}}
-					</div>
+			<div class="card-damage-rolls">
+				<div
+					class="card-damage-roll-single blindable"
+					data-blind="{{data.rolls.main.blind}}"
+				>
+					<h3>{{localize "SHADOWDARK.roll.damage"}}:</h3>
+					{{{data.rolls.damage.renderedHTML}}}
 				</div>
-			{{/ifNeq}}
+			</div>
 		{{/ifEq}}
 	{{/if}}
 

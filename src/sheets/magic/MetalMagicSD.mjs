@@ -13,7 +13,7 @@ export default class MetalMagicSD {
 		context.allMetalMagicPowers = await shadowdark.compendiums.metalMagicPowers();
 		context.unknownMetalMagicPowers = [];
 		context.knownMetalMagicPowersCount = context.metalMagicPowers.length;
-		context.metalMagicAltToken = actor.system.magic.metalCore.altToken ?? CONST.DEFAULT_TOKEN;
+		context.metalMagicAltToken = actor.system.magic?.metalCore?.altToken ?? CONST.DEFAULT_TOKEN;
 		
 		var effectiveMetalCore = context.magicCoreLevel;
 		for (var talent of context.knownMetalMagicTalents)
@@ -107,7 +107,7 @@ export default class MetalMagicSD {
 		{
 			var knownPower = context.metalMagicPowers.find(p => p && p.name.slugify() === power.name.slugify());
 			if (!knownPower)
-				context.unknownMetalMagicPowers.push(await fromUuid(power.uuid));
+				context.unknownMetalMagicPowers.push(fromUuidSync(power.uuid));
 			else
 			{
 				if (power.system.allowMultipleChoice)

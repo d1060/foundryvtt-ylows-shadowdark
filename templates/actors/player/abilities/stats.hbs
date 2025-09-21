@@ -3,6 +3,9 @@
 		<label>{{localize "SHADOWDARK.sheet.abilities.stats"}}</label>
 		<span>
 			{{#if owner}}
+				{{#if editingStats}}
+					{{statPoints}} {{localize 'SHADOWDARK.sheet.abilities.stats_pts'}}
+				{{/if}}
 				<a
 					{{#if editingStats}}
 						class="item-selector fas fa-square-xmark edit-button"

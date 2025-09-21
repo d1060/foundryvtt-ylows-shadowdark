@@ -3,6 +3,7 @@ import ChatSD from "./src/system/ChatSD.mjs";
 import CompendiumsSD from "./src/documents/CompendiumsSD.mjs";
 import loadTemplates from "./src/templates.mjs";
 import Logger from "./src/utils/Logger.mjs";
+import PerformanceLogger from "./src/utils/PerformanceLogger.mjs";
 import performDataMigration from "./src/migration.mjs";
 import registerHandlebarsHelpers from "./src/handlebars.mjs";
 import registerSystemSettings from "./src/settings.mjs";
@@ -16,6 +17,7 @@ import * as chat from "./src/chat/_module.mjs";
 import * as dice from "./src/dice/_module.mjs";
 import * as documents from "./src/documents/_module.mjs";
 import * as sheets from "./src/sheets/_module.mjs";
+import * as preloader from "./src/hooks/body-parts-image-preloader.mjs";
 
 import {
 	HooksSD,
@@ -42,6 +44,8 @@ globalThis.shadowdark = {
 	error: Logger.error,
 	log: Logger.log,
 	debugObject: Logger.debugObject,
+	resetTimestamp: PerformanceLogger.resetTimestamp,
+	logTimestamp: PerformanceLogger.logTimestamp,
 	macro: ShadowdarkMacro,
 	sheets,
 	utils: UtilitySD,
@@ -131,6 +135,7 @@ Hooks.on("ready", async () => {
 
 	HooksSD.attach();
 	listenOnSocket();
+	preloader.preLoadBodyPartImages();
 
 	chat.messages.welcomeMessage();
 

@@ -176,14 +176,15 @@ export default class RandomizerSD {
 				languages: [],
 				patron: "",
 				coins: {
-					gp: 0,
+					gp: 60,
 					sp: 0,
 					cp: 0,
 				},
 				showLevelUp: false,
 			}
 		};
-		return charData;
+
+        return charData;
 	}
 
     static randomizeAbilitiesWithPoints(expectedPoints) {

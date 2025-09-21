@@ -17,8 +17,6 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
     constructor(options) {
         super(options);
 
-		///let now = Date.now(); 
-		//shadowdark.log(`Building Evolution Grid.`);
 		let optionsKeys = Object.keys(options);
 		for (let key of optionsKeys) {
 			this[key] = options[key];
@@ -32,10 +30,6 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 		this.gridPosition = {left: 0, top: 0, zoom: 1 };
 		if (this.actor && this.actor.system.evolutionGrid.location) this.gridPosition = structuredClone(this.actor.system.evolutionGrid.location);
 		else if (this.type.system.grid) this.gridPosition = structuredClone(this.type.system.grid);
-		//let current = Date.now();
-		//let elapsed = current - now;
-		//now = current;
-		//shadowdark.log(`${elapsed} ms: Evolution Grid: Setting up Circle Arcs.`);
 		this.setupAllCircleArcs();
 
 		const lastStep = {
@@ -47,23 +41,9 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 		this._undoSteps.push(lastStep);
 
 		if (this.actor)
-		{
-			//current = Date.now();
-			//elapsed = current - now;
-			//now = current;
-			//shadowdark.log(`${elapsed} ms: Evolution Grid: Building Available Nodes List.`);
 			this.buildAvailableNodesList();
-		}
 
-		//current = Date.now();
-		//elapsed = current - now;
-		//now = current;
-		//shadowdark.log(`${elapsed} ms: Evolution Grid: Sanity Check.`);
 		this.sanityCheck();
-		//current = Date.now();
-		//elapsed = current - now;
-		//now = current;
-		//shadowdark.log(`${elapsed} ms: Evolution Grid: Startup Done.`);
 	}
 
    	/** @inheritdoc */
@@ -448,55 +428,28 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
   	}
 
 	async renderAll() {
-		//let now = Date.now(); 
-		//shadowdark.log(`Evolution Grid _onRender Start.`);
 		this.grid = this.element.querySelector(".evolution-grid");
 		this.talentsGrid = this.element.querySelector(".evolution-grid-talents");
 
-		//let current = Date.now();
-		//let elapsed = current - now;
-		//now = current;
-		//shadowdark.log(`${elapsed} ms: Evolution Grid _onRender drawTalents.`);
-
 		await this.drawTalents();
-
-		//current = Date.now();
-		//elapsed = current - now;
-		//now = current;
-		//shadowdark.log(`${elapsed} ms: Evolution Grid _onRender refreshMultiSelectNodes.`);
 		this.refreshMultiSelectNodes();
-
-		//current = Date.now();
-		//elapsed = current - now;
-		//now = current;
-		//shadowdark.log(`${elapsed} ms: Evolution Grid _onRender updateNodeStatus.`);
 		this.updateNodeStatus();
 
-		//current = Date.now();
-		//elapsed = current - now;
-		//now = current;
-		//shadowdark.log(`${elapsed} ms: Evolution Grid _onRender updateGridTypeVisibility.`);
 		this.updateGridTypeVisibility();
 		if ((this._multiSelectedNodes ?? []).length > 1)
 			this.showAlignMenu();
 		this.showOrHideRemainingChoices();
 
-		//current = Date.now();
-		//elapsed = current - now;
-		//now = current;
-		//shadowdark.log(`${elapsed} ms: Evolution Grid _onRender schedulers.`);
 		if (this.editing) this.scheduleGrid();
 
 		this.circleCanvas = this.element.querySelector(".evolution-grid-circles");
 		this.circleCtx = this.circleCanvas.getContext('2d', { alpha: true });
 		this.resizeCanvas(this.circleCanvas, this.circleCtx);
-		//this.drawCircles();
 		this.scheduleDrawCircles();
 
 		this.staticCanvas = this.element.querySelector(".evolution-grid-lines-static");
 		this.staticCtx = this.staticCanvas.getContext('2d', { alpha: true });
 		this.resizeCanvas(this.staticCanvas, this.staticCtx);
-		//this.drawLinesStatic();
 		this.scheduleDrawStatic();
 
 		this.canvas = this.element.querySelector(".evolution-grid-lines");
@@ -504,10 +457,6 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 		this.resizeCanvas(this.canvas, this.ctx);
 		this.scheduleDraw();
 
-		//current = Date.now();
-		//elapsed = current - now;
-		//now = current;
-		//shadowdark.log(`${elapsed} ms: Evolution Grid _onRender end.`);
 		this.#dragDrop.forEach((d) => d.bind(this.element));
 	}
 
@@ -1051,6 +1000,10 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 
 	async _doMouseLeave(event) {
 		//this._doMouseUp(event);
+	}
+
+	async _doResize(event) {
+
 	}
 
 	async addNewTalent(gridTalent, item) {
@@ -2261,22 +2214,24 @@ export default class EvolutionGridSD extends HandlebarsApplicationMixin(Applicat
 
 	async updateGrid()
 	{
-		const lastStep = {
-			gridLines: structuredClone(this.type.system.gridLines),
-			gridTalents: structuredClone(this.type.system.gridTalents),
-			grid: structuredClone(this.type.system.grid),
-			gridCircles: structuredClone(this.type.system.gridCircles)
-		};
-		this._undoSteps.push(lastStep);
-		if (this._undoSteps.length > this.MAX_UNDO_STEPS)
-			this._undoSteps.splice(0, 1);
+		if (game.user.isGM) {
+			const lastStep = {
+				gridLines: structuredClone(this.type.system.gridLines),
+				gridTalents: structuredClone(this.type.system.gridTalents),
+				grid: structuredClone(this.type.system.grid),
+				gridCircles: structuredClone(this.type.system.gridCircles)
+			};
+			this._undoSteps.push(lastStep);
+			if (this._undoSteps.length > this.MAX_UNDO_STEPS)
+				this._undoSteps.splice(0, 1);
 
-		await this.type.update({
-			"system.gridLines": this.type.system.gridLines,
-			"system.gridTalents": this.type.system.gridTalents,
-			"system.grid": this.type.system.grid,
-			"system.gridCircles": this.type.system.gridCircles
-		});
+			await this.type.update({
+				"system.gridLines": this.type.system.gridLines,
+				"system.gridTalents": this.type.system.gridTalents,
+				"system.grid": this.type.system.grid,
+				"system.gridCircles": this.type.system.gridCircles
+			});
+		}
 	}
 
 	doUndo()
