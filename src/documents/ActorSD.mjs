@@ -2293,7 +2293,13 @@ export default class ActorSD extends Actor {
 			abilityId = abilityId.stat;
 		}
 
-		const abilityBonus = this.abilityModifier(abilityId);
+		let abilityBonus = this.abilityModifier(abilityId);
+		if (this.system.bonuses?.transcendentKnowledge && ['wis', 'cha'].includes(abilityId))
+		{
+			const intBonus = this.abilityModifier('int');
+			if (intBonus > abilityBonus)
+				abilityBonus = intBonus;
+		}
 		const ability = CONFIG.SHADOWDARK.ABILITIES_LONG[abilityId];
 		var itemBonus = 0;
 		if (this.system.bonuses.abilityCheckBonus && this.system.bonuses.abilityCheckBonus === abilityId)
