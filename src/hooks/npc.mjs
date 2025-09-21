@@ -22,8 +22,8 @@ export const NPCHooks = {
 
 		Hooks.on("updateToken", (token, changes, context, userId) => {
 			if ("x" in changes || "y" in changes) {
-   				if (token.actor.isBurning()) token.actor.burnOut();
-				if (token.actor.isFrozen()) token.actor.thawFrost(); 
+   				if (token.actor?.isBurning()) token.actor.burnOut();
+				if (token.actor?.isFrozen()) token.actor.thawFrost(); 
 			}
 		});
 	},

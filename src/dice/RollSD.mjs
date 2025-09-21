@@ -514,8 +514,8 @@ export default class RollSD extends Roll {
 		if (target.system.bonuses?.immunity && !Array.isArray(target.system.bonuses.immunity)) target.system.bonuses.immunity = [target.system.bonuses.immunity];
 		if (target.system.bonuses?.resistance && !Array.isArray(target.system.bonuses.resistance)) target.system.bonuses.resistance = [target.system.bonuses.resistance];
 
-		if (target.system.bonuses.platedBulwark && !(await weapon.isMagicItem()) && !(await weapon.isMagicDamage()) && target.isEquippingHeavyArmor)
-			damageTotal -= parseInt(target.system.bonuses.platedBulwark);
+		if (target.system.bonuses?.platedBulwark && !(await weapon.isMagicItem()) && !(await weapon.isMagicDamage()) && target.isEquippingHeavyArmor)
+			damageTotal -= parseInt(target.system.bonuses?.platedBulwark);
 
 		if (target.system.bonuses?.livingMetalResistance &&
 			(attackDamageType === 'bludgeoning' || attackDamageType === 'slashing' || attackDamageType === 'piercing'))

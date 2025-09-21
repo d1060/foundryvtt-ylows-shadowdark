@@ -48,12 +48,17 @@ export default class LightSheetSD extends ActorSheetSD {
 		event.preventDefault();
 
 		if (!game.user.isGM) {
+			let character = game.user.character;
+			if (character == null) {
+				character = await LightSheetSD.getUserCharacter();
+			}
+
 			game.socket.emit(
 				"system.shadowdark",
 				{
 					type: "pickupLightSourceFromScene",
 					data: {
-						character: game.user.character,
+						character,
 						lightActor: options.actor ?? this.actor,
 						lightToken: options.token ?? this.object.token,
 						speaker: ChatMessage.getSpeaker(),
@@ -114,18 +119,24 @@ export default class LightSheetSD extends ActorSheetSD {
 		event.preventDefault();
 
 		if (!game.user.isGM) {
-			game.socket.emit(
-				"system.shadowdark",
-				{
-					type: "pickupItemFromScene",
-					data: {
-						character: game.user.character,
-						itemActor: options.actor ?? options.actor,
-						itemToken: options.token ?? options.token,
-						speaker: ChatMessage.getSpeaker(),
-					},
-				}
-			);
+			let character = game.user.character;
+			if (character == null) {
+				character = await LightSheetSD.getUserCharacter();
+			}
+			if (character) {
+				game.socket.emit(
+					"system.shadowdark",
+					{
+						type: "pickupItemFromScene",
+						data: {
+							character,
+							itemActor: options.actor ?? options.actor,
+							itemToken: options.token ?? options.token,
+							speaker: ChatMessage.getSpeaker(),
+						},
+					}
+				);
+			}
 		}
 		else {
 			// Display a dialog allowing the GM to choose which character to assign
@@ -136,33 +147,7 @@ export default class LightSheetSD extends ActorSheetSD {
 			// const activeUsers = game.users
 			// 	.filter(u => u.active && !u.isGM);
 
-			const content = await foundry.applications.handlebars.renderTemplate(
-				"systems/shadowdark/templates/dialog/assign-picked-up-lightsource.hbs",
-				{
-					playerActors,
-				}
-			);
-
-			const targetActor = await Dialog.wait({
-				title: game.i18n.localize("SHADOWDARK.dialog.item.pick_up.title"),
-				content,
-				buttons: {
-					select: {
-						icon: "<i class=\"fa fa-square-check\"></i>",
-						label: `${game.i18n.localize("SHADOWDARK.dialog.general.select")}`,
-						callback: html => {
-							return html.find("input[type='radio']:checked").attr("id") ?? false;
-						},
-					},
-					cancel: {
-						icon: "<i class=\"fa fa-square-xmark\"></i>",
-						label: `${game.i18n.localize("SHADOWDARK.dialog.general.cancel")}`,
-						callback: () => false,
-					},
-				},
-				default: "select",
-				close: () => console.log("Closed Dialog"),
-			});
+			const targetActor = this.multicharacterSelectionDialog(playerActors);
 
 			if (targetActor) {
 				game.shadowdark.lightSourceTracker.pickupItemFromScene(
@@ -172,5 +157,51 @@ export default class LightSheetSD extends ActorSheetSD {
 				);
 			}
 		}
+	}
+
+	static async getUserCharacter() {
+		const actors = game.actors.filter(
+			actor => actor.type === "Player" && actor.ownership[game.user.id] && actor.ownership[game.user.id] == 3
+		);
+		if (actors.length == 1)
+			return actors[0];
+		else if (actors.length > 1)
+		{
+			const actorId = await this.multicharacterSelectionDialog(actors);
+			return game.actors.get(actorId);
+		}
+		return null;
+	}
+
+	static async multicharacterSelectionDialog(playerActors) {
+		const content = await foundry.applications.handlebars.renderTemplate(
+			"systems/shadowdark/templates/dialog/assign-picked-up-lightsource.hbs",
+			{
+				playerActors,
+			}
+		);
+
+		const targetActor = await Dialog.wait({
+			title: game.i18n.localize("SHADOWDARK.dialog.item.pick_up.title"),
+			content,
+			buttons: {
+				select: {
+					icon: "<i class=\"fa fa-square-check\"></i>",
+					label: `${game.i18n.localize("SHADOWDARK.dialog.general.select")}`,
+					callback: html => {
+						return html.find("input[type='radio']:checked").attr("id") ?? false;
+					},
+				},
+				cancel: {
+					icon: "<i class=\"fa fa-square-xmark\"></i>",
+					label: `${game.i18n.localize("SHADOWDARK.dialog.general.cancel")}`,
+					callback: () => false,
+				},
+			},
+			default: "select",
+			close: () => console.log("Closed Dialog"),
+		});
+
+		return targetActor;
 	}
 }
