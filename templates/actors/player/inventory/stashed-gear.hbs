@@ -29,7 +29,11 @@
 				<a class="item-name" data-action="showDetails">
 					{{item.name}}
 					{{#if item.lightSourceUsed}}
-						<em>{{localize 'SHADOWDARK.inventory.item.light_used'}}</em>
+						{{#if item.lightSourceExpended}}
+						<em>{{localize "SHADOWDARK.inventory.item.light_expended"}}</em>
+						{{else}}
+						<em>{{localize "SHADOWDARK.inventory.item.light_used"}}</em>
+						{{/if}}
 					{{/if}}
 				</a>
 
@@ -48,6 +52,13 @@
 						data-tooltip="{{localize 'SHADOWDARK.inventory.tooltip.toggle_stashed'}}"
 					>
 						<i style="color:var(--primary)" class="fa-solid fa-box"></i>
+					</a>
+					<a
+						data-action="discardItem"
+						data-item-id="{{item._id}}"
+						data-tooltip="{{localize 'SHADOWDARK.inventory.tooltip.item_discard'}}"
+					>
+						<i style="color:var(--primary)" class="fa-solid fa-trash"></i>
 					</a>
 					{{#if ../bulkSelling}}
 					<a

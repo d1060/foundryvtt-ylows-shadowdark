@@ -56,6 +56,8 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			editBodyPartImage: this.#onEditBodyPartImage,
 			defaultBodySetup: this.#onDefaultBodySetup,
 			selectHitLocation: this.#onSelectHitLocation,
+			pickLightIcon: this.#onPickLightIcon,
+			deleteFuelSource: this.#onDeleteFuelSource,
 		},
 		dragDrop: [{dropSelector: ".items"}],
  	}
@@ -708,6 +710,9 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			case "effectDetails":
 				await this.getSheetDataForEffectItem(context);
 				break;
+			case "light":
+				await this.getSheetDataForLight(context);
+				break;
 			case "npcAttack":
 				await this.getSheetDataForNPCAttackItem(context);
 				break;
@@ -944,6 +949,13 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			context.showEffectChanges = true;
 	}
 
+	async getSheetDataForLight(context) {
+		context.unlitIcon = context.item.system.unlitIcon ?? context.item.img;
+		context.litIcon = context.item.system.litIcon ?? context.item.img;
+		context.expendedIcon = context.item.system.expendedIcon ?? context.item.img;
+		context.fuelSources = context.item.system.fuelSources;
+		context.fuelChosen = context.item.system.fuelSources && context.item.system.fuelSources.length;
+	}
 
 	async getSheetDataForNPCAttackItem(context) {
 		context.npcAttackRangesDisplay = context.item.npcAttackRangesDisplay();
@@ -1347,6 +1359,22 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			this.item.update({"system.requirements": this.item.system.requirements});
 		}
 
+		if (this.item.system.light && droppedItem.type == 'Basic' && event.target.dataset.type == "lightFuel") {
+			if (!this.item.system.fuelSources) this.item.system.fuelSources = [];
+			const fuelSource = {
+				name: droppedItem.name, 
+				uuid: droppedItem.uuid
+			}
+
+			if (!this.item.system.fuelSources.some(s => s.uuid == droppedItem.uuid))
+			{
+				this.item.system.fuelSources.push(fuelSource);
+			}
+
+			this.item.update({"system.fuelSources": this.item.system.fuelSources});
+			return;
+		}
+
 		if (!(allowedType && isSpellDrop)) return super._onDrop();
 
 		const name = game.i18n.format(
@@ -1461,6 +1489,8 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			shadowdark.effects.fromPreDefined(this.item, event.target.value);
 		else if (event.target.name === 'system.description')
 			await this.item.update({[event.target.name]: event.target.value});
+		else if (event.target.name === 'system.light.remainingSecs')
+			await this.item.update({[event.target.name]: parseInt(event.target.value) * 60});
 		else if (event.target.type === 'checkbox')
 			await this.item.update({[event.target.name]: event.target.checked});
 		else if (event.target.type === 'number')
@@ -1716,6 +1746,38 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 
 	static async #onSelectHitLocation(event, target) {
 
+	}
+
+	static async #onPickLightIcon(event, target) {
+		const type = event.target.dataset.type;
+		switch (type) {
+			case 'unlit':
+			case 'lit':
+			case 'expended':
+				const fp = new foundry.applications.apps.FilePicker({
+					type: "image",
+					current: event.target.getAttribute("src"),
+					callback: (path) => {
+						const key = "system." + type + "Icon";
+						this.item.update({[key]: path});
+						this.render();
+					}
+				});
+				await fp.render(true);
+				break;
+		}
+	}
+
+	static async #onDeleteFuelSource(event, target) {
+		const uuid = event.target.dataset.uuid;
+		if (!this.item.system.fuelSources) return;
+		if (!this.item.system.fuelSources.some(s => s.uuid == uuid)) return;
+		const fuelIdx = this.item.system.fuelSources.findIndex(s => s.uuid == uuid);
+		if (fuelIdx < 0) return;
+		this.item.system.fuelSources.splice(fuelIdx, 1);
+
+		this.item.update({"system.fuelSources": this.item.system.fuelSources});
+		this.render();
 	}
 
 	async _onNewExtraDamage(target) {

@@ -135,6 +135,15 @@ export default function registerSystemSettings() {
 		},
 	});
 
+	game.settings.register("shadowdark", "newLightRideOldTimer", {
+		name: "SHADOWDARK.settings.track_light_sources.new_lights_ride_old_timer.name",
+		hint: "SHADOWDARK.settings.track_light_sources.new_lights_ride_old_timer.hint",
+		scope: "world",
+		config: true,
+		default: true,
+		type: Boolean,
+	});
+
 	// ----------------------
 	//  EFFECT PANEL SETTINGS
 	// ----------------------

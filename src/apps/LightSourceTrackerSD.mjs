@@ -84,19 +84,21 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 
 			const actor = game.actors.get(actorData._id);
 
-			await actor.turnLightOff();
+			if (actor) {
+				await actor.turnLightOff();
 
-			for (const itemData of actorData.lightSources) {
-				shadowdark.log(`Turning off ${actor.name}'s ${itemData.name} light source`);
+				for (const itemData of actorData.lightSources) {
+					shadowdark.log(`Turning off ${actor.name}'s ${itemData.name} light source`);
 
-				if (itemData.type === "Effect") {
-					await actor.deleteEmbeddedDocuments("Item", [itemData._id]);
-				}
-				else {
-					await actor.updateEmbeddedDocuments("Item", [{
-						"_id": itemData._id,
-						"system.light.active": false,
-					}]);
+					if (itemData.type === "Effect") {
+						await actor.deleteEmbeddedDocuments("Item", [itemData._id]);
+					}
+					else {
+						await actor.updateEmbeddedDocuments("Item", [{
+							"_id": itemData._id,
+							"system.light.active": false,
+						}]);
+					}
 				}
 			}
 		}
@@ -169,6 +171,8 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 	 */
 	async dropLightSourceOnScene(item, itemOwner, actorData, dropData, speaker = false) {
 		const gridSize = {x: canvas.grid.sizeX, y: canvas.grid.sizeY};
+
+		LightSourceTrackerSD._updateLightSourceImages(item, actorData.type == 'Player' ? null : actorData);
 
 		let targetToken = canvas.tokens.placeables.find(token =>
 			Math.hypot(
@@ -354,6 +358,8 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 			game.actors.get(lightActorId).items.contents
 		);
 
+		LightSourceTrackerSD._updateLightSourceImages(item, actorData.type == 'Player' ? null : actorData);
+
 		if (item.isActiveLight()) {
 			item.actor.turnLightOn(item._id);
 		}
@@ -537,6 +543,31 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 
 		this.monitoredLightSources = [];
 
+		let workingLightSources = [];
+
+		let usersWithoutCharacters = 0;
+		try {
+			workingLightSources = await LightSourceTrackerSD.getCurrentLightSources();
+			this.showUserWarning = usersWithoutCharacters > 0 ? true : false;
+			this.monitoredLightSources = workingLightSources.sort((a, b) => {
+				if (a.name < b.name) {
+					return -1;
+				}
+				if (a.name > b.name) {
+					return 1;
+				}
+				return 0;
+			});
+		}
+		catch(error) {
+			console.error(error);
+		}
+		finally {
+			this.updatingLightSources = false;
+		}
+	}
+
+	static async getCurrentLightSources() {
 		const workingLightSources = [];
 
 		let usersWithoutCharacters = 0;
@@ -561,7 +592,7 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 					}
 				}
 
-				if (!(hasActiveOwner || this._monitorInactiveUsers())) continue;
+				if (!(hasActiveOwner || game.settings.get("shadowdark", "trackInactiveUserLightSources"))) continue;
 
 				const actorData = actor.toObject(false);
 				actorData.lightSources = [];
@@ -596,25 +627,12 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 					}
 				}
 			}
-
-			this.showUserWarning = usersWithoutCharacters > 0 ? true : false;
-
-			this.monitoredLightSources = workingLightSources.sort((a, b) => {
-				if (a.name < b.name) {
-					return -1;
-				}
-				if (a.name > b.name) {
-					return 1;
-				}
-				return 0;
-			});
 		}
 		catch(error) {
-			console.error(error);
+			throw(error);
 		}
-		finally {
-			this.updatingLightSources = false;
-		}
+
+		return workingLightSources;
 	}
 
 	_isDisabled() {
@@ -703,21 +721,42 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 						);
 					}
 
-					if (light.remainingSecs <= 0) {
-						//shadowdark.log(`Light source ${itemData.name} owned by ${actorData.name} has expired`);
+					if (light.remainingSecs <= 0 && itemData.system.light.active) {
+
+						itemData.system.light.active = false;
+						if (!itemData.system.fuelSources || !itemData.system.fuelSources.length)
+						{
+							light.isExpended = true;
+							itemData.system.light.isExpended = true;
+						}
 
 						if (actor.type !== "Light") {
 							await actor.yourLightExpired(itemData._id);
-
-							await actor.deleteEmbeddedDocuments("Item", [itemData._id]);
-						}
-						else {
+							await actor.updateEmbeddedDocuments("Item", [{
+								"_id": itemData._id,
+								"system.light.active": false,
+								"system.light.isExpended": light.isExpended,
+							}]);
+							//await actor.deleteEmbeddedDocuments("Item", [itemData._id]);
+						} else {
 							// For light actors, we want to remove the token AND the actor
 							await actor.yourLightExpired(itemData._id);
-							await canvas.scene.tokens
-								.filter(t => t.actor._id === actor._id)
-								.forEach(t => t.delete());
-							await actor.delete();
+							const lightActorTokens = await canvas.scene.tokens.filter(t => t.actor && t.actor._id === actor._id);
+							for (const token of lightActorTokens) {
+								this._updateTokenLightSourceImages(token, itemData, actor);
+							}
+
+							await actor.update({ "img": actor.img });
+							await actor.updateEmbeddedDocuments("Item", [{
+								"_id": itemData._id,
+								"img": actor.img,
+								"system.light.active": false,
+								"system.light.isExpended": light.isExpended,
+							}]);
+							//await canvas.scene.tokens
+							//	.filter(t => t.actor._id === actor._id)
+							//	.forEach(t => t.delete());
+							//await actor.delete();
 						}
 
 						this.dirty = true;
@@ -783,5 +822,60 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 		await this._gatherLightSources();
 
 		this.render(false);
+	}
+
+	static _updateLightSourceImages(item, actorData) {
+		if (item.system.light?.active && item.system.litIcon)
+		{
+			item.img = item.system.litIcon;
+			if (actorData) {
+				actorData.img = item.system.litIcon;
+				actorData.prototypeToken.texture.src = item.system.litIcon;
+			}
+		}
+		else if (item.system.light?.isExpended && item.system.expendedIcon)
+		{
+			item.img = item.system.expendedIcon;
+			if (actorData) {
+				actorData.img = item.system.expendedIcon;
+				actorData.prototypeToken.texture.src = item.system.expendedIcon;
+			}
+		}
+		else if (item.system.unlitIcon)
+		{
+			item.img = item.system.unlitIcon;
+			if (actorData) {
+				actorData.img = item.system.unlitIcon;
+				actorData.prototypeToken.texture.src = item.system.unlitIcon;
+			}
+		}
+	}
+
+	_updateTokenLightSourceImages(token, item, actor) {
+		if (item.system.light?.active && item.system.litIcon)
+		{
+			actor.img = item.system.litIcon;
+			actor.prototypeToken.texture.src = item.system.litIcon;
+			token.actor.img = item.system.litIcon;
+			token.texture.src = item.system.litIcon;
+			token.actor.prototypeToken.texture.src = item.system.litIcon;
+		}
+		else if (item.system.light?.isExpended && item.system.expendedIcon)
+		{
+			actor.img = item.system.expendedIcon;
+			actor.prototypeToken.texture.src = item.system.expendedIcon;
+			token.actor.img = item.system.expendedIcon;
+			token.texture.src = item.system.expendedIcon;
+			token.actor.prototypeToken.texture.src = item.system.expendedIcon;
+		}
+		else if (item.system.unlitIcon)
+		{
+			actor.img = item.system.unlitIcon;
+			actor.prototypeToken.texture.src = item.system.unlitIcon;
+			token.actor.img = item.system.unlitIcon;
+			token.texture.src = item.system.unlitIcon;
+			token.actor.prototypeToken.texture.src = item.system.unlitIcon;
+		}
+		canvas.scene.updateEmbeddedDocuments("Token", [{_id: token.id, texture: token.texture}]);
 	}
 }

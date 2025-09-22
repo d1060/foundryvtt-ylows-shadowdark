@@ -1592,10 +1592,13 @@ export default class ActorSD extends Actor {
 		this.system.attributes.hp.max = Math.floor(this.system.attributes.hp.frac);
 		this.system.attributes.hp.value = this.system.attributes.hp.max - lostHp;
 		if (this.system.attributes.hp.value < 1) this.system.attributes.hp.value = 1;
-		if (this.system.attributes.hp.value > this.system.attributes.hp.max) this.system.attributes.hp.value = this.system.attributes.hp.max;
+		if (this.system.attributes.hp.value > this.system.attributes.hp.max + this.system.attributes.hp.bonus) this.system.attributes.hp.value = this.system.attributes.hp.max + this.system.attributes.hp.bonus;
 
 		this.update({
-			"system.attributes.hp": this.system.attributes.hp
+			"system.attributes.hp.base": this.system.attributes.hp.base,
+			"system.attributes.hp.max": this.system.attributes.hp.max,
+			"system.attributes.hp.value": this.system.attributes.hp.value,
+			"system.attributes.hp.frac": this.system.attributes.hp.frac
 		});
 	}
 
@@ -2332,11 +2335,11 @@ export default class ActorSD extends Actor {
 
 		if (game.settings.get("shadowdark", "enableTargeting")) {
 			if (!options.targetToken && game.user.targets.size > 0) {
-				const promises = [];
-				for (const target of game.user.targets.values()) {
-					promises.push(this.rollAttack(itemId, { ...options, targetToken: target }));
-				}
-				return await Promise.all(promises);
+				//const promises = [];
+				//for (const target of game.user.targets.values()) {
+				//	promises.push(this.rollAttack(itemId, { ...options, targetToken: target }));
+				//}
+				//return await Promise.all(promises);
 			}
 			else if (options.targetToken) {
 				options.target = options.targetToken.actor.system.attributes.ac.value;
@@ -3104,17 +3107,22 @@ export default class ActorSD extends Actor {
 		this.turnLightOff(itemId);
 
 		const item = this.items.get(itemId);
-
-		const cardData = {
-			img: "icons/magic/perception/shadow-stealth-eyes-purple.webp",
-			actor: this,
-			message: game.i18n.format(
+		const message = item.type != 'Player' 
+			? game.i18n.format(
+				"SHADOWDARK.chat.light_source.dropped_expired", { name: this.name }
+			)
+			: game.i18n.format(
 				"SHADOWDARK.chat.light_source.expired",
 				{
 					name: this.name,
 					lightSource: item.name,
 				}
-			),
+			);
+
+		const cardData = {
+			img: item.img,
+			actor: this,
+			message,
 		};
 
 		let template = "systems/shadowdark/templates/chat/lightsource-toggle-gm.hbs";

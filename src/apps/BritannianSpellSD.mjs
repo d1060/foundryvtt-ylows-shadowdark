@@ -251,7 +251,7 @@ export default class BritannianSpellSD extends HandlebarsApplicationMixin(Applic
     }
 
     static async #onIncreaseRune(event, target) {
-        if (BritannianSpellSD.fullSpellCircle(this.spell, this.actor) >= this.actor.system.level.value)
+        if (BritannianSpellSD.fullSpellCircle(this.spell, this.actor) >= this.actor.level)
             return;
         const rune = target.dataset.rune;
         var actorRune = this.actor.system.britannian_magic.selected_runes.find(r => r.name === rune);

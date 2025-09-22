@@ -130,6 +130,8 @@ export default function() {
 		"systems/shadowdark/templates/items/basic/_partials/item-properties.hbs",
 		"systems/shadowdark/templates/items/basic/_partials/light-template.hbs",
 		"systems/shadowdark/templates/items/basic/_partials/light-timer.hbs",
+		"systems/shadowdark/templates/items/basic/_partials/light-options.hbs",
+		"systems/shadowdark/templates/items/basic/_partials/light-fuel.hbs",
 		"systems/shadowdark/templates/items/basic/details-tab.hbs",
 		"systems/shadowdark/templates/items/basic/light-tab.hbs",
 		"systems/shadowdark/templates/items/boon/details-tab.hbs",

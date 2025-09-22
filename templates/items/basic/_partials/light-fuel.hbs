@@ -1,0 +1,33 @@
+<div class="SD-box">
+	<div class="header light">
+		<label>{{localize 'SHADOWDARK.item.light.fuel'}}</label>
+		<span></span>
+	</div>
+	<div class="content droppable">
+        <fieldset class="items" data-type="lightFuel" style="height: 100%;{{#unless fuelChosen}} display: flex; justify-content: center; align-items: center;{{/unless}}">
+            {{#unless fuelChosen}}
+                <div style="color: rgba(0, 0, 0, 0.6);">
+                    <em>{{localize "SHADOWDARK.item.light.drop-fuel"}}</em>
+                </div>
+            {{/unless}}
+            {{#each fuelSources}}
+                <div style="white-space: nowrap;">
+                    <a
+                        class="remove-item fas fa-delete-right"
+                        data-action="deleteFuelSource"
+                        data-uuid="{{this.uuid}}"
+                        data-index="{{@index}}"
+                    ></a>
+                    <a
+                        class="content-link"
+                        data-link
+                        data-tooltip="{{this.name}}"
+                        data-uuid="{{this.uuid}}"
+                    >
+                        {{this.name}}
+                    </a>
+                </div>
+            {{/each}}
+        </fieldset>
+	</div>
+</div>

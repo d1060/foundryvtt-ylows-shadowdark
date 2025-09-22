@@ -145,23 +145,23 @@ export default class NanoMagicSD {
 
 		context.productionReadyOrProgramOptimization = context.productionReady || context.programOptimization;
 
-		var nanoPoints = actor.system?.level?.value;
+		var nanoPoints = actor.level;
 		if (context.nanoTolerance)
-			nanoPoints += Math.floor(actor.system?.level?.value / 2) * context.nanoTolerance;
+			nanoPoints += Math.floor(actor.level / 2) * context.nanoTolerance;
 		
 		if (!actor.system?.magic?.nanoPoints?.base)
 		{
 			actor.system.magic.nanoPoints.base = nanoPoints;
 			context.actor.system.magic.nanoPoints.base = nanoPoints;
-			actor.update({"system.magic.nanoPoints.base": nanoPoints});
+			//actor.update({"system.magic.nanoPoints.base": nanoPoints});
 		}
 		
 		if (actor.system?.magic?.nanoPoints?.base != nanoPoints)
 		{
 			actor.system.magic.nanoPoints.base = nanoPoints;
 			actor.system.magic.nanoPoints.value = nanoPoints;
-			actor.update({"system.magic.nanoPoints.base": nanoPoints});
-			actor.update({"system.magic.nanoPoints.value": nanoPoints});
+			//actor.update({"system.magic.nanoPoints.base": nanoPoints});
+			//actor.update({"system.magic.nanoPoints.value": nanoPoints});
 		}
 
 		for (var i = 0; i < actor.system.magic.nanoMagicPrograms.length; i++)

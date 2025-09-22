@@ -9,6 +9,7 @@ import UtilitySD from "../utils/UtilitySD.mjs";
 import EvolutionGridSD from "../apps/EvolutionGridSD.mjs";
 import BulkSellSD from "../utils/BulkSellSD.mjs";
 import RandomizerSD from "../apps/RandomizerSD.mjs";
+import LightSourceTrackerSD from "../apps/LightSourceTrackerSD.mjs";
 
 export default class PlayerSheetSD extends ActorSheetSD {
 
@@ -59,6 +60,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			toggleEquipped: this.#onToggleEquipped,
 			toggleLight: this.#onToggleLightSource,
 			toggleStashed: this.#onToggleStashed,
+			discardItem: this.#onDiscardItem,
 			useAbility: this.#onUseAbility,
 			usePotion: this.#onUsePotion,
 			rechargeMagicItem: this.#onRechargeMagicItem,
@@ -360,6 +362,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				}
 				else
 					context.bulkSelling = false;
+				this.setupActiveItemIcons(context);
 				[context.gearSlots, context.gearSlotsTooltip] = this.actor.numGearSlots();
 				this.gemBag.render(false);
 				break;
@@ -1128,6 +1131,12 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		]);
 	}
 
+	static async #onDiscardItem(event, target) {
+		event.preventDefault();
+		const itemId = target.dataset.itemId;
+		await this.actor.deleteEmbeddedDocuments("Item", [itemId]);
+	}
+
 	static async #onUseAbility(event, target) {
 		event.preventDefault();
 
@@ -1204,6 +1213,32 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		const active = !item.system.light.active;
 
 		if (active) {
+			//Check if I have available Fuel, if I need it.
+			if (item.system.fuelSources && item.system.fuelSources.length) {
+				const fuelSource = this.actor.items.find(actorItem => item.system.fuelSources.some(s => s.name == actorItem.name));
+				if (fuelSource)
+				{
+					if (fuelSource.system.quantity > 1) {
+						fuelSource.system.quantity--;
+						this.actor.updateEmbeddedDocuments(
+							"Item", [{
+								"_id": fuelSource.id,
+								"system.quantity": fuelSource.system.quantity,
+							}]
+						);
+					} else {
+						this.actor.deleteEmbeddedDocuments("Item", [fuelSource.id]);
+					}
+				}
+				else
+				{
+					return ui.notifications.warn(
+						game.i18n.localize("SHADOWDARK.item.errors.no_available_fuel"),
+						{ permanent: false }
+					);
+				}
+			}
+
 			// Find any currently active lights and turn them off
 			const activeLightSources = await this.actor.getActiveLightSources();
 			for (const lightSource of activeLightSources) {
@@ -1221,6 +1256,23 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			"system.light.active": active,
 		};
 
+		if (active && game.settings.get("shadowdark", "newLightRideOldTimer"))
+		{
+			const allLights = await LightSourceTrackerSD.getCurrentLightSources();
+			let lowestRemainingSecs = Number.MAX_VALUE;
+			for (let lightActor of allLights) {
+				for (let lightSource of lightActor.lightSources) {
+					if (lightActor.id != this.actor.id || lightSource._id != item.id) {
+						if (lightSource.system.light.remainingSecs < lowestRemainingSecs && lightSource.system.light.remainingSecs > 0)
+							lowestRemainingSecs = lightSource.system.light.remainingSecs;
+					}
+				}
+			}
+
+			if (lowestRemainingSecs != Number.MAX_VALUE)
+				dataUpdate['system.light.remainingSecs'] = lowestRemainingSecs;
+		}
+		
 		if (!item.system.light.hasBeenUsed) {
 			dataUpdate["system.light.hasBeenUsed"] = true;
 		}
@@ -1229,8 +1281,10 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			"Item", [dataUpdate]
 		);
 
+
 		await this.actor.toggleLight(active, item.id);
 
+		LightSourceTrackerSD._updateLightSourceImages(item, null);
 		// We only update the Light Source Tracker if this Actor is currently
 		// selected by a User as their character
 		//
@@ -1416,6 +1470,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 					i.isLightSource = true;
 					i.lightSourceActive = i.system.light.active;
 					i.lightSourceUsed = i.system.light.hasBeenUsed;
+					i.lightSourceExpended = i.system.light.isExpended;
 
 					const timeRemaining = Math.ceil(
 						i.system.light.remainingSecs / 60
@@ -1832,6 +1887,30 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		else
 		{
 			newActor.sheet.render(true);
+		}
+	}
+
+	setupActiveItemIcons(context) {
+		for (const item of context.inventory.equipped) {
+			this.setupActiveItemIcon(item);
+		}
+		for (const item of context.inventory.carried) {
+			this.setupActiveItemIcon(item);
+		}
+	}
+
+	setupActiveItemIcon(item) {
+		item.activeImg = item.img;
+
+		if (item.system.light?.active) {
+			if (item.system.litIcon)
+				item.activeImg = item.system.litIcon;
+		} else if (!item.system.light?.isExpended) {
+			if (item.system.unlitIcon)
+				item.activeImg = item.system.unlitIcon;
+		} else {
+			if (item.system.expendedIcon)
+				item.activeImg = item.system.expendedIcon;
 		}
 	}
 }

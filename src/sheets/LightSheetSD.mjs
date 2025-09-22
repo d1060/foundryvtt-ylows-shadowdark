@@ -147,7 +147,7 @@ export default class LightSheetSD extends ActorSheetSD {
 			// const activeUsers = game.users
 			// 	.filter(u => u.active && !u.isGM);
 
-			const targetActor = this.multicharacterSelectionDialog(playerActors);
+			const targetActor = await this.multicharacterSelectionDialog(playerActors);
 
 			if (targetActor) {
 				game.shadowdark.lightSourceTracker.pickupItemFromScene(

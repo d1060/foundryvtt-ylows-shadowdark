@@ -25,11 +25,15 @@
 	</header>
 	<div class="light-source {{#if active}}on{{else}}off{{/if}}">
 		<h4>
-		{{#ifCond timeRemaining '<' 1}}
-			{{localize "SHADOWDARK.chat.light_source.seconds_remaining"}}
-		{{else}}
-			{{timeRemaining}} {{localize "SHADOWDARK.chat.light_source.remaining"}}
-		{{/ifCond}}
+			{{#ifCond timeRemaining '<=' 0}}
+				{{localize "SHADOWDARK.chat.light_source.expended"}}
+			{{else}}
+				{{#ifCond timeRemaining '<' 1}}
+					{{localize "SHADOWDARK.chat.light_source.seconds_remaining"}}
+				{{else}}
+					{{timeRemaining}} {{localize "SHADOWDARK.chat.light_source.remaining"}}
+				{{/ifCond}}
+			{{/ifCond}}
 		</h4>
 	</div>
 </div>

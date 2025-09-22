@@ -4,13 +4,17 @@
 	data-uuid="{{item.uuid}}"
 >
 
-	<div class="item-image" data-action="itemChatClick" style="background-image: url({{item.img}})">
+	<div class="item-image" data-action="itemChatClick" style="background-image: url({{#if item.activeImg}}{{item.activeImg}}{{else}}{{item.img}}{{/if}})">
 		<i class="fas fa-comment fa-lg"></i>
 	</div>
 	<a class="item-name" data-action="showDetails">
 		{{item.name}}
 		{{#if item.lightSourceUsed}}
+			{{#if item.lightSourceExpended}}
+			<em>{{localize "SHADOWDARK.inventory.item.light_expended"}}</em>
+			{{else}}
 			<em>{{localize "SHADOWDARK.inventory.item.light_used"}}</em>
+			{{/if}}
 		{{/if}}
 	</a>
 	{{#if item.lightSourceUsed}}
@@ -100,14 +104,16 @@
 		{{/unless}}
 		{{/if}}
 		{{#if item.system.light.isSource}}
-			<a
-				data-action="toggleLight"
-				data-item-id="{{item._id}}"
-				data-tooltip="{{localize 'SHADOWDARK.inventory.tooltip.toggle_light_source'}}"
-				style="{{#if item.system.light.active}}color: darkorange;{{/if}}"
-			>
-				<i class="fa-solid fa-fire-flame-curved" data-item-id="{{item._id}}"></i>
-			</a>
+			{{#unless item.system.light.isExpended}}
+				<a
+					data-action="toggleLight"
+					data-item-id="{{item._id}}"
+					data-tooltip="{{localize 'SHADOWDARK.inventory.tooltip.toggle_light_source'}}"
+					style="{{#if item.system.light.active}}color: darkorange;{{/if}}"
+				>
+					<i class="fa-solid fa-fire-flame-curved" data-item-id="{{item._id}}"></i>
+				</a>
+			{{/unless}}
 		{{/if}}
 		{{#ifEq item.type "Potion"}}
 			<a

@@ -2130,6 +2130,10 @@ picture {
   --fa: "\f2b5";
 }
 
+.fa-trash {
+  --fa: "\f1f8";
+}
+
 .shadowdark .rollable-visible {
   visibility: visible;
   opacity: 0.4;
