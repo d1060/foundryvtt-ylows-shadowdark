@@ -289,12 +289,52 @@ export default class CompendiumsSD {
 		return filteredDocuments;
 	}
 
+	static async nanoMagicInternalEffects(filterSources=true) {
+		const documents = await CompendiumsSD._documents("Item", "Talent", filterSources);
+
+		return this._collectionFromArray(
+			documents.filter(
+				document => document.system.talentClass === "nanoMagic" && document.system.nanoProgramType == "internal"
+			)
+		);
+	}
+
+	static async nanoMagicExternalEffects(filterSources=true) {
+		const documents = await CompendiumsSD._documents("Item", "Talent", filterSources);
+
+		return this._collectionFromArray(
+			documents.filter(
+				document => document.system.talentClass === "nanoMagic" && document.system.nanoProgramType == "external"
+			)
+		);
+	}
+
+	static async nanoMagicInternalDrawbacks(filterSources=true) {
+		const documents = await CompendiumsSD._documents("Item", "Talent", filterSources);
+
+		return this._collectionFromArray(
+			documents.filter(
+				document => document.system.talentClass === "nanoMagic" && document.system.nanoProgramType == "internal_drawback"
+			)
+		);
+	}
+
+	static async nanoMagicExternalDrawbacks(filterSources=true) {
+		const documents = await CompendiumsSD._documents("Item", "Talent", filterSources);
+
+		return this._collectionFromArray(
+			documents.filter(
+				document => document.system.talentClass === "nanoMagic" && document.system.nanoProgramType == "external_drawback"
+			)
+		);
+	}
+
 	static async nanoMagicTalents(filterSources=true) {
 		const documents = await CompendiumsSD._documents("Item", "Talent", filterSources);
 
 		return this._collectionFromArray(
 			documents.filter(
-				document => document.system.talentClass === "nanoMagic"
+				document => document.system.talentClass === "nanoMagic" && document.system.nanoProgramType == "talent"
 			)
 		);
 	}

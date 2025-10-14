@@ -1,0 +1,15 @@
+<section style="display: grid; gap: 4px">
+    {{#each subParts}}
+    <div style="display: grid; grid-template-columns: 16px 1fr; gap: 4px">
+        <a  style="font-size: 16px; align-self: center;"
+            class="item-selector fas fa-minus-square-o edit-button"
+            data-index="{{@index}}"
+            data-action="removeSubpart" >
+        </a>
+        <input type="text" name="subpart-name" data-index="{{@index}}" value="{{this}}">
+    </div>
+    {{/each}}
+    <div>
+        <input type="text" name="new-subpart-name">
+    </div>
+</section>

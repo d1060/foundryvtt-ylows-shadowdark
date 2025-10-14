@@ -58,6 +58,7 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 	async _prepareContext(options) {
 		shadowdark.resetTimestamp();
 		shadowdark.logTimestamp(`RollDialogSD _prepareContext START`);
+		this.data.damageDisadvantage = false;
 		//const context = await super._prepareContext(options);
 		this.advantageTooltip = this.rollOptions.advantageTooltip ?? "";
 		if (this.data.advantage && this.advantageTooltip === "")    this.advantageTooltip = game.i18n.localize("SHADOWDARK.dialog.tooltip.talent_advantage");
@@ -71,31 +72,16 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 			this.advantageTooltip += game.i18n.localize("SHADOWDARK.dialog.tooltip.advantage_on_all_attacks");
 		}
 
-		var newTarget = this.rollOptions.target;
-		var tokens = [];
-		if (this.rollOptions.targetToken) tokens.push(this.rollOptions.targetToken);
-		for (var token of tokens)
+		var tokens = CONFIG.DiceSD.selectedTokens();
+		shadowdark.logTimestamp(`RollDialogSD _prepareContext checking tokens`);
+		if (tokens.some(t => t.actor.system?.bonuses?.displacementField))
 		{
-			if (token.actor.system?.bonuses?.displacementField)
-			{
-				advantageCount--;
-				if (this.advantageTooltip !== "") this.advantageTooltip += "\n";
-				this.advantageTooltip += game.i18n.localize("SHADOWDARK.dialog.tooltip.displacement_disadvantage");
-				break;
-			}
-
-			if (this.rollOptions.target && token.actor.system.bonuses?.bloodiedAC && token.actor.system.attributes.hp.value <= token.actor.system.attributes.hp.max / 2)
-			{
-				if (newTarget < this.rollOptions.target + token.actor.system.bonuses.bloodiedAC)
-					newTarget = this.rollOptions.target + token.actor.system.bonuses.bloodiedAC;
-			}
-			if (this.rollOptions.target && token.actor.system.bonuses?.shieldWall)
-			{
-				newTarget += await this.shieldWallBonus(token.actor);
-			}
+			advantageCount--;
+			if (this.advantageTooltip !== "") this.advantageTooltip += "\n";
+			this.advantageTooltip += game.i18n.localize("SHADOWDARK.dialog.tooltip.displacement_disadvantage");
 		}
-		this.rollOptions.target = newTarget;
 
+		shadowdark.logTimestamp(`RollDialogSD _prepareContext checking advantage`);
 		if (this.data.item?.isWeapon())
 		{
 			if(!(await this.data.actor.isProficient(this.data.item)))
@@ -106,6 +92,7 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 			}
 		}
 
+		shadowdark.logTimestamp(`RollDialogSD _prepareContext checking advantage is armor equipped`);
 		if(!(await this.data.actor.isProficientWithAllEquippedArmor()))
 		{
 			advantageCount--;
@@ -113,6 +100,7 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 			this.advantageTooltip += game.i18n.localize("SHADOWDARK.dialog.tooltip.not_proficient_with_armor");
 		}
 
+		shadowdark.logTimestamp(`RollDialogSD _prepareContext checking advantage is blind`);
 		if (this.data.actor?.system.penalties?.blindness)
 		{
 			advantageCount--;
@@ -126,6 +114,28 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 			this.advantageTooltip += game.i18n.localize("SHADOWDARK.dialog.tooltip.blinded_target");
 		}
 
+		shadowdark.logTimestamp(`RollDialogSD _prepareContext checking advantage is weapon disadvantage`);
+		if (this.data.actor?.system.penalties?.disadvantage && this.data.item?.typeSlug === 'weapon') {
+			if (this.data.item.system.type === 'ranged' && this.data.actor.system.penalties.disadvantage.includes('ranged-attack')) {
+				advantageCount--;
+				if (this.advantageTooltip !== "") this.advantageTooltip += "\n";
+				this.advantageTooltip += game.i18n.localize("SHADOWDARK.dialog.tooltip.conditionDisadvantage");
+			}
+			else if (this.data.item.system.type === 'melee' && this.data.actor.system.penalties.disadvantage.includes('melee-attack')) {
+				advantageCount--;
+				if (this.advantageTooltip !== "") this.advantageTooltip += "\n";
+				this.advantageTooltip += game.i18n.localize("SHADOWDARK.dialog.tooltip.conditionDisadvantage");
+			}
+
+			if (this.data.item.system.type === 'ranged' && this.data.actor.system.penalties.disadvantage.includes('ranged-damage')) {
+				this.data.damageDisadvantage = true;
+			}
+			else if (this.data.item.system.type === 'melee' && this.data.actor.system.penalties.disadvantage.includes('melee-damage')) {
+				this.data.damageDisadvantage = true;
+			}
+		}
+
+		shadowdark.logTimestamp(`RollDialogSD _prepareContext checking advantage count`);
 		if (advantageCount > 0)
 		{
 			if (this.data.disadvantage)
@@ -147,6 +157,7 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 
 		if (this.data.actor?.system?.bonuses?.targetLock) this.data.targetLock = true;
 
+		shadowdark.logTimestamp(`RollDialogSD _prepareContext checking pack tactics`);
 		if (this.data.actor?.system?.bonuses?.packTactics)
 		{
 			if (!this.data.talentBonus) this.data.talentBonus = 0;
@@ -159,6 +170,15 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 			this.data.talentBonus += this.data.actor?.system?.bonuses?.poisonPenalty;
 		}
 
+		const showHitLocation = game.settings.get("shadowdark", "hitLocation");
+        if (showHitLocation) {
+			if (this.rollOptions.targetToken) {
+				let [actorAc, acTooltip, isMetallic, metallicPart] = await this.rollOptions.targetToken.actor?.getArmorClass(this.data.hitLocation?.name ?? 'Chest') ?? [0, '', false, 0];
+				this.rollOptions.target = actorAc;
+			}
+		}
+
+		shadowdark.logTimestamp(`RollDialogSD _prepareContext getting roll dialog content`);
         this.content = await CONFIG.DiceSD._getRollDialogContent(this.rollParts, this.data, this.rollOptions);
 
         const context = {
@@ -170,12 +190,13 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 			rollMode: this.rollOptions.rollMode,
 			target: this.rollOptions.target,
             dialogTemplate: this.dialogTemplate,
+			showHitLocation
 		};
 
-        context.showHitLocation = game.settings.get("shadowdark", "hitLocation");
+		shadowdark.logTimestamp(`RollDialogSD _prepareContext checking hit location`);
         if (context.showHitLocation) {
 			if (this.rollOptions.targetToken && this.rollOptions.targetToken.actor?.system?.bodySetup)
-				this.bodyType = await fromUuid(this.rollOptions.targetToken.actor.system.bodySetup);
+				this.bodyType = await fromUuidSync(this.rollOptions.targetToken.actor.system.bodySetup);
 
 			if (!this.bodyType) {
             	let defaultBodyType = await CompendiumsSD.defaultBodySetup(true);
@@ -209,6 +230,7 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 			this.data.hitLocation = RollDialogSD.getBodyPartFromIndex(this.bodyType?.system.bodyParts, this.data.hitLocationIndex, this.data.actor);
         }
 
+		shadowdark.logTimestamp(`RollDialogSD _prepareContext final touch ups`);
         if (this.data.actor?.hasAdvantage(this.data))
         {
             context.advantageTooltip = this.advantageTooltip;

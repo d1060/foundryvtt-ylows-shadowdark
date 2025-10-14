@@ -112,20 +112,25 @@ export default class RollSD extends Roll {
 				}
 			}
 
-			//data.extraFireDamage = data.actor.system.bonuses?.extraFireDamage ?? 0;
+			data.extraFireDamage = data.actor.system.bonuses?.extraFireDamage ?? 0;
 			//if (data.extraFireDamage) data.damageParts.push("@extraFireDamage");
 
-			if (data.item.type === "NPC Attack") {
-				data = await this._rollNpcAttack(data);
+			let damageResult = null;
+			if (data.rolls.main.success == null || data.rolls.main.success.value) {
+				if (data.item.type === "NPC Attack") {
+					data = await this._rollNpcAttack(data);
+				}
+
+				damageResult = await this._calculateDamage(options, data);
 			}
-			const result = await this._renderRoll(data, adv, options);
-			await this._applyDamageToTargets(result, options, data);
+			const result = await this._renderRoll(data, adv, options, damageResult);
+			await this._applyDamageToTargets(result, options, data, damageResult);
 			data.actor?.onActionPerformed();
 			return result;
 		}
 
 		// Special cases for D20 rolls
-		if (this._isD20or2d10(parts)) {
+		if (this._isD20or2d10(parts) && (data.rolls.main.success == null || data.rolls.main.success.value)) {
 			// Weapon? -> Roll Damage dice
 			if (data.item?.isWeapon()) {
 				data.handedness = options.handedness;
@@ -189,25 +194,35 @@ export default class RollSD extends Roll {
 			}
 		}
 
-		if (data.auraMagic || data.abyssalMagic || data.mistMagic || data.nanoMagic || data.rollType.includes('-magic'))
+		let damageResult = null;
+		if (data.rolls.main.success == null || data.rolls.main.success.value)
 		{
-			var damage = data.damage;
-			if (damage && (typeof damage === 'string' || damage instanceof String) && damage.includes("d"))
+			if (data.auraMagic || data.abyssalMagic || data.mistMagic || data.nanoMagic || data.rollType.includes('-magic'))
 			{
-				var spellDamageParts = [damage];
-				data.rolls.damage = await this._roll(spellDamageParts, data);
+				var damage = data.damage;
+				if (damage && (typeof damage === 'string' || damage instanceof String) && damage.includes("d"))
+				{
+					var spellDamageParts = [damage];
+					data.rolls.damage = await this._roll(spellDamageParts, data);
+				}
+				else if (damage)
+				{
+					var fixedDamage = damage + "d1";
+					var spellDamageParts = [fixedDamage];
+					data.rolls.damage = await this._roll(spellDamageParts, data);
+				}
 			}
-			else if (damage)
-			{
-				var fixedDamage = damage + "d1";
-				var spellDamageParts = [fixedDamage];
-				data.rolls.damage = await this._roll(spellDamageParts, data);
-			}
+
+			damageResult = await this._calculateDamage(options, data);
+		}
+		const result = await this._renderRoll(data, adv, options, damageResult);
+
+		//Announce weapons breaking
+		if (data.weaponBroke) {
+			this._renderWeaponBreaking(data);
 		}
 
 		// Check if it was a spell, and if it failed, lose it
-		const result = await this._renderRoll(data, adv, options);
-
 		if (
 			data.item?.isSpell()
 			&& result
@@ -226,7 +241,7 @@ export default class RollSD extends Roll {
 		if (await data.item?.isExplosive())
 			data.actor?.reduceQuantity(data.item, 1);
 
-		await this._applyDamageToTargets(result, options, data);
+		await this._applyDamageToTargets(result, options, data, damageResult);
 		data.actor?.onActionPerformed();
 		return result;
 	}
@@ -237,16 +252,7 @@ export default class RollSD extends Roll {
 
 		if (data.resistedBy.toLowerCase() !== 'ac')
 		{
-			var tokens = [];
-			if (options.targetToken)
-				tokens.push(options.targetToken);
-			if (data.targetTokens)
-				tokens.push(...data.targetTokens);
-			for (const target of game.user.targets.values())
-			{
-				if (!tokens.some(t => t.id === target.id))
-					tokens.push(target);
-			}
+			var tokens = this.selectedTokens(options, data);
 			
 			if (tokens.length) data.wasAnyoneHit = false;
 			data.resistanceRolls = [];
@@ -254,29 +260,23 @@ export default class RollSD extends Roll {
 				if (token.actor)
 				{
 					let resistanceRoll = await this.rollOneResistance(token, data, data.rolls.main);
-					if (!resistanceRoll.main.success) data.wasAnyoneHit = true;
+					if (!resistanceRoll.main.success.value) data.wasAnyoneHit = true;
 					data.resistanceRolls.push(resistanceRoll);
 				}
 			}
+
+			if (data.resistanceRolls.some(r => r.main.success.value == true) && data.wasAnyoneHit)
+				data.rolls.main.success.partial = true;
 		}
 		else // if (data.resistedBy.toLowerCase() === 'ac')
 		{
-			var tokens = [];
-			if (options.targetToken)
-				tokens.push(options.targetToken);
-			if (data.targetTokens)
-				tokens.push(...data.targetTokens);
-			for (const target of game.user.targets.values())
-			{
-				if (!tokens.some(t => t.id === target.id))
-					tokens.push(target);
-			}
+			var tokens = this.selectedTokens(options, data);
 			
 			if (tokens.length) data.wasAnyoneHit = false;
 			for (let token of tokens) {
 				if (token.actor)
 				{
-					let [actorAc, acTooltip, isMetallic, metallicPart] = await token.actor.getArmorClass();
+					let [actorAc, acTooltip, isMetallic, metallicPart] = await token.actor.getArmorClass('Chest');
 					if (options.power?.system?.talentClass === 'auraMagic') actorAc = await AuraMagicSD.getResistedAcBySpell(options.power, actorAc, isMetallic, metallicPart);
 					if (options.power?.effect) actorAc = await BritannianSpellSD.getResistedAcBySpell(options.power, data.actor, actorAc, isMetallic);
 					if (data.rolls?.main?.roll?._total < actorAc)
@@ -288,6 +288,9 @@ export default class RollSD extends Roll {
 						data.wasAnyoneHit = true;
 				}
 			}
+
+			if (data.acMisses && data.acMisses.length && data.wasAnyoneHit)
+				data.rolls.main.success.partial = true;
 		}
 	}
 
@@ -307,6 +310,7 @@ export default class RollSD extends Roll {
 			main: await this._rollAdvantage([(game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20"), '@abilityBonus'], resistanceData, adv),
 			tokenId: token.id
 		};
+		//shadowdark.debug(`Resistance roll against ${target}, result: ${resistanceData.rolls.main.roll.total}, success: ${resistanceData.rolls.main.success.value}`);
 		return resistanceData.rolls;
 	}
 
@@ -339,43 +343,55 @@ export default class RollSD extends Roll {
 		}
 	}
 	
-	static async _applyDamageToTargets(result, options, data) {
-		if (game.settings.get("shadowdark", "enableTargetingDamage") && result?.rolls?.main?.success?.value && result.rolls.damage?.roll?._total)
+	static async _calculateDamage(options, data) {
+		if (game.settings.get("shadowdark", "enableTargetingDamage") && data?.rolls?.main?.success?.value && data.rolls.damage?.roll?._total)
 		{
-			var damageTotal = result.rolls.damage?.roll?._total;
-
-			var tokens = [];
-			if (options.targetToken)
-				tokens.push(options.targetToken);
-			else if (result.targetTokens)
-				tokens = result.targetTokens;
-			for (const target of game.user.targets.values())
-			{
-				if (!tokens.some(t => t.id === target.id))
-					tokens.push(target);
-			}
+			var tokens = this.selectedTokens(options, data);
 
 			for (var token of tokens)
 			{
-				var canApplyDamage = result.actor && (result.item || result.power || options.power) && token.actor;
+				var damageTotal = data.rolls.damage?.roll?._total;
+				var damageTooltip;
+
+				var canApplyDamage = data.actor && (data.item || data.power || options.power) && token.actor;
 
 				let resistanceRoll;
-				if (result.resistanceRolls)
-					resistanceRoll = result.resistanceRolls.find(r => r.main.roll.data?.actor?.id === token.actor?.id);
-				if (resistanceRoll && resistanceRoll.main.success.value)
-					continue;
+				if (data.resistanceRolls)
+					resistanceRoll = data.resistanceRolls.find(r => r.main.roll.data?.actor?.id === token.actor?.id);
 
-				if (result.acMisses && result.acMisses.find(m => m.id === token.actor.id))
+				token.resistedDamage = false;
+				if (resistanceRoll && resistanceRoll.main.success.value)
+				{
+					token.resistedDamage = true;
 					continue;
+				}
+
+				token.acMissed = false;
+				if (data.acMisses && data.acMisses.find(m => m.id === token.actor.id))
+				{
+					token.acMissed = true;
+					continue;
+				}
+
+				if (!resistanceRoll && !data.acMisses && tokens.length > 1) {
+					const [actorAc, acTooltip, isMetallic, metallicPart] = await token.actor.getArmorClass('Chest');
+					if (data.rolls?.main?.roll?._total < actorAc) {
+						token.acMissed = true;
+						continue;
+					}
+				}
 				
 				if (!data.isHealing)
 				{
 					if (data.extraFireDamage) damageTotal -= data.extraFireDamage;
 
 					if (canApplyDamage)
-						damageTotal = await this.checkDamageModifiers(result.item, result.power ?? options.power, result?.rolls?.main, token.actor, damageTotal);
+					{
+						const attackDamageType = this.damageType(options, data);
+						[damageTotal, damageTooltip] = await this.checkDamageModifiersByType(data.item, data?.rolls?.main, token.actor, damageTotal, attackDamageType, data.hitLocation);
+					}
 
-					if (data.extraFireDamage) damageTotal = await this.addExtraDamageByType(data.extraFireDamage, 'fire', token.actor, damageTotal);
+					if (data.extraFireDamage) [damageTotal, damageTooltip] = await this.addExtraDamageByType(data.extraFireDamage, 'fire', token.actor, damageTotal, damageTooltip);
 				}
 				else
 					damageTotal = -damageTotal;
@@ -384,14 +400,57 @@ export default class RollSD extends Roll {
 				{
 					for (let extraDamage of data.rolls.extraDamage)
 					{
-						damageTotal += await this.checkDamageModifiersByType(result.item, result?.rolls?.main, token.actor, extraDamage.roll.total, extraDamage.type);
+						let [damage, damageTooltip] = await this.checkDamageModifiersByType(data.item, data?.rolls?.main, token.actor, extraDamage.roll.total, extraDamage.type, data.hitLocation);
+						damageTotal += damage;
 					}
 				}
+				token.damageTotal = damageTotal;
+				token.damageTooltip = damageTooltip;
+			}
 
-				//shadowdark.debug(`Applying damage of ${damageTotal} to ${token.actor.name}`);
+			return tokens;
+		}
+		return [];
+	}
 
-				if (damageTotal === 0)
-					continue;
+	static selectedTokens(options, data) {
+		var tokens = [];
+		if (options?.targetToken)
+			tokens.push(options?.targetToken);
+		else if (data?.targetTokens)
+			tokens = data?.targetTokens;
+		for (const target of game.user.targets.values())
+		{
+			if (!tokens.some(t => t.id === target.id))
+				tokens.push(target);
+		}
+		tokens = UtilitySD.uniqBy(tokens, t => t.id);
+		return tokens;
+	}
+
+	static damageType(options, data) {
+		const weapon = data.item;
+		const power = data.power ?? options.power;
+		var attackDamageType = weapon?.system?.damage?.type;
+		if (!attackDamageType && power && power.damage_type) attackDamageType = power.damage_type;
+		if (!attackDamageType && power && power.system?.damage_type) attackDamageType = power.system.damage_type;
+		if (!attackDamageType && power && power.effect?.damage_type) attackDamageType = power.effect.damage_type;
+		if (!attackDamageType) attackDamageType = 'bludgeoning';
+		return attackDamageType;
+	}
+
+	static async _applyDamageToTargets(result, options, data, tokens) {
+		if (game.settings.get("shadowdark", "enableTargetingDamage") && result?.rolls?.main?.success?.value && result.rolls.damage?.roll?._total)
+		{
+			var attackDamageType = this.damageType(options, data);
+
+			var appliedDamage = 0;
+			for (var token of tokens ?? [])
+			{
+				if (token.resistedDamage) continue;
+				if (token.acMissed) continue;
+				if (token.damageTotal === 0) continue;
+				appliedDamage += token.damageTotal;
 
 				if (!game.user.isGM) {
 					if (token.actor.type == "NPC")
@@ -402,8 +461,9 @@ export default class RollSD extends Roll {
 								type: "changeNpcActorHP",
 								data: {
 									tokenId: token.id,
-									damage: damageTotal,
+									damage: token.damageTotal,
 									hitLocation: result.hitLocation,
+									damageType: attackDamageType,
 								},
 							}
 						);
@@ -412,7 +472,7 @@ export default class RollSD extends Roll {
 				}
 				else
 				{
-					await this.applyDamageToToken(token, damageTotal, result.hitLocation);
+					await this.applyDamageToToken(token, token.damageTotal, result.hitLocation, attackDamageType);
 				}
 
 				if (token.actor?.system?.bonuses?.automaticDamageOnCloseAttack && (options.attackType === 'melee' || options.attackType == null))
@@ -421,10 +481,11 @@ export default class RollSD extends Roll {
 					if (actorToken)
 					{
 						let automaticDamage = token.actor.system.bonuses.automaticDamageOnCloseAttack;
+						let damageTooltip;
 						if (token.actor?.system?.bonuses?.automaticDamageOnCloseAttackType) {
-							automaticDamage = await this.checkDamageModifiersByType(null, null, actorToken.actor, automaticDamage, token.actor?.system?.bonuses?.automaticDamageOnCloseAttackType);
+							[automaticDamage, damageTooltip] = await this.checkDamageModifiersByType(null, null, actorToken.actor, automaticDamage, token.actor?.system?.bonuses?.automaticDamageOnCloseAttackType, data.hitLocation);
 						}
-						await this.applyDamageToToken(actorToken, automaticDamage);
+						await this.applyDamageToToken(actorToken, automaticDamage, attackDamageType);
 					}
 				}
 
@@ -490,7 +551,7 @@ export default class RollSD extends Roll {
 				}
 			}
 
-			if (damageTotal != 0 && result.actor?.system?.bonuses?.regeneration)
+			if (appliedDamage != 0 && result.actor?.system?.bonuses?.regeneration)
 			{
 				var amountToRegenerate = result.actor?.system?.bonuses?.regeneration;
 				result.actor.applyHealing(amountToRegenerate);
@@ -498,67 +559,113 @@ export default class RollSD extends Roll {
 		}
 	}
 
-	static async checkDamageModifiers(weapon, power, roll, target, damageTotal)
+	static async checkDamageModifiersByType(weapon, roll, target, damageTotal, attackDamageType, hitLocation)
 	{
-		var attackDamageType = weapon?.system?.damage?.type;
-		if (!attackDamageType && power && power.damage_type) attackDamageType = power.damage_type;
-		if (!attackDamageType && power && power.system?.damage_type) attackDamageType = power.system.damage_type;
-		if (!attackDamageType && power && power.effect?.damage_type) attackDamageType = power.effect.damage_type;
-		if (!attackDamageType) attackDamageType = 'bludgeoning';
+		let dr = target.getDamageReduction(hitLocation);
+		let damageTooltip = damageTotal + " " + game.i18n.localize("SHADOWDARK.damage.base") + "<br>";
 
-		return await this.checkDamageModifiersByType(weapon, roll, target, damageTotal, attackDamageType);
-	}
-
-	static async checkDamageModifiersByType(weapon, roll, target, damageTotal, attackDamageType)
-	{
 		if (target.system.bonuses?.immunity && !Array.isArray(target.system.bonuses.immunity)) target.system.bonuses.immunity = [target.system.bonuses.immunity];
 		if (target.system.bonuses?.resistance && !Array.isArray(target.system.bonuses.resistance)) target.system.bonuses.resistance = [target.system.bonuses.resistance];
 
-		if (target.system.bonuses?.inanimate && roll.roll.data?.actor?.system?.bonuses?.hammerMaster && attackDamageType === 'bludgeoning')
+		if (target.system.bonuses?.inanimate && roll.roll.data?.actor?.system?.bonuses?.hammerMaster && attackDamageType === 'bludgeoning') {
+			damageTooltip += "+" + damageTotal + " " + game.i18n.localize("SHADOWDARK.damage.hammerMaster") + "<br>";
 			damageTotal *= 2;
+		}
 
-		if (target.system.bonuses?.platedBulwark && !(await weapon.isMagicItem()) && !(await weapon.isMagicDamage()) && target.isEquippingHeavyArmor)
+		if (target.system.bonuses?.platedBulwark && !(await weapon.isMagicItem()) && !(await weapon.isMagicDamage()) && target.isEquippingHeavyArmor) {
+			damageTooltip += "-" + parseInt(target.system.bonuses?.platedBulwark) + " " + game.i18n.localize("SHADOWDARK.damage.platedBulwark") + "<br>";
 			damageTotal -= parseInt(target.system.bonuses?.platedBulwark);
+		}
 
-		if (target.system.bonuses?.livingMetalResistance &&
-			(attackDamageType === 'bludgeoning' || attackDamageType === 'slashing' || attackDamageType === 'piercing'))
+		if (attackDamageType === 'slashing' && target.isEquippingRigidArmor) {
+			damageTooltip += "-" + (damageTotal - Math.floor(damageTotal/2)) + " " + game.i18n.localize("SHADOWDARK.damage.isEquippingRigidArmor") + "<br>";
 			damageTotal = Math.floor(damageTotal/2);
-		else if (target.system.bonuses?.ancientSteelResistance &&
-			(attackDamageType === 'bludgeoning' || attackDamageType === 'slashing' || attackDamageType === 'piercing') &&
-			(weapon && !(await weapon.isExoticMaterial())))
+		} else if (attackDamageType === 'slashing' && target.system.bonuses?.rigid) {
+			damageTooltip += "-" + (damageTotal - Math.floor(damageTotal/2)) + " " + game.i18n.localize("SHADOWDARK.damage.slashingAgainstRigidTarget") + "<br>";
 			damageTotal = Math.floor(damageTotal/2);
-		else if (target.system.bonuses?.crysteelResistance && (weapon && weapon.isMagicDamage()))
+		}
+
+		if (target.system.bonuses?.livingMetalResistance && this.isPhysicalDamageType(attackDamageType)) {
+			damageTooltip += "-" + (damageTotal - Math.floor(damageTotal/2)) + " " + game.i18n.localize("SHADOWDARK.damage.livingMetalResistance") + "<br>";
 			damageTotal = Math.floor(damageTotal/2);
-		else if (target.system.bonuses?.impervious && weapon && !(await weapon.isMagicItem()) && !(await weapon.isMagicDamage()))
+		}
+		else if (target.system.bonuses?.ancientSteelResistance && this.isPhysicalDamageType(attackDamageType) && (weapon && !(await weapon.isExoticMaterial()))) {
+			damageTooltip += "-" + (damageTotal - Math.floor(damageTotal/2)) + " " + game.i18n.localize("SHADOWDARK.damage.ancientSteelResistance") + "<br>";
 			damageTotal = Math.floor(damageTotal/2);
-		else if (target.system.bonuses?.antiGuardian && attackDamageType === 'electricity')
+		}
+		else if (target.system.bonuses?.crysteelResistance && (weapon && weapon.isMagicDamage())) {
+			damageTooltip += "-" + (damageTotal - Math.floor(damageTotal/2)) + " " + game.i18n.localize("SHADOWDARK.damage.crysteelResistance") + "<br>";
+			damageTotal = Math.floor(damageTotal/2);
+		}
+		else if (target.system.bonuses?.impervious && weapon && !(await weapon.isMagicItem()) && !(await weapon.isMagicDamage())) {
+			damageTooltip += "-" + (damageTotal - Math.floor(damageTotal/2)) + " " + game.i18n.localize("SHADOWDARK.damage.impervious") + "<br>";
+			damageTotal = Math.floor(damageTotal/2);
+		}
+		else if (target.system.bonuses?.antiGuardian && attackDamageType === 'electricity') {
+			damageTooltip += "+" + damageTotal + " " + game.i18n.localize("SHADOWDARK.damage.antiGuardian") + "<br>";
 			damageTotal *= 2;
-		else if (target.system.bonuses?.antiGuardian && weapon && !(await weapon.isMagicItem()) && !(await weapon.isMagicDamage()))
+		}
+		else if (target.system.bonuses?.antiGuardian && weapon && !(await weapon.isMagicItem()) && !(await weapon.isMagicDamage())) {
+			damageTooltip += "-" + (damageTotal - Math.floor(damageTotal/2)) + " " + game.i18n.localize("SHADOWDARK.damage.antiGuardian") + "<br>";
 			damageTotal = Math.floor(damageTotal/2);
-		else if (target.system.bonuses?.misty && (!roll?.critical || roll?.critical !== 'success') && attackDamageType !== 'fire' && attackDamageType !== 'cold' && attackDamageType !== 'electricity')
+		}
+		else if (target.system.bonuses?.misty && (!roll?.critical || roll?.critical !== 'success') && this.isMagicalDamageType(attackDamageType)) {
+			damageTooltip += "-" + (damageTotal - 1) + " " + game.i18n.localize("SHADOWDARK.damage.misty") + "<br>";
 			damageTotal = 1;
-		else if (target.system.bonuses?.incorporeal && weapon && !(await weapon.isMagicItem()) && !(await weapon.isMagicDamage()))
+		}
+		else if (target.system.bonuses?.incorporeal && weapon && !(await weapon.isMagicItem()) && !(await weapon.isMagicDamage())) {
+			damageTooltip += "x0 " + game.i18n.localize("SHADOWDARK.damage.incorporeal") + "<br>";
 			damageTotal = 0;
-		else if (target.system.bonuses?.immunity && (target.system.bonuses?.immunity ?? []).some(i => i.slugify() === attackDamageType.slugify()))
+		}
+		else if (target.system.bonuses?.immunity && (target.system.bonuses?.immunity ?? []).some(i => i.slugify() === attackDamageType.slugify())) {
+			damageTooltip += "x0 " + game.i18n.localize("SHADOWDARK.damage.immunity") + "<br>";
 			damageTotal = 0;
-		else if (target.system.bonuses?.resistance && (target.system.bonuses?.resistance ?? []).some(i => i.slugify() === attackDamageType.slugify()))
+		}
+		else if (target.system.bonuses?.resistance && (target.system.bonuses?.resistance ?? []).some(i => i.slugify() === attackDamageType.slugify())) {
+			damageTooltip += "-" + (damageTotal - Math.floor(damageTotal/2)) + " " + game.i18n.localize("SHADOWDARK.damage.resistance") + "<br>";
 			damageTotal = Math.floor(damageTotal/2);
-		else if (target.system.magic?.type === 'auraMagic' && attackDamageType === 'electricity')
+		}
+		else if (target.system.magic?.type === 'auraMagic' && attackDamageType === 'electricity') {
+			damageTooltip += "-" + (damageTotal - Math.floor(damageTotal/2)) + " " + game.i18n.localize("SHADOWDARK.damage.auraMagic") + "<br>";
 			damageTotal = Math.floor(damageTotal/2);
-		else if (target.system.bonuses?.helvarionWeakness && weapon && (await weapon.isCrysteel()))
+		}
+		else if (target.system.bonuses?.helvarionWeakness && weapon && (await weapon.isCrysteel())) {
+			damageTooltip += "+3 " + game.i18n.localize("SHADOWDARK.damage.helvarionWeakness") + "<br>";
 			damageTotal += 3;
-		else if (target.system.bonuses?.homogeneous && 
-			(attackDamageType === 'bludgeoning' || attackDamageType === 'slashing' || attackDamageType === 'piercing') &&
-			(weapon && !(await weapon.isExoticMaterial())))
+		}
+		else if (target.system.bonuses?.homogeneous && this.isPhysicalDamageType(attackDamageType) && (weapon && !(await weapon.isExoticMaterial()))) {
+			damageTooltip += "-" + (damageTotal - 1) + " " + game.i18n.localize("SHADOWDARK.damage.homogeneous") + "<br>";
 			damageTotal = 1;
+		}
+
+		if (dr) {
+			damageTooltip += "-" + dr + " " + game.i18n.localize("SHADOWDARK.damage.dr") + "<br>";
+			if (attackDamageType === 'piercing') {
+				let drReduction = 3 > dr ? dr : 3;
+				dr -= drReduction;
+				damageTooltip += "+" + drReduction + " " + game.i18n.localize("SHADOWDARK.damage.piercingAgainstDr") + "<br>";
+			}
+			damageTotal -= dr;
+		}
+
+		if (damageTotal < 0) damageTotal = 0;
+		damageTooltip = damageTooltip.slice(0, -4);
 		
-		return damageTotal;
+		return [damageTotal, damageTooltip];
 	}
 
-	static async addExtraDamageByType(extraDamage, damageType, target, damageTotal)
+	static isMagicalDamageType(damageType) {
+		return ['fire', 'cold', 'electricity', 'acid', 'poison', 'corrosion'].includes(damageType);
+	}
+
+	static isPhysicalDamageType(damageType) {
+		return ['bludgeoning', 'slashing', 'piercing'].includes(damageType);
+	}
+
+	static async addExtraDamageByType(extraDamage, damageType, target, damageTotal, damageTooltip)
 	{
 		if (extraDamage === 0)
-			return damageTotal;
+			return [damageTotal, damageTooltip];
 		
 		if (target.system.bonuses?.crysteelResistance)
 			extraDamage = Math.floor(extraDamage/2);
@@ -569,17 +676,28 @@ export default class RollSD extends Roll {
 		else if (target.system.bonuses?.resistance && (target.system.bonuses?.resistance ?? []).some(i => i.slugify() === damageType.slugify()))
 			extraDamage = Math.floor(extraDamage/2);
 		damageTotal += extraDamage;
-		return damageTotal;
+		damageTooltip += "<br>+" + extraDamage + " " + game.i18n.localize("SHADOWDARK.damage.extra") + "(" + damageType + ")";
+		return [damageTotal, damageTooltip];
 	}
 
-	static async applyDamageToToken(token, damage, hitLocation) {
+	static async applyDamageToToken(token, damage, hitLocation, damageType) {
 		if (damage < 0)
 			token.actor.applyHealing(-damage, 1);
 		else
 			token.actor.applyDamage(damage, 1);
 
-		if (hitLocation != null)
-			token.actor.applyHitLocationEffect(hitLocation);
+		let wound = null;
+		let woundDamageThreshold = 3;
+		if (token.actor.system.scars?.length)
+			woundDamageThreshold += Math.floor(token.actor.system.scars.length * CONFIG.SHADOWDARK.SCAR_EFFECT_RATIO);
+
+		const useWounds = game.settings.get("shadowdark", "wounds");
+		if (useWounds && damage >= woundDamageThreshold) {
+			[wound, hitLocation] = await token.actor.applyWound(damage - (woundDamageThreshold - 1), hitLocation, damageType);
+		}
+
+		if ((hitLocation != null && !useWounds) || (useWounds && wound != null))
+			token.actor.applyHitLocationEffect(hitLocation, wound);
 		
 		if (token.actor.type == "NPC" && token.actor.system.attributes.hp.value <= 0 && token.document && !token.document.hidden)
 		{
@@ -646,20 +764,22 @@ export default class RollSD extends Roll {
 	 * @param {object} options	- Options for the critical check
 	 * @returns {string|null} 	- Analysis result
 	 */
-	static _digestCritical(roll, options={}) {
+	static _digestCritical(roll, type, bonuses={}, penalties={}) {
 		if (roll.terms[0].faces !== ( game.settings.get("shadowdark", "use2d10") ? 10 : 20 ) )
 			return null;
 
-		// Check if different threshold are given as options
-		var failureThreshold = (options.critical?.failureThreshold)
-			? options.critical.failureThreshold : 1;
+		// Check if different threshold are given as bonuses or penalties
+		var failureThreshold = (bonuses.critical?.failureThreshold) ? bonuses.critical.failureThreshold : 1;
+		if (penalties.physicalCriticalRange && type === 'physical') failureThreshold += Math.abs(penalties.physicalCriticalRange);
+		if (penalties.mentalCriticalRange && type === 'mental') failureThreshold += Math.abs(penalties.mentalCriticalRange);
+
 		if (game.settings.get("shadowdark", "use2d10")) failureThreshold++;
 
-		var successThreshold = (options.critical?.successThreshold)
-			? options.critical.successThreshold : 20;
+		var successThreshold = (bonuses.critical?.successThreshold)
+			? bonuses.critical.successThreshold : 20;
 
-		if (options.increasedCriticalRange)
-			successThreshold -= options.increasedCriticalRange;
+		if (bonuses.increasedCriticalRange)
+			successThreshold -= bonuses.increasedCriticalRange;
 
 		// Get the final result if using adv/disadv
 		if ( roll.terms[0].total >= successThreshold )
@@ -782,15 +902,48 @@ export default class RollSD extends Roll {
 		} 
 		const renderedHTML = await roll.render(renderOptions);
 
+		let type = 'mental';
+		if (data.item?.typeSlug === 'weapon') type = 'physical';
+		if (data.rollType === 'ability' && ['Strength', 'Dexterity', 'Constitution'].includes(data.ability)) type = 'physical';
+		if (data.actor?.type === 'NPC' && data.item?.system?.attackType === 'physical') type = 'physical';
+
 		// Also send the actors critical bonuses in case it has modified thresholds
-		const critical = this._digestCritical(roll, data.actor?.system?.bonuses);
+		const critical = this._digestCritical(roll, type, data.actor?.system?.bonuses, data.actor?.system?.penalties);
 
 		const result = {
 			roll,
 			renderedHTML,
 			critical,
 		};
-		if (data.target !== null) result.success = {value: result.roll.total >= data.target};
+
+		if (data.target != null) {
+			result.success = {value: false, partial: false};
+			let targets = [];
+			if (typeof data.target === 'number')
+				targets.push(data.target);
+			else if (data.target.includes(', '))
+				targets = data.target.split(', ');
+			else 
+				targets.push(data.target);
+
+			let isAnyTrue = false;
+			let isAnyFalse = false;
+
+			for (const targetStr of targets) {
+				const target = parseInt(targetStr);
+				//shadowdark.debug(`Comparing Roll of ${result.roll.formula}: ${result.roll.total} with ${target}`);
+				if (result.roll.total >= target)
+				{
+					result.success.value = true;
+					isAnyTrue = true;
+				}
+				else
+					isAnyFalse = true;
+			}
+
+			if (isAnyTrue && isAnyFalse)
+				result.success.partial = true;
+		}
 
 		return result;
 	}
@@ -1126,20 +1279,37 @@ export default class RollSD extends Roll {
 				twoHandedParts?.push(dualBonus);
 			}
 
-			if ((data.actor.system.bonuses?.weaponDamageAdvantage && data.actor.system.bonuses?.weaponDamageAdvantage == data.item.name.slugify()) ||
-				(data.actor.system.bonuses?.savageStrike))
+			let damageAdvantage = 0;
+			if (data.actor.system.bonuses?.weaponDamageAdvantage && data.actor.system.bonuses?.weaponDamageAdvantage == data.item.name.slugify())
+				damageAdvantage++;
+			if (data.actor.system.bonuses?.savageStrike)
+				damageAdvantage++;
+			if (data.damageDisadvantage)
+				damageAdvantage--;
+
+			if (damageAdvantage != 0)
 			{
 				var damageRoll1 = await this._rollDamage(data, dualWieldParts, oneHandedParts, twoHandedParts, damageDie1H, damageDie2H);
 				var damageRoll2 = await this._rollDamage(data, dualWieldParts, oneHandedParts, twoHandedParts, damageDie1H, damageDie2H);
 				if (damageRoll1.roll.total > damageRoll2.roll.total)
 				{
-					data.rolls.damage = damageRoll1;
-					data.rolls.damage2 = damageRoll2;
+					if (damageAdvantage > 0) {
+						data.rolls.damage = damageRoll1;
+						data.rolls.damage2 = damageRoll2;
+					} else {
+						data.rolls.damage = damageRoll2;
+						data.rolls.damage2 = damageRoll1;
+					}
 				}
 				else
 				{
-					data.rolls.damage = damageRoll2;
-					data.rolls.damage2 = damageRoll1;
+					if (damageAdvantage > 0) {
+						data.rolls.damage = damageRoll2;
+						data.rolls.damage2 = damageRoll1;
+					} else {
+						data.rolls.damage = damageRoll1;
+						data.rolls.damage2 = damageRoll2;
+					}
 				}
 			}
 			else
@@ -1153,6 +1323,11 @@ export default class RollSD extends Roll {
 				extraDamageRoll.type = extraDamage.type;
 				data.rolls.extraDamage.push(extraDamageRoll);
 			}
+		}
+
+		if (data.rolls.main.critical === 'failure' && await data.item?.hasProperty("breakable") && data.actor) {
+			data.actor.removeItem(data.item);
+			data.weaponBroke = data.item.name;
 		}
 
 		return data;
@@ -1587,11 +1762,11 @@ export default class RollSD extends Roll {
 				"isRoll": {value: true},
 				"rolls": {value: rolls},
 				"core.canPopout": {value: true},
-				"hasTarget": {value: target !== null && target !== false},
+				"hasTarget": {value: target !== null && target !== false && target !== ''},
 				"critical": {value: rolls?.main?.critical},
 			},
 		};
-		if (target !== null) chatData.flags.success = {value: rolls.main.roll.total >= target};
+		if (target !== null) chatData.flags.success = rolls.main.success;
 		return chatData;
 	}
 
@@ -1602,7 +1777,7 @@ export default class RollSD extends Roll {
 	 * e.g. `flavor`, `title`
 	 * @returns {object}				- Data to populate the Chat Card template
 	 */
-	static async _getChatCardTemplateData(data, options={}) {
+	static async _getChatCardTemplateData(data, options={}, damageTokens) {
 		const templateData = {
 			data,
 			title: (options.title) ? options.title : game.i18n.localize("SHADOWDARK.chatcard.default"),
@@ -1617,6 +1792,7 @@ export default class RollSD extends Roll {
 			isRoll: true,
 			isNPC: data.actor?.type === "NPC",
 			targetDC: options.target ?? false,
+			damageTokens
 		};
 
 		if (data.rolls.main) {
@@ -1662,13 +1838,14 @@ export default class RollSD extends Roll {
 	 */
 	static async _getChatCardContent(
 		data,
-		options = {}
+		options = {},
+		damageTokens
 	) {
 		const chatCardTemplate = options.chatCardTemplate
 			? options.chatCardTemplate
 			: "systems/shadowdark/templates/chat/roll-card.hbs";
 
-		const chatCardData = await this._getChatCardTemplateData(data, options);
+		const chatCardData = await this._getChatCardTemplateData(data, options, damageTokens);
 
 		return foundry.applications.handlebars.renderTemplate(chatCardTemplate, chatCardData);
 	}
@@ -1681,7 +1858,7 @@ export default class RollSD extends Roll {
 	 * @param {object} options 		- Optional configuration for chat card
 	 * @returns {Promise<object>}
 	 */
-	static async _renderRoll(data, adv=0, options={}) {
+	static async _renderRoll(data, adv=0, options={}, damageTokens) {
 		const chatData = await this._getChatCardData(
 			data.rolls,
 			(options.speaker) ? options.speaker : ChatMessage.getSpeaker(),
@@ -1710,7 +1887,7 @@ export default class RollSD extends Roll {
 			data.showDamage = showDamage;
 		}
 
-		const content = await this._getChatCardContent(data, options);
+		const content = await this._getChatCardContent(data, options, damageTokens);
 
 		chatData.content = content;
 
@@ -1748,6 +1925,26 @@ export default class RollSD extends Roll {
 		}
 
 		return data;
+	}
+
+	static async _renderWeaponBreaking(data) {
+		const chatData = {
+			actorImg: data.actor.img,
+			actorId: data.actor.id,
+			img: data.item.img,
+			message: game.i18n.format(
+						"SHADOWDARK.chat.item_roll.broken",
+						{
+							name: data.item.name,
+							actor: data.actor.name,
+						}
+					),
+		};
+
+		const chatCardTemplate = "systems/shadowdark/templates/chat/broken-weapon.hbs";
+		chatData.content = await foundry.applications.handlebars.renderTemplate(chatCardTemplate, chatData);
+
+		ChatMessage.create(chatData);
 	}
 
 	/* -------------------------------------------- */

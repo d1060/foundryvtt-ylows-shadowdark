@@ -1180,4 +1180,30 @@ export default class UtilitySD {
 			arr2[i] = zipped[i][1];
 		}
 	}
+
+	static async AreYouSureDialog(titleKey, textKey) {
+		const returnOption = await foundry.applications.api.DialogV2.wait({
+			classes: ["shadowdark", "shadowdark-dialog", "window-app", 'themed', 'theme-light'],
+			window: {
+				resizable: false,
+				title: `${game.i18n.localize(titleKey)}`,
+			},
+			content: '<div class="shadowdark-dialog"><p>' + game.i18n.localize(textKey) + '</p></div>',
+			buttons: [
+				{
+					action: 'Yes',
+					icon: '<i class="fa fa-check"></i>',
+					label: `${game.i18n.localize("SHADOWDARK.dialog.general.yes")}`
+				},
+				{
+					action: 'Cancel',
+					icon: '<i class="fa fa-times"></i>',
+					label: `${game.i18n.localize("SHADOWDARK.dialog.general.cancel")}`,
+				},
+			],
+			default: "Yes",
+		});
+
+		return returnOption == 'Yes';
+	}
 }

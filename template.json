@@ -22,6 +22,9 @@
 					"hp": {
 						"max": 0,
 						"value": 0
+					},
+					"dr": {
+						"base": 0
 					}
 				},
 				"level": {
@@ -60,6 +63,9 @@
 			"darkAdapted": true,
 			"move": "near",
 			"moveNote": "",
+			"penalties" : {
+				"disadvantage" : []
+			},
 			"spellcastingAbility": "",
 			"spellcastingBonus": 0,
 			"spellcastingAttackNum": 0
@@ -98,7 +104,8 @@
 					"max": 0,
 					"base": 0,
 					"bonus": 0,
-					"value": 0
+					"value": 0,
+					"rolls": []
 				}
 			},
 			"background": "",
@@ -137,6 +144,30 @@
 				"spellPenetration": [],
 				"runeMastery": []
 			},
+			"penalties" : {
+				"abilityPenalty": "",
+				"maxHp": 0,
+				"damagePercentage": 0,
+				"programLost": 0,
+				"dizzy": 0,
+				"stunned": 0,
+				"blindness ": 0,
+				"physicalCriticalRange": 0,
+				"mentalCriticalRange": 0,
+				"physicalSkillPenalty": 0,
+				"burning": 0,
+				"frozen": 0,
+				"shrunk": 0,
+				"frightened": 0,
+				"panic": 0,
+				"sickness": 0,
+				"enfeebled": 0,
+				"elementalFlesh": 0,
+				"slowTime": 0,
+				"paralyze": 0,
+				"loseRune": 0,
+				"disadvantage" : []
+			},
 			"britannian_magic": {
                 "runes": [],
                 "selected_runes": [],
@@ -168,7 +199,9 @@
 					"top": 0,
 					"zoom": 1
 				}
-			} 
+			},
+			"wounds": [],
+			"scars": []
 		}
 	},
 	"Item": {
@@ -287,9 +320,14 @@
 				"base": 0,
 				"modifier": 0
 			},
+			"dr": {
+				"base": 0,
+				"modifier": 0
+			},
 			"baseArmor": "",
 			"canBeEquipped": true,
-			"properties": []
+			"properties": [],
+			"coverage": []
 		},
 		"Background": {
 			"templates": [

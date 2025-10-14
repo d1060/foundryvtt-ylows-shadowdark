@@ -1,0 +1,27 @@
+<div class="SD-box">
+	<div class="header light">
+		<label>
+			{{localize "SHADOWDARK.item.armor.armor_coverage.label"}}
+		</label>
+		<span>
+			<a
+				class="item-selector"
+				data-action="selectItem"
+				data-item-type="armor"
+				data-select-type="itemCoverage"
+				for="system.coverage"
+			>
+				<i class="fas fa-pen-to-square"></i>
+			</a>
+		</span>
+	</div>
+	<div class="content">
+		<ul class="tags">
+			{{#each coverageItems}}
+				<li class="tag tag_primary">
+					{{this}}
+				</li>
+			{{/each}}
+		</ul>
+	</div>
+</div>

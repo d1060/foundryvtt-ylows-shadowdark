@@ -87,8 +87,10 @@
 						class="card-damage-roll-single blindable"
 						data-blind="{{data.rolls.main.blind}}"
 					>
+					{{#if data.rolls.damage}}
 						<h3>{{damageRollName}}</h3>
 						{{{data.rolls.damage.renderedHTML}}}
+					{{/if}}
 					</div>
 				{{/if}}
 			</div>
@@ -123,8 +125,10 @@
 						class="card-damage-roll-single blindable"
 						data-blind="{{data.rolls.main.blind}}"
 					>
+					{{#if data.rolls.damage}}
 						<h3>{{damageRollName}}:</h3>
 						{{{data.rolls.damage.renderedHTML}}}
+					{{/if}}
 					</div>
 				</div>
 				{{#if data.rolls.damage2}}
@@ -149,6 +153,23 @@
 		{{{data.itemSpecial.system.description}}}
 	</div>
 	{{/if}}
+
+	{{#each damageTokens}}
+		<div style="height: 36px; display: flex; gap: 4px;">
+			<img style="height: 36px;" src="{{this.actor.img}}" data-tooltip="{{this.actor.name}}"/>
+			<span data-tooltip="{{this.damageTooltip}}" style="align-self: center;">
+				{{#if this.resistedDamage}}
+					{{this.actor.name}} {{localize "SHADOWDARK.chat.damage.resisted"}}
+				{{else}}
+					{{#if this.acMissed}}
+						 {{localize "SHADOWDARK.chat.damage.miss"}} {{this.actor.name}}
+					{{else}}
+						{{this.actor.name}} {{localize "SHADOWDARK.chat.damage.took"}} {{this.damageTotal}} {{localize "SHADOWDARK.chat.damage.damage"}}
+					{{/if}}
+				{{/if}}
+			</span>
+		</div>
+	{{/each}}
 
 	<footer class="card-footer">
 		{{#if isWeapon}}

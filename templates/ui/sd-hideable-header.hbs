@@ -3,10 +3,14 @@
 	{{#if sectionId}}
 		data-action="hideSection"
 		data-section-to-hide="{{sectionId}}"
+		{{#if sectionTooltip}}
+			data-tooltip="{{sectionTooltip}}"
+		{{else}}
 		{{#if (lookup hiddenSections sectionId)}}
 			data-tooltip="{{localize 'SHADOWDARK.sheet.general.section.toggle_show'}}"
 		{{else}}
 			data-tooltip="{{localize 'SHADOWDARK.sheet.general.section.toggle_hide'}}"
+		{{/if}}
 		{{/if}}
 	{{/if}}
 >

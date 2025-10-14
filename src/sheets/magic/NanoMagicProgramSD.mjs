@@ -42,100 +42,11 @@ const nanoPointsSetup = {
 	"dizziness" : -4,
 	"blinded" : -5,
 	"oncePerWeek" : -3,
-
-	"radioInterface": 1,
-	"muscleReinforcement": 1,
-	"cardiacSupport": 1,
-	"reflexBypass": 1,
-	"muscleOxygenation": 3,
-	"artificialBloodFiltering": 3,
-	"secondaryReflexArcs": 3,
-	"speedBoost": 1,
-	"trackingInterface": 3,
-	"quantumEffectNanoGrapplers": 3,
-	"skinFiltering": 3,
-	"legMuscleAugment": 1,
-	"organReinforcement": 1,
-	"immuneSystemBoost": 1,
-	"secondaryMemorySearch": 4,
-	"microExpressionsReadout": 4,
-	"moralNeuralNetwork": 4,
-	"augmentedSensorialGain": 2,
-	"threatPrediction": 2,
-	"suppressWeariness": 1,
-	"improvedOpticalProcessing": 1,
-	"chameleonSkin": 1,
-	"tendonReinforcement": 1,
-	"bloodFiltering": 1,
-	"skinDeOxygenation": 3,
-	"internalHeating": 3,
-	"electromagneticSubdermalMesh": 3,
-	"gammaFiltering": 3,
-	"hyperspectralVibrationAnalyzer": 1,
-	"heuristicNoseFilter": 1,
-	"nanoSight": 1,
-	"adaptiveTrackingSystem": 3,
-	"neuralNetPrediction": 4,
-	"muscleOvercharge": 5,
-	"electromagneticMesh": 1,
-
-	"radioCloud": 1,
-	"stingingCloud": 1,
-	"corrosiveCloud": 3,
-	"burningCloud": 1,
-	"staticCloud": 1,
-	"hyperStaticCloud": 3,
-	"antiNanoCloud": 1,
-	"nullNanoCloud": 3,
-	"nanoBuffer": 1,
-	"dustGatherer": 1,
-	"darkFogEngine": 5,
-	"flameBurst": 2,
-	"targetAnalyzer": 1,
-	"imageProjection": 3,
-	"substanceProjection": 5,
-	"etherealSpeakers": 3,
-	"nanoBoom": 3,
-	"stunningBurst": 5,
-	"remoteSensing": 3,
-	"attrictionCoating": 2,
-	"antiAttrictionCoating": 2,
 };
 
 const nanoPointsPerLevel = {
 	"hpReduction" : -1,
 	"achingJoints" : -1,
-
-	"radioInterface": 1,
-	"muscleReinforcement": 1,
-	"cardiacSupport": 1,
-	"reflexBypass": 1,
-	"speedBoost": 1,
-	"trackingInterface": 3,
-	"legMuscleAugment": 1,
-	"threatPrediction": 2,
-	"suppressWeariness": 1,
-	"improvedOpticalProcessing": 1,
-	"chameleonSkin": 1,
-	"tendonReinforcement": 1,
-	"adaptiveTrackingSystem": 1,
-	"neuralNetPrediction": 4,
-	"electromagneticMesh": 1,
-
-	"radioCloud": 1,
-	"stingingCloud": 1,
-	"corrosiveCloud": 3,
-	"staticCloud": 1,
-	"hyperStaticCloud": 3,
-	"antiNanoCloud": 1,
-	"nullNanoCloud": 3,
-	"nanoBuffer": 1,
-	"dustGatherer": 1,
-	"flameBurst": 2,
-	"nanoBoom": 1,
-	"stunningBurst": 1,
-	"attrictionCoating": 2,
-	"antiAttrictionCoating": 1,
 };
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api
@@ -147,8 +58,13 @@ export default class NanoMagicProgramSD extends HandlebarsApplicationMixin(Appli
 		this.actor = object.sheet.actor;
 		this.actorSheet = object.sheet;
 		this.index = object.index;
-		this.program = this.actor.system.magic.nanoMagicPrograms[this.index];
+		this.program = object.program;
 		NanoMagicProgramSD.calculateEffectNanoPoints(this.program, this.program.durationReduction);
+		this.replaceDescriptions().then(async () => {
+			this.program.effectDescription = this.effectOptions[this.program.effect.name.slugify()].description;
+			if (this.program.drawback) this.program.drawbackDescription = await this.replaceDescription(this.program.drawback.system.description, this.program.drawback.system.nanoPointCostPerLevel, this.program.drawback.system.descriptionFormula);
+			await NanoMagicSD._updateNanoProgram(this.actor, this.program, this.index);
+		});
     }
 
 	/** @inheritdoc */
@@ -191,7 +107,7 @@ export default class NanoMagicProgramSD extends HandlebarsApplicationMixin(Appli
 			case "program.drawback":
 				this._onChangeProgramDrawback(event);
 				break;
-			case "program.effect":
+			case "program.effectKey":
 				this._onChangeProgramEffect(event);
 				break;
 			case "program.effectLevels":
@@ -223,13 +139,35 @@ export default class NanoMagicProgramSD extends HandlebarsApplicationMixin(Appli
 			}
 		);
 
-		this.program.hasLevels = this.program.effect in nanoPointsPerLevel;
+		this.program.hasLevels = this.program.effect.system.nanoPointCostPerLevel != null && this.program.effect.system.nanoPointCostPerLevel != 0;
 		context.hasLevels = this.program.hasLevels;
-		this.configureEffectLevelList();
+		await this.configureEffectLevelList();
 		context.effectLevelList = this.effectLevelList;
 
-		this.replaceDescriptions();
+		await this.replaceDescriptions();
 		context.effectOptions = this.effectOptions;
+
+		context.drawbacks = [];
+		if (this.program.type == 'internal') {
+			const internalDrawbacks = await shadowdark.compendiums.nanoMagicInternalDrawbacks();
+			for (const drawback of internalDrawbacks.contents) {
+				const replacedDesc = await this.replaceDescription(drawback.system.description,  drawback.system.nanoPointCostPerLevel, drawback.system.descriptionFormula);
+				context.drawbacks.push({
+					key: drawback.name.slugify(),
+					description: drawback.name + (replacedDesc ?  ": " + replacedDesc : "")
+				});
+			}
+		} else if (this.program.type == 'external') {
+			const externalDrawbacks = await shadowdark.compendiums.nanoMagicExternalDrawbacks();
+			for (const drawback of externalDrawbacks.contents) {
+				const replacedDesc = await this.replaceDescription(drawback.system.description,  drawback.system.nanoPointCostPerLevel, drawback.system.descriptionFormula);
+				context.drawbacks.push({
+					key: drawback.name.slugify(),
+					description: drawback.name + (replacedDesc ?  ": " + replacedDesc : "")
+				});
+			}
+		}
+		context.drawbackName = this.program.drawback?.name?.slugify();
 
 		return context;
 	}
@@ -252,17 +190,39 @@ export default class NanoMagicProgramSD extends HandlebarsApplicationMixin(Appli
 		{
 			this.program.lastExternalDrawback = this.program.drawback;
 			this.program.effect = this.program.lastInternalEffect;
+			if (!this.program.effect)
+			{
+				const internalEffects = await shadowdark.compendiums.nanoMagicInternalEffects();
+				this.program.effect = internalEffects.find(e => e.name.slugify() === 'cardiac-support');
+			}
 			this.program.drawback = this.program.lastInternalDrawback;
+			if (!this.program.drawback)
+			{
+				const internalDrawbacks = await shadowdark.compendiums.nanoMagicInternalDrawbacks();
+				this.program.drawback = internalDrawbacks.find(d => d.name.slugify() === 'no-drawback');
+			}
 		}
 		else
 		{
 			this.program.lastInternalDrawback = this.program.drawback;
 			this.program.effect = this.program.lastExternalEffect;
+			if (!this.program.effect)
+			{
+				const internalEffects = await shadowdark.compendiums.nanoMagicExternalEffects();
+				this.program.effect = internalEffects.find(e => e.name.slugify() === 'target-analyzer');
+			}
 			this.program.drawback = this.program.lastExternalDrawback;
+			if (!this.program.drawback)
+			{
+				const externalDrawbacks = await shadowdark.compendiums.nanoMagicExternalDrawbacks();
+				this.program.drawback = externalDrawbacks.find(d => d.name.slugify() === 'no-drawback');
+			}
 		}
+		this.program.effectKey = this.program.effect.name.slugify();
 
-		this.replaceDescriptions();
-		this.program.effectDescription = this.effectOptions[this.program.effect];
+		await this.replaceDescriptions();
+		this.program.effectDescription = this.effectOptions[this.program.effect.name.slugify()].description;
+		if (this.program.drawback) this.program.drawbackDescription = await this.replaceDescription(this.program.drawback.system.description, this.program.drawback.system.nanoPointCostPerLevel, this.program.drawback.system.descriptionFormula);
 		await NanoMagicProgramSD.calculateEffectNanoPoints(this.program, this.program.durationReduction);
 		await NanoMagicSD._updateNanoProgram(this.actor, this.program, this.index);
 		this.actorSheet.render(false);
@@ -274,30 +234,52 @@ export default class NanoMagicProgramSD extends HandlebarsApplicationMixin(Appli
 		await NanoMagicProgramSD.calculateEffectNanoPoints(this.program, this.program.durationReduction);
 		await NanoMagicSD._updateNanoProgram(this.actor, this.program, this.index);
 		this.actorSheet.render(false);
+		this.render(true);
 	}
 
 	async _onChangeProgramDrawback(event) {
-		this.program.drawback = event.target.value;
-
+		
 		if (this.program.type === 'internal')
+		{
 			this.program.lastInternalDrawback = this.program.drawback;
+			const internalDrawbacks = await shadowdark.compendiums.nanoMagicInternalDrawbacks();
+			const drawback = internalDrawbacks.find(d => d.name.slugify() === event.target.value);
+			this.program.drawback = drawback;
+			this.program.drawbackDescription = await this.replaceDescription(this.program.drawback.system.description, this.program.drawback.system.nanoPointCostPerLevel, this.program.drawback.system.descriptionFormula);
+		}
 		else
+		{
 			this.program.lastExternalDrawback = this.program.drawback;
+			const externalDrawbacks = await shadowdark.compendiums.nanoMagicExternalDrawbacks();
+			const drawback = externalDrawbacks.find(d => d.name.slugify() === event.target.value);
+			this.program.drawback = drawback;
+			this.program.drawbackDescription = await this.replaceDescription(this.program.drawback.system.description, this.program.drawback.system.nanoPointCostPerLevel, this.program.drawback.system.descriptionFormula);
+		}
 
 		await NanoMagicProgramSD.calculateEffectNanoPoints(this.program, this.program.durationReduction);
 		await NanoMagicSD._updateNanoProgram(this.actor, this.program, this.index);
 		this.actorSheet.render(false);
+		this.render(true);
 	}
 
 	async _onChangeProgramEffect(event) {
-		this.program.effect = event.target.value;
+		this.program.effectKey = event.target.value;
 
 		if (this.program.type === 'internal')
+		{
+			const effects = await shadowdark.compendiums.nanoMagicInternalEffects();
+			this.program.effect = effects.find(e => e.name.slugify() === this.program.effectKey);
 			this.program.lastInternalEffect = this.program.effect;
+		}
 		else
+		{
+			const effects = await shadowdark.compendiums.nanoMagicExternalEffects();
+			this.program.effect = effects.find(e => e.name.slugify() === this.program.effectKey);
 			this.program.lastExternalEffect = this.program.effect;
+		}
 
-		this.program.effectDescription = this.effectOptions[this.program.effect];
+		this.program.effectDescription = this.effectOptions[this.program.effect.name.slugify()].description;
+		if (this.program.drawback) this.program.drawbackDescription = await this.replaceDescription(this.program.drawback.system.description, this.program.drawback.system.nanoPointCostPerLevel, this.program.drawback.system.descriptionFormula);
 		this.program.hasLevels = this.program.effect in nanoPointsPerLevel;
 		await NanoMagicProgramSD.calculateEffectNanoPoints(this.program, this.program.durationReduction);
 		await NanoMagicSD._updateNanoProgram(this.actor, this.program, this.index);
@@ -307,8 +289,9 @@ export default class NanoMagicProgramSD extends HandlebarsApplicationMixin(Appli
 
 	async _onChangeProgramEffectLevels(event) {
 		this.program.effectLevels = parseInt(event.target.value);
-		this.replaceDescriptions();
-		this.program.effectDescription = this.effectOptions[this.program.effect];
+		await this.replaceDescriptions();
+		this.program.effectDescription = this.effectOptions[this.program.effect.name.slugify()].description;
+		if (this.program.drawback) this.program.drawbackDescription = await this.replaceDescription(this.program.drawback.system.description, this.program.drawback.system.nanoPointCostPerLevel, this.program.drawback.system.descriptionFormula);
 		await NanoMagicProgramSD.calculateEffectNanoPoints(this.program, this.program.durationReduction);
 		await NanoMagicSD._updateNanoProgram(this.actor, this.program, this.index);
 		this.actorSheet.render(false);
@@ -324,32 +307,37 @@ export default class NanoMagicProgramSD extends HandlebarsApplicationMixin(Appli
 	static async calculateEffectNanoPoints(program, durationReduction)
 	{
 		var totalNanoPoints = 0;
-		var effectiveEffect = (!program.effect || program.effect === "") ? "cardiacSupport" : program.effect;
-		program.effectPoints = nanoPointsSetup[effectiveEffect];
-		if (effectiveEffect in nanoPointsPerLevel)
+		var effectiveEffect = program.effect;
+		if (!effectiveEffect)
 		{
-			program.nanoPointsPerLevel = nanoPointsPerLevel[effectiveEffect];
-			program.increases = Math.floor((program.effectLevels - 1) / program.nanoPointsPerLevel);
+			const internalEffects = await shadowdark.compendiums.nanoMagicInternalEffects();
+			effectiveEffect = internalEffects.find(e => e.name.slugify() === 'cardiac-support');
+		}
 
-			program.effectPoints += (program.effectLevels - 1) * program.nanoPointsPerLevel;
+		program.effectPoints = effectiveEffect.system.nanoPointCost;
+		if (effectiveEffect.system.nanoPointCostPerLevel)
+		{
+			program.nanoPointsPerLevel = effectiveEffect.system.nanoPointCostPerLevel;
+			program.increases = Math.floor((program.effectLevels - 1) / program.nanoPointsPerLevel);
+			program.effectPoints += program.increases * program.nanoPointsPerLevel;
 		}
 		totalNanoPoints += program.effectPoints;
 
-		if (program.type !== 'internal')
+		if (effectiveEffect.system.nanoProgramType !== 'internal')
 		{
 			var durationCost = nanoPointsSetup[program.duration];
 			if (durationReduction)
 			{
-				durationCost -= durationReduction
+				durationCost -= parseInt(durationReduction)
 				if (durationCost < 0) durationCost = 0;
 			}
 			totalNanoPoints += durationCost;
 		}
 
-		var drawbackCost = program.drawback ? nanoPointsSetup[program.drawback] : 0;
-		if (program.drawback in nanoPointsPerLevel)
+		var drawbackCost = parseInt(program.drawback.system.nanoPointCost);
+		if (program.drawback.system.nanoPointCostPerLevel)
 		{
-			drawbackCost += (program.effectLevels - 1) * nanoPointsPerLevel[program.drawback];
+			drawbackCost += (program.effectLevels - 1) * parseInt(program.drawback.system.nanoPointCostPerLevel);
 		}
 		totalNanoPoints += drawbackCost;
 		
@@ -365,68 +353,71 @@ export default class NanoMagicProgramSD extends HandlebarsApplicationMixin(Appli
 	async replaceDescriptions()
 	{
 		let effectOptions = {};
+		let effects = [];
 		
 		if (this.program.type === 'internal')
-			effectOptions = Object.assign({}, CONFIG.SHADOWDARK.NANO_MAGIC_INTERNAL_EFFECTS);
+			effects = await shadowdark.compendiums.nanoMagicInternalEffects();
 		else
-			effectOptions = Object.assign({}, CONFIG.SHADOWDARK.NANO_MAGIC_EXTERNAL_EFFECTS);
+			effects = await shadowdark.compendiums.nanoMagicExternalEffects();
 
-		for (const key in effectOptions) {
-  			const value = effectOptions[key];
-			let description = game.i18n.localize(value);
-
-			if (!description.includes("{"))
-				continue;
-
-			if (key in nanoPointsPerLevel)
-			{
-				let perLevelIncrease = nanoPointsPerLevel[key];
-				let increases = Math.floor((this.program.effectLevels - 1) / perLevelIncrease);
-				let isPlural = increases > 1;
- 
-				while (description.match(/\{\d+\}/))
-				{
-					description = description.replace(/\{(\d+)\}/, (match, number) => {
-						switch (key)
-						{
-							case "radioInterface":
-							case "radioCloud":
-								let powerOfThree = Math.pow(3, increases);
-								return String(Number(number) * powerOfThree);
-							case "legMuscleAugment":
-							case "nanoBoom":
-							case "stunningBurst":
-							case "attrictionCoating":
-							case "antiAttrictionCoating":
-								return String(Number(number) + (increases));
-							default:
-								return String(Number(number) * (increases + 1));
-						}
-					});
-				}
-
-				if (description.match(/\{s\}/))
-				{
-					if (!isPlural) description = description.replace(/\{s\}/, "");
-					else description = description.replace(/\{s\}/, "s");
-				}
-
-				effectOptions[key] = description;
-			}
+		for (const effect of effects) {
+			let key = effect.name.slugify();
+			let description = await this.replaceDescription(effect.system.description, effect.system.nanoPointCostPerLevel, effect.system.descriptionFormula);
+			effectOptions[key] = {key, description};
 		}
 
 		this.effectOptions = effectOptions;
 	}
 
+	async replaceDescription(description, nanoPointCostPerLevel, descriptionFormula) {
+		if (!description.includes("{")) return description;
+
+		let perLevelIncrease = nanoPointCostPerLevel;
+		if (perLevelIncrease) {
+			let increases = Math.floor((this.program.effectLevels - 1) / perLevelIncrease);
+			let isPlural = increases > 1;
+
+			while (description.match(/\{\-?\d+\}/))
+			{
+				description = description.replace(/\{(\-?\d+)\}/, (match, number) => {
+					switch (descriptionFormula)
+					{
+						case "power3":
+							let powerOfThree = Math.pow(3, increases);
+							return String(Number(number) * powerOfThree);
+						case "add":
+							return String(Number(number) + (increases));
+						case "multiply":
+						default:
+							return String(Number(number) * (increases + 1));
+					}
+				});
+			}
+
+			if (description.match(/\{s\}/))
+			{
+				if (!isPlural) description = description.replace(/\{s\}/, "");
+				else description = description.replace(/\{s\}/, "s");
+			}
+		}
+
+		return description;
+	}
+
 	async configureEffectLevelList()
 	{
-		var effectiveEffect = (!this.program.effect || this.program.effect === "") ? "cardiacSupport" : this.program.effect;
+		var effectiveEffect = this.program.effect;
+		if (!effectiveEffect)
+		{
+			const internalEffects = await shadowdark.compendiums.nanoMagicInternalEffects();
+			effectiveEffect = internalEffects.find(e => e.name.slugify() === 'cardiac-support');
+		}
+
 		var effectLevelList = {};
-		let perLevelIncrease = nanoPointsPerLevel[effectiveEffect];
 
 		for (var l = 1; l <= 10; l++)
 		{
-			if ((l-1) % perLevelIncrease === 0)
+			if ((l-1) % effectiveEffect.system.nanoPointCostPerLevel === 0)
 				effectLevelList[l] = l;
 		}
 

@@ -7,7 +7,11 @@
 				{{> actors/player/details/ancestry }}
 				{{> actors/player/details/background }}
 			{{else}}
-				{{> actors/player/details/title }}
+				{{#if showHitLocation}}
+					{{> actors/player/details/hit-location }}
+				{{else}}
+					{{> actors/player/details/title }}
+				{{/if}}
 				{{> actors/player/details/class }}
 			{{/if}}
 
@@ -39,6 +43,9 @@
 		{{/if}}
 
 		{{#if evolutionGrid}}
+			{{#if showHitLocation}}
+				{{> actors/player/details/hit-location }}
+			{{/if}}
 			{{> actors/player/details/evolutionGrid }}
 			{{> actors/player/details/boons }}
 		{{else}}

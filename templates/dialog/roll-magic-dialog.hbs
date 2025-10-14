@@ -26,6 +26,14 @@
 			</label>
 			<input type="number" name="magic-core-bonus" value="{{ data.talentBonus }}" placeholder="0">
 		</div>
+		{{#if data.spellPenalty}}
+		<div class="form-group">
+			<label style="color: darkred">
+				{{localize "SHADOWDARK.dialog.item_roll.spell_penalty"}}
+			</label>
+			<input style="color: red" type="number" name="injury-penalty" value="{{ data.spellPenalty }}" placeholder="0">
+		</div>
+		{{/if}}
 {{#if data.variableLevelEffects}}
 		<div class="form-group">
 			<label>

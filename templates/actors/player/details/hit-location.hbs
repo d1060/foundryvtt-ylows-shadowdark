@@ -1,0 +1,51 @@
+<div class="SD-box">
+    <div class="header">
+        <label>{{localize 'SHADOWDARK.item.body_setup.label'}}</label>
+        <span></span>
+    </div>
+    <div class="content">
+        <div class="grid-1-columns">
+
+            {{#if bodySetup}}
+                <div class="items flexrow">
+                    <div class="talent flexrow">
+                        <a
+                            class="fake-uuid-link"
+                            data-type="Item"
+                            data-uuid="{{bodySetup.uuid}}"
+                            title="Item"
+                        >
+                            {{#if editable}}
+                                <i
+                                    class="fas fa-delete-right"
+                                    data-action="deleteChoice"
+                                    data-choices-key="{{bodySetupChoicesKey}}"
+                                    data-uuid="{{bodySetup.uuid}}"
+                                ></i>
+                            {{/if}}
+                            {{bodySetup.name}}
+                        </a>
+                    </div>
+                </div>
+            {{else}}
+                <input
+                    data-choices-key="{{bodySetupChoicesKey}}"
+                    data-is-item="true"
+                    list="{{actor._id}}_{{bodySetupChoicesKey}}_list"
+                    placeholder="{{localize "SHADOWDARK.item.body_setup.prompt"}}"
+                    type="text"
+                    name="system.bodySetup"
+                    value=""
+                />
+                <datalist id="{{actor._id}}_{{bodySetupChoicesKey}}_list">
+                    {{#each bodySetups}}
+                        <option
+                            data-uuid="{{uuid}}"
+                            value="{{name}}"
+                        ></option>
+                    {{/each}}
+                </datalist>
+            {{/if}}
+        </div>
+    </div>
+</div>

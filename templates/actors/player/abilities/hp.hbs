@@ -19,7 +19,7 @@
 		{{#if hasTempHP}}
 		<div class="value-grid-with-temp-hp">
 			{{numberInput
-				actor.system.attributes.hp.value
+				hpValue
 				name="system.attributes.hp.value"
 				placeholder="0"
 			}}
@@ -42,7 +42,7 @@
 		{{#unless hasTempHP}}
 		<div class="value-grid">
 			{{numberInput
-				actor.system.attributes.hp.value
+				hpValue
 				name="system.attributes.hp.value"
 				placeholder="0"
 			}}

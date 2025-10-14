@@ -2,6 +2,8 @@ import UtilitySD from "../utils/UtilitySD.mjs";
 import * as select from "../apps/CompendiumItemSelectors/_module.mjs";
 import BritannianMagicSD from "./magic/BritannianMagicSD.mjs";
 import EvolutionGridSD from "../apps/EvolutionGridSD.mjs";
+import CompendiumsSD from "../documents/CompendiumsSD.mjs";
+import BodySubpartSD from "../apps/BodySubpartSD.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api
 const { ItemSheetV2 } = foundry.applications.sheets
@@ -53,6 +55,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			openEvolutionGrid: this.#onOpenEvolutionGrid,
 			addBodyPart: this.#onAddBodyPart,
 			removeBodyPart: this.#onRemoveBodyPart,
+			subPartSetup: this.#onSubPartSetup,
 			editBodyPartImage: this.#onEditBodyPartImage,
 			defaultBodySetup: this.#onDefaultBodySetup,
 			selectHitLocation: this.#onSelectHitLocation,
@@ -897,6 +900,13 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			await shadowdark.compendiums.baseArmor()
 		);
 
+        context.showHitLocation = game.settings.get("shadowdark", "hitLocation");
+		if (context.showHitLocation) {
+			context.coverageItems = context.item.system.coverage;
+			//let defaultBodyType = await CompendiumsSD.defaultBodySetup(true);
+			//context.coverageItems = defaultBodyType.system.bodyParts;
+		}
+
 		delete context.baseArmor[mySlug];
 	}
 
@@ -1429,6 +1439,9 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 					new select.MagicWeaponPropertySelector(this.item).render(true);
 				}
 				break;
+			case "itemCoverage":
+				new select.DefaultBodyTypePartSelector(this.item).render(true);
+				break;
 		}
 	}
 
@@ -1662,6 +1675,14 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		this.item.system.bodyParts.splice(index, 1);
 		await this.item.update({['system.bodyParts']: this.item.system.bodyParts});
 		this.render(true);
+	}
+
+	static async #onSubPartSetup(event, target) {
+		const index = target.dataset.index;
+		const bodyPart = this.item.system.bodyParts[index];
+		if (!bodyPart.subParts) bodyPart.subParts = [];
+		const subparts = new BodySubpartSD({index, bodyPart, sheet: this});
+		subparts.render(true);
 	}
 
 	static async #onEditBodyPartImage(event, target) {

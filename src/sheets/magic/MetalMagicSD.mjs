@@ -67,7 +67,7 @@ export default class MetalMagicSD {
 					actor.system.magic.metalCore.hp.base += result.rolls.main.roll.total;
 					actor.system.magic.metalCore.hp.value += result.rolls.main.roll.total;
 				}
-				else
+				else if (hpRollMode < 4)
 				{
 					if (i === 0)
 					{

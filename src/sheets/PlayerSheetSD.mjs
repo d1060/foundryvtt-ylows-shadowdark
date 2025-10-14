@@ -10,6 +10,7 @@ import EvolutionGridSD from "../apps/EvolutionGridSD.mjs";
 import BulkSellSD from "../utils/BulkSellSD.mjs";
 import RandomizerSD from "../apps/RandomizerSD.mjs";
 import LightSourceTrackerSD from "../apps/LightSourceTrackerSD.mjs";
+import CompendiumsSD from "../documents/CompendiumsSD.mjs";
 
 export default class PlayerSheetSD extends ActorSheetSD {
 
@@ -74,6 +75,11 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			sellBulkSell: this.#onSellBulkSell,
 			cancelBulkSell: this.#onCancelBulkSell,
 			addToBulkSell: this.#onAddToBulkSell,
+			deleteChoice: this.#deleteChoiceItem,
+			recoverWound: this.#onRecoverWound,
+			worsenWound: this.#onWorsenWound,
+			makeScar: this.#onMakeScar,
+			removeScar: this.#onRemoveScar,
 
 			nanoProgramRoll: this.#onRollNanoMagic,
 			resetCoreDump: this.#onResetCoreDump,
@@ -254,6 +260,8 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			case "details":
 				context.showBritannianMagic = game.settings.get("shadowdark", "use_britannianRuneMagic");
 				context.evolutionGrid = game.settings.get("shadowdark", "evolutionGrid");
+				context.showHitLocation = game.settings.get("shadowdark", "hitLocation");
+
 				if (context.evolutionGrid) {
 					context.evolutionGridItems = [];
 					for (let node of this.actor.system.evolutionGrid?.openNodes ?? []) {
@@ -261,6 +269,14 @@ export default class PlayerSheetSD extends ActorSheetSD {
 						context.evolutionGridItems.push(nodeItem);
 					}
 				}
+
+				if (context.showHitLocation)
+				{
+					context.bodySetupChoicesKey = 'bodySetup';
+					context.bodySetups = await CompendiumsSD.bodySetups(false);
+					context.bodySetup = this.actor.system.bodySetup ? fromUuidSync(this.actor.system.bodySetup) : null;
+				}
+
 				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got Evolution Grid Items.`);
 				context.xpNextLevel = this.actor.level * 10;
 				context.levelUp = (context.system.level.xp >= context.xpNextLevel);
@@ -281,30 +297,46 @@ export default class PlayerSheetSD extends ActorSheetSD {
 					this.actor.recalculateHp();
 				}
 
-				if (!this.actor.system.luck.tokens || !Array.isArray(this.actor.system.luck.tokens)) {
-					this.actor.system.luck.tokens = [true];
-				}
-				if (this.actor.system.bonuses.luckTokens) {
-					if (this.actor.system.luck.tokens.length < (this.actor.system.bonuses.luckTokens ?? 0) + 1)
-					{
-						for (let i = this.actor.system.luck.tokens.length; i < (this.actor.system.bonuses.luckTokens ?? 0) + 1; i++)
-							this.actor.system.luck.tokens.push(true);
-					}
-				}
-				if (this.actor.system.luck.tokens.length > (this.actor.system.bonuses.luckTokens ?? 0) + 1)
+				let numLuckTokens = 1;
+				if (this.actor.system.bonuses.luckTokens)
+					numLuckTokens += this.actor.system.bonuses.luckTokens;
+				if (this.actor.system.scars?.length)
+					numLuckTokens += Math.floor(this.actor.system.scars.length * CONFIG.SHADOWDARK.SCAR_EFFECT_RATIO);
+
+				if (!this.actor.system.luck.tokens) this.actor.system.luck.tokens = [];
+
+				if (this.actor.system.luck.tokens.length < numLuckTokens)
 				{
-					for (let i = this.actor.system.luck.tokens.length; i > (this.actor.system.bonuses.luckTokens ?? 0) + 1; i--)
+					for (let i = this.actor.system.luck.tokens.length; i < numLuckTokens; i++)
+						this.actor.system.luck.tokens.push(true);
+				}
+
+				if (this.actor.system.luck.tokens.length > numLuckTokens)
+				{
+					for (let i = this.actor.system.luck.tokens.length; i > numLuckTokens; i--)
 						this.actor.system.luck.tokens.pop();
 				}
+
 				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Starting checks.`);
 
 				context.luckTokens = this.actor.system.luck.tokens;
-				[context.system.attributes.ac.value, context.system.attributes.ac.tooltip] = await this.actor.getArmorClass();
-				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got AC.`);
+				[context.system.attributes.ac.value, context.system.attributes.ac.tooltip] = await this.actor.getArmorClass('Chest');
+				if (!context.system.attributes.dr) context.system.attributes.dr = {};
+				context.system.attributes.dr.base = this.actor.getDamageReduction({name: 'Chest'});
+				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got AC and DR.`);
 				context.hasTempHP = this.actor.system.attributes.hp.temp && this.actor.system.attributes.hp.temp > 0;
 				context.actor.system.attributes.hp.temp = this.actor.system.attributes.hp.temp;
 				context.maxHp = this.actor.system.attributes.hp.base
 					+ this.actor.system.attributes.hp.bonus;
+
+				if (this.actor.system.penalties?.maxHp)
+					context.maxHp += this.actor.system.penalties.maxHp;
+
+				context.hpValue = this.actor.system.attributes.hp.value;
+
+				if (context.hpValue > context.maxHp) context.hpValue = context.maxHp;
+				if (context.hpValue < 0) context.hpValue = 0;
+
 				context.abilities = this.actor.getCalculatedAbilities();
 				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got Abilities.`);
 				this.actor.system.move = await this.actor.getCalculatedMove();
@@ -330,6 +362,17 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				
 				context.editingHp = this.editingHp;
 				context.editingStats = this.editingStats;
+				context.scars = this.actor.system.scars;
+				context.wounds = this.actor.system.wounds;
+
+				if (this.actor.system.scars?.length) {
+					context.scarsTooltip = this.buildScarsTooltip();
+
+					if (this.actor.system.scars.length == 1)
+						context.scarsTitle = this.actor.system.scars.length + ' ' + game.i18n.localize("SHADOWDARK.sheet.player.scar");
+					else
+						context.scarsTitle = this.actor.system.scars.length + ' ' + game.i18n.localize("SHADOWDARK.sheet.player.scars");
+				}
 
 				break;
 			case "spells":
@@ -712,12 +755,22 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			let currentHpMax = hpBase + hpBonus;
 			let newHpMax = parseInt(event.target.value);
 			let hpMaxDiff = newHpMax - currentHpMax;
-			let newHpBase = hpBase + hpMaxDiff;
 
-			await this.actor.update({
-				"system.attributes.hp.max": newHpMax,
-				"system.attributes.hp.base": newHpBase,
-			});
+			if (game.settings.get("shadowdark", "evolutionGrid")) {
+				let newHpBonus = hpBase + hpMaxDiff;
+
+				await this.actor.update({
+					"system.attributes.hp.max": newHpMax,
+					"system.attributes.hp.bonus": newHpBonus,
+				});
+			} else {
+				let newHpBase = hpBase + hpMaxDiff;
+
+				await this.actor.update({
+					"system.attributes.hp.max": newHpMax,
+					"system.attributes.hp.base": newHpBase,
+				});
+			}
 		}
 		else if (event.target?.name.includes('bulkSell.'))
 			BulkSellSD.onSubmit(this.actor, event);
@@ -731,6 +784,14 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				"system.attributes.hp.value": newHpValue,
 				"system.attributes.hp.temp": this.actor.system.attributes.hp.temp,
 			});
+		}
+		else if (event.target?.name === "system.bodySetup")
+		{
+			let uuid = UtilitySD.getSelectedUuid(form, event.target);
+			if (uuid)
+			{
+				await this.actor.update({[event.target.name]: uuid});
+			}
 		}
 		else if (event.target.type === 'checkbox')
 		{
@@ -1378,6 +1439,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		};
 
 		const freeCarrySeen = {};
+		const freeCarryBodyPart = {};
 
 		context.hasEquippedGearWithMagicalCharges = false;
 		context.hasCarriedGearWithMagicalCharges = false;
@@ -1405,6 +1467,17 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				}
 				else {
 					freeCarrySeen[i.name] = freeCarry;
+				}
+
+				if (game.settings.get("shadowdark", "hitLocation")) {
+					if (i.type === 'Armor' && i.system.coverage?.length && i.system.slots.free_carry && !i.system.stashed) {
+						for (let part of i.system.coverage) {
+							if (Object.hasOwn(freeCarryBodyPart, part))
+								freeCarry = 0;
+							else
+								freeCarryBodyPart[part] = i.system.slots.free_carry;
+						}
+					}
 				}
 
 				const perSlot = i.system.slots.per_slot;
@@ -1555,6 +1628,16 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				else {
 					allClassAbilities[group] = [i];
 				}
+			}
+		}
+
+		for (const e of context.activeEffects?.active?.effects ?? []) {
+			if (!e._id) e._id = e.id;
+			if (e.sourceName === 'Nano-Magic') {
+				effects.effect.items.push(e);
+			}
+			else if (e.sourceName === 'Nano-Magic Drawback') {
+				effects.condition.items.push(e);
 			}
 		}
 
@@ -1912,5 +1995,117 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			if (item.system.expendedIcon)
 				item.activeImg = item.system.expendedIcon;
 		}
+	}
+
+	/**
+	 * Deletes an Item/Skill choice from this item, using the data stored
+	 * on the target element
+	 *
+	 * @param {event} Event The triggered event
+	 */
+	static async #deleteChoiceItem(event, target) {
+		if (!this.isEditable) return;
+
+		event.preventDefault();
+		event.stopPropagation();
+
+		const deleteUuid = target.dataset.uuid;
+		const choicesKey = target.dataset.choicesKey;
+
+		// handles cases where choicesKey is nested property.
+		const currentChoices = choicesKey
+			.split(".")
+			.reduce((obj, path) => obj ? obj[path]: [], this.actor.system);
+
+		let newChoices = [];
+		if (Array.isArray(currentChoices))
+		{
+			for (const itemUuid of currentChoices) {
+				if (itemUuid === deleteUuid) continue;
+				newChoices.push(itemUuid);
+			}
+		}
+		else
+		{
+			if (currentChoices === deleteUuid)
+				newChoices = null;
+			else
+				newChoices = currentChoices;
+		}
+
+		const dataKey = `system.${choicesKey}`;
+		await this.actor.update({[dataKey]: newChoices});
+	}
+
+	static async #onRecoverWound(event, target) {
+		const idx = parseInt(event.target.dataset.index);
+		const wound = this.actor.system.wounds[idx];
+		if (wound.level == 1) {
+			this.actor.system.wounds.splice(idx, 1);
+		} else {
+			wound.level--;
+			const damageDesc = game.i18n.localize(`SHADOWDARK.wounds.${wound.level}_${wound.desctype}_${wound.descIndex}`);
+			wound.damageDesc = damageDesc;
+		}
+
+		this.actor.update({"system.wounds": this.actor.system.wounds});
+		this.actor.updateWoundCondition(wound);
+	}
+
+	static async #onWorsenWound(event, target) {
+		const idx = parseInt(event.target.dataset.index);
+		const wound = this.actor.system.wounds[idx];
+		wound.level++;
+		const damageDesc = game.i18n.localize(`SHADOWDARK.wounds.${wound.level}_${wound.desctype}_${wound.descIndex}`);
+		wound.damageDesc = damageDesc;
+
+		this.actor.update({"system.wounds": this.actor.system.wounds});
+		this.actor.updateWoundCondition(wound);
+	}
+
+	static async #onMakeScar(event, target) {
+		if (await UtilitySD.AreYouSureDialog('SHADOWDARK.wounds.make_scar_title', 'SHADOWDARK.wounds.make_scar_are_you_sure')) {
+			const idx = parseInt(event.target.dataset.index);
+			const wound = this.actor.system.wounds[idx];
+			this.actor.system.wounds.splice(idx, 1);
+			this.actor.update({"system.wounds": this.actor.system.wounds});
+			this.actor.updateWoundCondition(wound);
+			this.actor.createScarFromWound(wound);
+		}
+	}
+
+	static async #onRemoveScar(event, target) {
+		if (await UtilitySD.AreYouSureDialog('SHADOWDARK.wounds.remove_scar_title', 'SHADOWDARK.wounds.remove_scar_are_you_sure')) {
+			const idx = parseInt(event.target.dataset.index);
+			const scar = this.actor.system.scars[idx];
+			this.actor.system.scars.splice(idx, 1);
+			this.actor.update({"system.scars": this.actor.system.scars});
+		}
+	}
+
+	buildScarsTooltip() {
+		let tooltip = game.i18n.localize("SHADOWDARK.wounds.scarsTooltip");
+		const allScarsModifier = this.actor.system.scars.length * CONFIG.SHADOWDARK.SCAR_EFFECT_RATIO;
+		tooltip += "<br>" + game.i18n.format('SHADOWDARK.wounds.makeScarThreshold', { ratio: allScarsModifier.toFixed(1) });
+		tooltip += "<br>" + game.i18n.format('SHADOWDARK.wounds.makeScarLuck', { ratio: allScarsModifier.toFixed(1) });
+		const abilitiesModifiers = { str: 0, dex: 0, con: 0, wis: 0, cha: 0, int: 0 };
+		for (const scar of this.actor.system.scars) {
+			abilitiesModifiers[scar.abilityId] += CONFIG.SHADOWDARK.SCAR_EFFECT_RATIO;
+		}
+
+		if (abilitiesModifiers.str)
+			tooltip += "<br>" + game.i18n.format('SHADOWDARK.wounds.makeScarAbility', { ratio: abilitiesModifiers.str.toFixed(1), ability: game.i18n.localize('SHADOWDARK.ability_str') });
+		if (abilitiesModifiers.dex)
+			tooltip += "<br>" + game.i18n.format('SHADOWDARK.wounds.makeScarAbility', { ratio: abilitiesModifiers.dex.toFixed(1), ability: game.i18n.localize('SHADOWDARK.ability_dex') });
+		if (abilitiesModifiers.con)
+			tooltip += "<br>" + game.i18n.format('SHADOWDARK.wounds.makeScarAbility', { ratio: abilitiesModifiers.con.toFixed(1), ability: game.i18n.localize('SHADOWDARK.ability_con') });
+		if (abilitiesModifiers.int)
+			tooltip += "<br>" + game.i18n.format('SHADOWDARK.wounds.makeScarAbility', { ratio: abilitiesModifiers.int.toFixed(1), ability: game.i18n.localize('SHADOWDARK.ability_int') });
+		if (abilitiesModifiers.wis)
+			tooltip += "<br>" + game.i18n.format('SHADOWDARK.wounds.makeScarAbility', { ratio: abilitiesModifiers.wis.toFixed(1), ability: game.i18n.localize('SHADOWDARK.ability_wis') });
+		if (abilitiesModifiers.cha)
+			tooltip += "<br>" + game.i18n.format('SHADOWDARK.wounds.makeScarAbility', { ratio: abilitiesModifiers.cha.toFixed(1), ability: game.i18n.localize('SHADOWDARK.ability_cha') });
+
+		return tooltip;
 	}
 }

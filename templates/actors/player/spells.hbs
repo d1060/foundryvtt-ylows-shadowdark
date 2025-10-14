@@ -1,4 +1,4 @@
-<section class="tab spells {{tabs.spells.cssClass}}" data-tab="spells" data-group="sheet">
+<section class="tab spells {{tabs.spells.cssClass}}{{#if showBritannianMagic}} stretch-flex{{/if}}" data-tab="spells" data-group="sheet">
 	{{#if isSpellCaster}}
 		{{#> ui/sd-hideable-section
 			sectionId=""

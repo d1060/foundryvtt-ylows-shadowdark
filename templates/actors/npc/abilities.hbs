@@ -3,6 +3,7 @@
 		<div class="grid-2-columns">
 			{{> actors/npc/partials/hp }}
 			{{> actors/npc/partials/ac }}
+			{{> actors/npc/partials/dr }}
 			{{> actors/npc/partials/level }}
 			{{> actors/npc/partials/ability-scores }}
 
@@ -27,7 +28,7 @@
 				/>
 			{{/ui/sd-box}}
 
-			<!-- Alignment -->
+			{{!-- <!-- Alignment -->
 			{{#> ui/sd-box
 				header-label=(localize 'SHADOWDARK.sheet.actor.alignment')
 				class="grid-colspan-2"
@@ -39,7 +40,7 @@
 						localize=false
 					}}
 				</select>
-			{{/ui/sd-box}}
+			{{/ui/sd-box}} --}}
 
 			<!-- Dark Adapted -->
 			<div class="grid-colspan-2 grid-dark-adapted">

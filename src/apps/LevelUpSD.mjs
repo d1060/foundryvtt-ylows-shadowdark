@@ -187,7 +187,7 @@ export default class LevelUpSD extends HandlebarsApplicationMixin(ApplicationV2)
 		this.data.hpMod = this.data.actor.system.abilities.con.mod + (this.data.actor.system.bonuses.hardy ? this.data.actor.system.abilities.str.mod : 0);
 
 		this.data.hpRollMode = game.settings.get("shadowdark", "useFixedHP");
-		if (this.data.hpRollMode != 0)
+		if (this.data.hpRollMode != 0 && this.data.hpRollMode < 4)
 		{
 			let classHPparts = this.data.class.system.hitPoints.split("d");
 			var classHP = classHPparts[1];
@@ -531,6 +531,14 @@ export default class LevelUpSD extends HandlebarsApplicationMixin(ApplicationV2)
 		// add talents and spells to actor
 		await this.data.actor.createEmbeddedDocuments("Item", allItems);
 
+		if (this.data.actor.level > 0 && this.data.actor.system.attributes.hp.base != 0 && !this.data.actor.system.attributes.hp.rolls)
+			this.data.actor.system.attributes.hp.rolls = [];
+
+		if (this.data.actor.level > 0 && this.data.actor.system.attributes.hp.base != 0 && this.data.actor.system.attributes.hp.rolls.length == 0)
+			this.data.actor.distributeHpRolls();
+
+		this.data.actor.system.attributes.hp.rolls.push(this.data.rolls.hp);
+
 		// calculate new HP base
 		let newBaseHP = this.data.actor.system.attributes.hp.base + this.data.rolls.hp;
 		let newValueHP = parseInt(this.data.actor.system.attributes.hp.value) + this.data.rolls.hp;
@@ -538,7 +546,7 @@ export default class LevelUpSD extends HandlebarsApplicationMixin(ApplicationV2)
 		let newFracHP = this.data.actor.system.attributes.hp.frac ?? 0;
 
 		this.data.hpRollMode = game.settings.get("shadowdark", "useFixedHP");
-		if (this.data.hpRollMode != 0)
+		if (this.data.hpRollMode != 0 && this.data.hpRollMode < 4)
 		{
 			newFracHP += this.data.fixedFracHp;
 			newBaseHP = Math.floor(newFracHP);

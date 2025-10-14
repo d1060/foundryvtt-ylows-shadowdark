@@ -66,6 +66,12 @@ export default class RollAbilitySD extends HandlebarsApplicationMixin(Applicatio
 			case "item-bonus":
 				this.params.data.itemBonus = event.target.value;
 				break;
+			case "spell-penalty":
+				this.params.data.spellPenalty = event.target.value;
+				break;
+			case "wound-penalty":
+				this.params.data.woundPenalty = event.target.value;
+				break;
 			case "rollMode":
 				this.rollMode = event.target.value;
 				break;
@@ -133,7 +139,7 @@ export default class RollAbilitySD extends HandlebarsApplicationMixin(Applicatio
 			{
 				for (var advantageType of advantgeBonuses)
 				{
-					if (slugifiedType === advantageType.slugify() || advantageType.slugify().includes("resistance") && slugifiedType.includes("resistance"))
+					if (slugifiedType === advantageType.slugify())
 					{
 						if (checkTypeObject.disadvantage) checkTypeObject.disadvantage = false;
 						checkTypeObject.advantage = true;
@@ -145,7 +151,7 @@ export default class RollAbilitySD extends HandlebarsApplicationMixin(Applicatio
 			{
 				for (var disadvantageType of disadvantgePenalties)
 				{
-					if (slugifiedType === disadvantageType.slugify() || disadvantageType.slugify().includes("resistance") && slugifiedType.includes("resistance"))
+					if (slugifiedType === disadvantageType.slugify())
 					{
 						if (checkTypeObject.advantage) checkTypeObject.advantage = false;
 						else checkTypeObject.disadvantage = true;

@@ -146,7 +146,7 @@ export default class AbyssalMagicSD {
 			return;
 
 		const powerId = target.dataset.id;
-		const power = actor.system?.magic?.unknownAbyssalMagicPowers?.find(p => p && p.id === powerId);
+		const power = actor.system?.magic?.unknownAbyssalMagicPowers?.find(p => p && p._id === powerId);
 		if (power)
 		{
 			var compendiumPower = await fromUuid(power.uuid);

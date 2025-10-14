@@ -109,7 +109,7 @@ export default function listenOnSocket() {
 			const token = game.scenes.active.tokens.find(t => t.id === event.data.tokenId);
 			if (!token) return;
 
-			CONFIG.DiceSD.applyDamageToToken(token._object, parseInt(event.data.damage), event.data.hitLocation);
+			CONFIG.DiceSD.applyDamageToToken(token._object, parseInt(event.data.damage), event.data.hitLocation, event.data.damageType);
 		}
 
 		if (event.type === "addSpellEffecstToActor" && game.user.isGM) {

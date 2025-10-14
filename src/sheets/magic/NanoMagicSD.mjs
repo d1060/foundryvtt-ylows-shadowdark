@@ -1,9 +1,9 @@
 import UtilitySD from "../../utils/UtilitySD.mjs";
 
 const nanoEffectsEffects = {
-	"muscleReinforcement": { key: "system.bonuses.str.bonus", img: "icons/magic/control/buff-strength-muscle-damage-orange.webp" },
-	"cardiacSupport": { key: "system.bonuses.con.bonus", img: "icons/skills/wounds/anatomy-organ-heart-red.webp" },
-	"reflexBypass": { key: "system.bonuses.dex.bonus", img: "icons/skills/melee/maneuver-sword-katana-yellow.webp" },
+	"muscleReinforcement": { key: "system.abilities.str.bonus", img: "icons/magic/control/buff-strength-muscle-damage-orange.webp" },
+	"cardiacSupport": { key: "system.abilities.con.bonus", img: "icons/skills/wounds/anatomy-organ-heart-red.webp" },
+	"reflexBypass": { key: "system.abilities.dex.bonus", img: "icons/skills/melee/maneuver-sword-katana-yellow.webp" },
 	"muscleOxygenation": { key: "system.bonuses.str.advantage", img: "icons/magic/control/buff-strength-muscle-damage.webp" },
 	"artificialBloodFiltering": { key: "system.bonuses.con.advantage", img: "icons/skills/social/intimidation-impressing.webp" },
 	"secondaryReflexArcs": { key: "system.bonuses.dex.advantage", img: "icons/skills/melee/maneuver-greatsword-yellow.webp" },
@@ -324,51 +324,74 @@ export default class NanoMagicSD {
 	}
 
 	static async activatePower(actor, power, cost) {
+		let program = actor.system.magic.nanoMagicPrograms.find(p => p.id === power.id);
+
+		if (program.drawback && program.drawback.uuid) {
+			const programSystem = await fromUuid(program.drawback.uuid);
+			if (programSystem) {
+				const effects = await programSystem.getEmbeddedCollection("ActiveEffect");
+				if (effects.some(e => e.changes.some(c => c.key === 'system.penalties.programLost')))
+				{
+					program.lost = true;
+					actor.update({"system.magic.nanoMagicPrograms": actor.system.magic.nanoMagicPrograms});
+					return;
+				}
+			}
+		}
+
+		let powerIndex = actor.system.magic.nanoMagicPrograms.indexOf(program)
+
+		const newEffectId = await NanoMagicSD.addActiveEffect(actor, program, powerIndex);
+		const newDrawbackId = await NanoMagicSD.addActiveDrawback(actor, program, powerIndex);
+
+		actor.system.magic.nanoMagicPrograms[powerIndex].effectId = newEffectId;
+		actor.system.magic.nanoMagicPrograms[powerIndex].drawbackId = newDrawbackId;
+
 		if (power.type === 'internal' || power.duration !== '1-turn')
 		{
-			let program = actor.system.magic.nanoMagicPrograms.find(p => p.id === power.id);
-			let powerIndex = actor.system.magic.nanoMagicPrograms.indexOf(program)
-
-			if (power.effect in nanoEffectsEffects)
-				await NanoMagicSD.addActiveEffect(actor, program, powerIndex);
-
 			actor.system.magic.nanoPoints.value -= cost;
 			if (actor.system.magic.nanoPoints.value < 0)
 				actor.system.magic.nanoPoints.value = 0;
 
 			actor.system.magic.nanoMagicPrograms[powerIndex].active = true;
-			actor.update({"system.magic.nanoMagicPrograms": actor.system.magic.nanoMagicPrograms});
-			actor.update({"system.magic.nanoPoints.value": actor.system.magic.nanoPoints.value});
 		}
+
+		actor.update({"system.magic.nanoMagicPrograms": actor.system.magic.nanoMagicPrograms});
+		actor.update({"system.magic.nanoPoints.value": actor.system.magic.nanoPoints.value});
 	}
 
 	static async addActiveEffect(actor, program, powerIndex) {
-		let effectName = UtilitySD.camelToTitleCase(program.effect);
-		let effectKey = nanoEffectsEffects[program.effect].key;
-		let effectValue = program.increases + 1;
+		if (!program.effect?.uuid) return null;
+		const powerTalent = await fromUuid(program.effect.uuid);
+		if (!powerTalent) return null;
+		let tempHp = 0;
 
-		if (effectKey.includes("("))
-		{
-			const match = effectKey.match(/\(([^)]+)\)/);
+		for (const effect of powerTalent.effects) {
+			const changes = effect.changes;
 
-			effectValue = match[1];
-  			effectKey = effectKey.replace(match[0], "").trim();
-		}
+			for (const change of changes) {
+				if (change.key.slugify() === 'system.bonuses.temphp')
+					tempHp += parseInt(change.value);
 
-		if (effectKey.includes("system.bonuses"))
-		{
+				if (UtilitySD.isNumeric(change.value)) {
+					let value = UtilitySD.parseIntIfNumeric(change.value);
+					change.value = program.increases + 1;
+				}
+			}
+
 			const effectData = [
 				{
-					name: effectName,
-					label: effectName,
-					img: nanoEffectsEffects[program.effect].img,
-					changes: [{	key: effectKey, 
-								mode: 2,
-								value: effectValue}],
+					name: powerTalent.name,
+					label: powerTalent.name,
+					img: powerTalent.img,
+					changes,
 					disabled: false,
-					origin: actor.uuid,
+					system: {
+						origin: 'Nano-Magic',
+					},
 					transfer: true,
-					description: program.effectDescription
+					description: program.effectDescription,
+					duration: { seconds: Number.MAX_VALUE },
 				},
 			];
 
@@ -377,16 +400,104 @@ export default class NanoMagicSD {
 				effectData
 			);
 
-			actor.system.magic.nanoMagicPrograms[powerIndex].effectId = newActiveEffect._id;
+			if (tempHp) {
+				actor.applyTempHp(powerTalent);
+			}
+
+			return newActiveEffect._id;
 		}
+		return null;
+	}
+
+	static async addActiveDrawback(actor, program, powerIndex) {
+		if (!program.drawback?.uuid) return null;
+		const powerTalent = await fromUuid(program.drawback.uuid);
+		if (!powerTalent) return null;
+
+		for (const effect of powerTalent.effects) {
+			const changes = structuredClone(effect.changes);
+
+			let percentHpChange = changes.find(c => c.key === 'system.penalties.damagePercentage');
+			if (percentHpChange) {
+				let changeIndex = changes.findIndex(c => c.key === 'system.penalties.damagePercentage');
+				changes.splice(changeIndex, 1);
+				let damagePercentage = parseInt(percentHpChange.value);
+				actor.applyDamagePercentage(damagePercentage);
+			}
+
+			let programLostChange = changes.find(c => c.key === 'system.penalties.programLost');
+			if (programLostChange) {
+				let changeIndex = changes.findIndex(c => c.key === 'system.penalties.programLost');
+				changes.splice(changeIndex, 1);
+			}
+
+			if (!changes.length) continue;
+
+			for (const change of changes) {
+				if (UtilitySD.isNumeric(change.value)) {
+					let value = UtilitySD.parseIntIfNumeric(change.value);
+					change.value = -program.increases - 1;
+				}
+			}
+
+			const effectData = [
+				{
+					name: powerTalent.name,
+					label: powerTalent.name,
+					img: powerTalent.img,
+					changes,
+					disabled: false,
+					system: {
+						origin: 'Nano-Magic Drawback',
+					},
+					transfer: true,
+					description: program.drawbackDescription,
+					duration: { seconds: Number.MAX_VALUE },
+				},
+			];
+
+			const [newActiveEffect] = await actor.createEmbeddedDocuments(
+				"ActiveEffect",
+				effectData
+			);
+
+			return newActiveEffect._id;
+		}
+		return null;
 	}
 
 	static async removeActiveEffect(actor, program) {
+		if (!program.effectId) return;
 		try {
 			await actor.deleteEmbeddedDocuments(
 				"ActiveEffect",
 				[program.effectId]
 			);
+
+			program.effectId = null;
+		}
+		catch(err) {
+		}
+	}
+
+	static async removeActiveDrawback(actor, program) {
+		if (program.drawback && program.drawback.uuid) {
+			const programSystem = await fromUuid(program.drawback.uuid);
+			if (programSystem) {
+				const effects = await programSystem.getEmbeddedCollection("ActiveEffect");
+				if (effects.some(e => e.changes.some(c => c.key === 'system.penalties.programLost')))
+					program.lost = true;
+			}
+		}
+
+		if (!program.drawbackId) return;
+		try {
+			await actor.deleteEmbeddedDocuments(
+				"ActiveEffect",
+				[program.drawbackId]
+			);
+
+			program.drawbackId = null;
 		}
 		catch(err) {
 		}
@@ -494,17 +605,24 @@ export default class NanoMagicSD {
 
 	static async _onCreateNanoProgram(event, actor, sheet, target) {
 		const durationReduction = target.dataset.durationReduction;
+		const internalEffects = await shadowdark.compendiums.nanoMagicInternalEffects();
+		const externalEffects = await shadowdark.compendiums.nanoMagicExternalEffects();
+		const internalDrawbacks = await shadowdark.compendiums.nanoMagicInternalDrawbacks();
+		const cardiacSupport = internalEffects.find(e => e.name.slugify() === 'cardiac-support');
+		const targetAnalyzer = externalEffects.find(e => e.name.slugify() === 'target-analyzer');
+		const noDrawback = internalDrawbacks.find(e => e.name.slugify() === 'no-drawback');
+		if (!cardiacSupport) return;
 
 		var newProgram = {
 			id: UtilitySD.generateUUID(),
 			name: "New Program",
 			type: "internal",
 			duration: "1-turn",
-			drawback: "noDrawback",
-			effect: "cardiacSupport",
-			effectDescription: "Cardiac Support: Increases CON by 1 (up to 20).",
-			lastInternalEffect: "cardiacSupport",
-			lastExternalEffect: "targetAnalyzer",
+			drawback: noDrawback,
+			effect: cardiacSupport,
+			effectKey: cardiacSupport.name.slugify(),
+			lastInternalEffect: cardiacSupport,
+			lastExternalEffect: targetAnalyzer,
 	        description: "",
 			lost: false,
         	production_ready: false,
@@ -574,8 +692,8 @@ export default class NanoMagicSD {
 
 		let powerIndex = actor.system.magic.nanoMagicPrograms.indexOf(existingProgram)
 
-		if (existingProgram.effect in nanoEffectsEffects)
-			await NanoMagicSD.removeActiveEffect(actor, existingProgram);
+		await NanoMagicSD.removeActiveDrawback(actor, existingProgram);
+		await NanoMagicSD.removeActiveEffect(actor, existingProgram);
 
 		actor.system.magic.nanoPoints.value += existingProgram.points;
 		if (actor.system.magic.nanoPoints.value > actor.level)
@@ -606,13 +724,11 @@ export default class NanoMagicSD {
 		actor.system.magic.nanoMagicPrograms[index].localizedType = game.i18n.localize(CONFIG.SHADOWDARK.NANO_MAGIC_TYPES[actor.system.magic.nanoMagicPrograms[index].type]);
 		if (actor.system.magic.nanoMagicPrograms[index].type === 'internal')
 		{
-			actor.system.magic.nanoMagicPrograms[index].localizedEffect = game.i18n.localize(CONFIG.SHADOWDARK.NANO_MAGIC_INTERNAL_EFFECTS[actor.system.magic.nanoMagicPrograms[index].effect]);
 			actor.system.magic.nanoMagicPrograms[index].localizedDuration = "";
 			actor.system.magic.nanoMagicPrograms[index].localizedDrawback = game.i18n.localize(CONFIG.SHADOWDARK.NANO_MAGIC_INTERNAL_DRAWBACKS[actor.system.magic.nanoMagicPrograms[index].drawback]);
 		}
 		else
 		{
-			actor.system.magic.nanoMagicPrograms[index].localizedEffect = game.i18n.localize(CONFIG.SHADOWDARK.NANO_MAGIC_EXTERNAL_EFFECTS[actor.system.magic.nanoMagicPrograms[index].effect]);
 			actor.system.magic.nanoMagicPrograms[index].localizedDuration = game.i18n.localize(CONFIG.SHADOWDARK.NANO_MAGIC_DURATIONS[actor.system.magic.nanoMagicPrograms[index].duration]);
 			actor.system.magic.nanoMagicPrograms[index].localizedDrawback = game.i18n.localize(CONFIG.SHADOWDARK.NANO_MAGIC_EXTERNAL_DRAWBACKS[actor.system.magic.nanoMagicPrograms[index].drawback]);
 		}

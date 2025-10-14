@@ -40,7 +40,7 @@ SHADOWDARK.ARMOR_BONUS_ATTRIBUTES = {
 SHADOWDARK.CHECKS = {
 	str : ['Break or Bend', 'Climb', 'Intimidate', 'Jump', 'Move Through', 'Swim'],
 	dex : ['Acrobatics', 'Climb', 'Initiative', 'Move Through', 'Stealth', 'Thievery'],
-	con : ['Endurance', 'Hold Your Breath', 'Physical Resistance'],
+	con : ['Endurance', 'Hold Your Breath', 'Physical Resistance', 'Healing'],
 	int : ['Learning', 'Lore', 'Memory', 'Navigation', 'Forage', 'Stabilize'],
 	wis : ['Mental Resistance', 'Morale', 'Perception', 'Tracking'],
 	cha : ['Gather Information', 'Barter', 'Convince', 'Deceive'],
@@ -217,6 +217,7 @@ SHADOWDARK.EFFECT_CATEGORIES = {
 
 SHADOWDARK.HIT_LOCATIONS = {
     none: "SHADOWDARK.item.effect.hitLocation.none",
+	physicalSkillPenalty: "SHADOWDARK.item.effect.hitLocation.physicalSkillPenalty",
     movePenalty: "SHADOWDARK.item.effect.hitLocation.movePenalty",
     toHitPenalty: "SHADOWDARK.item.effect.hitLocation.toHitPenalty",
     flightPenalty: "SHADOWDARK.item.effect.hitLocation.flightPenalty",
@@ -837,6 +838,16 @@ SHADOWDARK.PREDEFINED_EFFECTS = {
 	//system.bonuses.abilityBonus
 	//system.penalties.abilityPenalty
 	//system.bonuses.platedBulwark
+	//system.bonuses.mistdarkCreature -> When downed, they burst in a puff of mistdark. Everyone in a 1-hex radius must make a taint check: [[check 12 con]] or take [[/r 1d4]] corrosive damage.
+	//system.penalties.maxHp -> Penalty to MaxHP.
+	//system.penalties.damagePercentage
+	//system.penalties.programLost
+	//system.penalties.dizzy
+	//system.penalties.stunned
+	//system.penalties.blindness 
+	//system.penalties.disadvantage
+	//system.penalties.physicalCriticalRange
+	//system.penalties.mentalCriticalRange
 
 	//TODO:
 	//system.bonuses.injector On hit, injects a random drug on the target. Roll DC 12 CON. On a failure, roll 1d6:
@@ -852,7 +863,6 @@ SHADOWDARK.PREDEFINED_EFFECTS = {
 	//system.bonuses.selfDestruct -> When downed, explode with 2d6 over a 2-hex radius.
 	//system.bonuses.blindingFlash -> Everyone in 6 hexes rolls CON vs 14. On a failure, they are blinded for 1d4 turns.
 	//system.bonuses.corrosiveGas -> Everyone in close range always takes [[/r 1d4]] per turn.
-	//system.bonuses.mistdarkCreature -> When downed, they burst in a puff of mistdark. Everyone in a 1-hex radius must make a taint check: [[check 12 con]] or take [[/r 1d4]] corrosive damage.
 
 	// New abilities:
 	// Gain more HP at each heal.
@@ -1111,5 +1121,7 @@ SHADOWDARK.NANO_MAGIC_EXTERNAL_EFFECTS = {
 	"substanceProjection": "SHADOWDARK.nano_effect_external.substanceProjection",
 	"targetAnalyzer": "SHADOWDARK.nano_effect_external.targetAnalyzer",
 };
+
+SHADOWDARK.SCAR_EFFECT_RATIO = 0.2;
 
 export default SHADOWDARK;

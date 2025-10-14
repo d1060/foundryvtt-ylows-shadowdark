@@ -11,3 +11,4 @@ export {default as WeaponPropertySelector} from "./WeaponPropertySelector.mjs";
 export {default as NanoMagicTalentSelector} from "./NanoMagicTalentSelector.mjs";
 export {default as AuraMagicTalentSelector} from "./AuraMagicTalentSelector.mjs";
 export {default as MetalMagicTalentSelector} from "./MetalMagicTalentSelector.mjs";
+export {default as DefaultBodyTypePartSelector} from "./DefaultBodyTypePartSelector.mjs";

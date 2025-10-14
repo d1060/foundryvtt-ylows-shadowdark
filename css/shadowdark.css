@@ -498,7 +498,6 @@ section.effect-panel .effect-item .effect-info .tags .talent {
 
 .level-up button {
   font-size: 1.1rem;
-  font-family: "Old Newspaper Font";
 }
 .level-up fieldset {
   border-style: dashed;
@@ -1126,6 +1125,10 @@ section.effect-panel .effect-item .effect-info .tags .talent {
   color: var(--color-level-success-border);
 }
 
+.dice-roll .dice-total.partialSuccess {
+  color: #1a7721;
+}
+
 .dice-roll .dice-total.failure {
   color: var(--color-level-error-border);
 }
@@ -1593,10 +1596,10 @@ picture {
 .shadowdark.sheet.player .britannian-spellbook,
 .shadowdark.sheet.npc .britannian-spellbook {
   background-image: url("/systems/shadowdark/assets/Britannia/open-grimoire.png");
-  background-size: 782px 506px;
+  background-size: auto 100%;
   background-position: unset;
   background-repeat: no-repeat;
-  height: 498px;
+  height: 100%;
 }
 .shadowdark.sheet.player .britannian-spellbook h2,
 .shadowdark.sheet.npc .britannian-spellbook h2 {
@@ -2126,8 +2129,16 @@ picture {
   --fa: "\f147";
 }
 
+.shadowdark .fa-xmark {
+  --fa: "\f00d";
+}
+
 .fa-handshake-o {
   --fa: "\f2b5";
+}
+
+.fa-copy {
+  --fa: "\f0c5";
 }
 
 .fa-trash {
@@ -2720,4 +2731,8 @@ picture {
 }
 .shadowdark-dialog.standard-form {
   gap: 0px;
+}
+
+.stretch-flex {
+  flex: 1 1 auto;
 }

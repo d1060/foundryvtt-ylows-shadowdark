@@ -80,12 +80,12 @@
 	<a
 		data-action="resetProgram"
 		data-id="{{nanoMagicProgram.id}}"
-		data-tooltip="{{localize 'SHADOWDARK.nano_programs_edit.tooltip'}}"
+		data-tooltip="{{localize 'SHADOWDARK.nano_programs_reset.tooltip'}}"
 	>
 		<i class="fa-solid fa-reset-program" data-id="{{nanoMagicProgram.id}}"></i>
 	</a>
 	{{/if}}
-	{{#unless nanoMagicProgram.disabled}}
+	{{#unless nanoMagicProgram.lost}}
 	<a
 		data-action="editProgram"
 		data-id="{{nanoMagicProgram.id}}"
@@ -93,8 +93,10 @@
 	>
 	{{/unless}}
 		<i class="fa-solid fa-edit-program" data-id="{{nanoMagicProgram.id}}" {{#if nanoMagicProgram.disabled}}style="opacity: 0.5;"{{/if}}></i>
-	{{#unless nanoMagicProgram.disabled}}
+	{{#unless nanoMagicProgram.lost}}
 	</a>
+	{{/unless}}
+	{{#unless nanoMagicProgram.lost}}
 	<a
 		data-action="deleteProgram"
 		data-id="{{nanoMagicProgram.id}}"
@@ -102,31 +104,31 @@
 	>
 	{{/unless}}
 		<i class="fa-solid fa-delete-program" data-id="{{nanoMagicProgram.id}}" {{#if nanoMagicProgram.disabled}}style="opacity: 0.5;"{{/if}}></i>
-	{{#unless nanoMagicProgram.disabled}}
+	{{#unless nanoMagicProgram.lost}}
 	</a>
-{{/unless}}
+	{{/unless}}
 </div>
-<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 90px 20px 38px 1fr {{#if (eq nanoMagicProgram.type 'external')}}66px 1.5fr {{/if}}76px 3fr;{{#if nanoMagicProgram.disabled}} opacity: 0.5;{{/if}}">
-	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_program_dc"}}</h3>
+<div style="display: grid; grid-column-gap: 5px; grid-template-columns: 95px 20px 38px 1fr {{#if (eq nanoMagicProgram.type 'external')}}66px 1.5fr {{/if}}76px 3fr;{{#if nanoMagicProgram.disabled}} opacity: 0.5;{{/if}}">
+	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_program_dc"}}:</h3>
 	<span>{{nanoMagicProgram.programDC}}</span>
-	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_programs_type"}}</h3>
+	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_programs_type"}}:</h3>
 	<span>{{nanoMagicProgram.localizedType}}</span>
 	{{#if (eq nanoMagicProgram.type 'external')}}
-	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_programs_duration"}}</h3>
+	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_programs_duration"}}:</h3>
 	<span>{{nanoMagicProgram.localizedDuration}}</span>
 	{{/if}}
 	{{#unless nanoMagicProgram.hideDrawback}}
-	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_drawback"}}</h3>
-	<span>{{nanoMagicProgram.localizedDrawback}}</span>
+	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_drawback"}}:</h3>
+	<span>{{nanoMagicProgram.drawback.name}}</span>
 	{{/unless}}
 </div>
 <div style="display: grid; grid-column-gap: 5px; grid-template-columns: 50px 20px 50px 1fr 44px 20px;{{#if nanoMagicProgram.disabled}} opacity: 0.5;{{/if}}">
-	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_points"}}</h3>
+	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_points"}}:</h3>
 	<span>{{nanoMagicProgram.points}}</span>
-	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_programs_effect"}}</h3>
-	<span data-tooltip="{{nanoMagicProgram.description}}" {{#unless nanoMagicProgram.hasLevels}}style="grid-column: 4 / 6"{{/unless}}>{{nanoMagicProgram.effectDescription}}</span>
+	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.nano_programs_effect"}}:</h3>
+	<span data-tooltip="{{nanoMagicProgram.description}}" {{#unless nanoMagicProgram.hasLevels}}style="grid-column: 4 / 6"{{/unless}}>{{{nanoMagicProgram.effectDescription}}}</span>
 	{{#if nanoMagicProgram.hasLevels}}
-	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.item.level"}}</h3>
+	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.item.level"}}:</h3>
 	<span>{{nanoMagicProgram.effectLevels}}</span>
 	{{/if}}
 </div>

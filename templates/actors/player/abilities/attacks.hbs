@@ -92,3 +92,58 @@
 </div>
 {{/if}}
 
+{{#if wounds.length}}
+<div class="SD-box">
+	<div class="header">
+		<label>{{localize 'SHADOWDARK.sheet.player.wounds'}}</label>
+		<span></span>
+	</div>
+	<div class="content" style="display: grid; grid-template-columns: 1fr 16px 16px 16px; column-gap: 2px">
+		{{#each wounds}}
+			<div class="attack"><b>{{damageDesc}} {{partDesc}}</b></div>
+			<div>
+				<i class="fa-solid fa-heartbeat"
+					data-action="makeScar"
+					data-tooltip="{{tooltip}}"
+					data-index="{{@index}}"></i>
+			</div>
+			<div>
+				<i class="fa-solid {{#if (eq level 1)}}fa-times-circle{{else}}fa-minus-circle{{/if}}"
+					data-action="recoverWound"
+					data-tooltip="{{#if (eq level 1)}}{{localize 'SHADOWDARK.wounds.remove'}}{{else}}{{localize 'SHADOWDARK.wounds.lower_level'}}{{/if}}"
+					data-index="{{@index}}"></i>
+			</div>
+			<div>
+				{{#unless (eq level 5)}}
+				<i class="fa-solid fa-plus-circle"
+					data-action="worsenWound"
+					data-tooltip="{{localize 'SHADOWDARK.wounds.raise_level'}}"
+					data-index="{{@index}}"></i>
+				{{/unless}}
+			</div>
+		{{/each}}
+	</div>
+</div>
+{{/if}}
+
+{{#if scars.length}}
+{{#> ui/sd-hideable-section
+	sectionId="scars"
+	sectionTitle=scarsTitle
+	sectionTooltip=scarsTooltip
+}}
+	<div class="content" style="display: grid; grid-template-columns: 1fr 16px; column-gap: 2px">
+		{{#each scars}}
+			<div class="attack">
+				<b>{{scarDesc}}</b>
+			</div>
+			<div>
+			<i class="fa-solid fa-plus"
+				data-action="removeScar"
+				data-tooltip="{{localize 'SHADOWDARK.wounds.remove_scar'}}"
+				data-index="{{@index}}"></i>
+			</div>
+		{{/each}}
+	</div>
+{{/ui/sd-hideable-section}}
+{{/if}}

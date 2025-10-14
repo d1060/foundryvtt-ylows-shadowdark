@@ -29,6 +29,15 @@
 			<input style="color: red" type="number" name="injury-penalty" value="{{ data.injuryPenalty }}" placeholder="0">
 		</div>
 		{{/if}}
+		{{#if data.spellPenalty}}
+		<div class="form-group">
+			<label style="color: darkred">
+				{{localize "SHADOWDARK.dialog.item_roll.spell_penalty"}}
+			</label>
+			<input style="color: red" type="number" name="injury-penalty" value="{{ data.spellPenalty }}" placeholder="0">
+		</div>
+		{{/if}}
+		
 		{{#if data.targetLock}}
 		<div class="form-group">
 			<label>
@@ -49,11 +58,11 @@
 		</div>
 		{{/if}}
 		{{#if data.itemDamage}}
-		<div class="form-group">
-			<label>{{localize "SHADOWDARK.item.damage"}}</label>
+		<div class="form-group"{{#if data.damageDisadvantage}} style="color: darkred"{{/if}}>
+			<label{{#if data.damageDisadvantage}} style="color: darkred"{{/if}}>{{localize "SHADOWDARK.item.damage"}}</label>
 			<div{{#if data.itemDamage.type}} style="display: grid; grid-template-columns: 1fr 120px"{{/if}}>
-				<input type="text" name="damage" value="{{data.itemDamage.value}}" placeholder="0">
-				{{#if data.itemDamage.type}}<span style="text-align: center;">{{data.itemDamage.type}}</span>{{/if}}
+				<input{{#if data.damageDisadvantage}} style="color: darkred"{{/if}} type="text" name="damage" value="{{data.itemDamage.value}}" placeholder="0">
+				{{#if data.itemDamage.type}}<span style="text-align: center;{{#if data.damageDisadvantage}} color: darkred{{/if}}">{{data.itemDamage.type}}</span>{{/if}}
 			</div>
 		</div>
 		{{#each data.itemExtraDamage}}

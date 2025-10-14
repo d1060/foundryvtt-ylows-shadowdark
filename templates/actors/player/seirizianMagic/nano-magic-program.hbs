@@ -5,15 +5,21 @@
 			<input data-action='program-name' name="program.name" type="text" value="{{program.name}}" placeholder="New Program">
 		</div>
 	</header>
-	<section class="sheet-body">
-		<div style="padding: 8px; display: grid; grid-column-gap: 5px; grid-row-gap: 5px; grid-template-columns: 90px 1fr 80px 1fr;">
-			<div>
+	<section class="sheet-body circuit-board-background">
+		<div style="padding: 8px; display: grid; grid-column-gap: 5px; grid-row-gap: 5px; grid-template-columns: 90px 1fr {{#ifCond program.type '!==' 'internal'}}75px 1fr{{else}}60px 100px{{/ifCond}};">
+			<div style="align-self: center;">
 				<h3>{{localize "SHADOWDARK.nano_program_dc"}}</h3>
 			</div>
-			<div>
-				<h3>{{program.programDC}}</h3>
+			<div style="align-self: center;">
+				<div style="align-self: center; display: grid; grid-template-columns: 1fr 1fr">
+					<h3 style="align-self: center;">{{program.programDC}}</h3>
+					<div>
+						<h3>{{localize "SHADOWDARK.nano_points"}}:</h3>
+						<h3>{{program.points}}</h3>
+					</div>
+				</div>
 			</div>
-			<div>
+			<div style="align-self: center;">
 				<h3>{{localize "SHADOWDARK.nano_programs_type"}}</h3>
 			</div>
 			<select name="program.type"
@@ -28,7 +34,7 @@
 				}}
 			</select>
 			{{#ifCond program.type '!==' 'internal'}}
-			<div>
+			<div style="align-self: center;">
 				<h3>{{localize "SHADOWDARK.nano_programs_duration"}}</h3>
 			</div>
 			<select name="program.duration"
@@ -43,7 +49,7 @@
 				}}
 			</select>
 			{{/ifCond}}
-			<div>
+			<div style="align-self: center;">
 				<h3>{{localize "SHADOWDARK.nano_drawback"}}
 			</h3>
 			</div>
@@ -53,40 +59,27 @@
 					id="program-drawback"
 					{{#ifCond program.type '===' 'internal'}}style="grid-column: 2 / 5"{{/ifCond}}
 			>
-			{{#ifCond program.type '===' 'internal'}}
-				{{selectOptions
-					config.NANO_MAGIC_INTERNAL_DRAWBACKS
-					selected=program.drawback
-					localize=false
-				}}
-			{{else}}
-				{{selectOptions
-					config.NANO_MAGIC_EXTERNAL_DRAWBACKS
-					selected=program.drawback
-					localize=false
-				}}
-			{{/ifCond}}
+			{{#each drawbacks}}
+				<option value="{{key}}"{{#if (eq ../drawbackName key)}} selected{{/if}}>{{{description}}}</option>
+			{{/each}}
 			</select>
-			<div>
+			<div style="align-self: center;">
 				<h3>{{localize "SHADOWDARK.nano_effect"}}
 			</h3>
 			</div>
-			<select name="program.effect"
+			<select name="program.effectKey"
 					data-action='program-effect'
 					data-id="{{program.id}}"
 					id="program-effect"
 					{{#unless hasLevels}}style="grid-column: 2 / 5"{{/unless}}
 			>
-			{{selectOptions
-				effectOptions
-				selected=program.effect
-				localize=false
-			}}
+			{{#each effectOptions}}
+				<option value="{{key}}"{{#if (eq ../program.effectKey key)}} selected{{/if}}>{{{description}}}</option>
+			{{/each}}
 			</select>
 			{{#if hasLevels}}
-			<div>
-				<h3>{{localize "SHADOWDARK.nano_effect_levels"}}
-			</h3>
+			<div style="align-self: center;">
+				<h3>{{localize "SHADOWDARK.nano_effect_levels"}}</h3>
 			</div>
 			<select name="program.effectLevels"
 					data-action='program-effectLevels'

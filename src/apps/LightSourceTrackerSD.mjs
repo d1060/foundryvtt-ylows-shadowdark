@@ -224,6 +224,10 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 
 		// Create a new actor
 		const lightActor = await Actor.create(actorData);
+		lightActor.update({
+			"system.droppedItem": true,
+			"system.uuid": lightActor.uuid,
+		});
 
 		// Create a copy of the item
 		lightActor.createEmbeddedDocuments("Item", [item]);
@@ -280,7 +284,9 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 		else
 		{
 			// Create a new actor
+			actorData.sheet = item.sheet;
 			const itemActor = await Actor.create(actorData);
+			itemActor.update({"system.droppedItem": true})
 
 			// Create a copy of the item
 			itemActor.createEmbeddedDocuments("Item", [item]);

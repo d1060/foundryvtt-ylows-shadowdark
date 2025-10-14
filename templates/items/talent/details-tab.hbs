@@ -23,10 +23,42 @@
 				<h3>{{localize 'SHADOWDARK.item.is_power'}}</h3>
 				<input type="checkbox" name="system.isPower" {{#if system.isPower}} checked{{/if}}>
 			{{/if}}
+			{{#if (eq system.talentClass 'nanoMagic')}}
+				<h3>{{localize 'SHADOWDARK.item.nano_magic_type'}}</h3>
+				<select name="system.nanoProgramType">
+					<option value="talent" {{#if (eq system.nanoProgramType 'talent')}} selected{{/if}}>{{localize 'SHADOWDARK.nano_talent'}}</option>
+					<option value="internal" {{#if (eq system.nanoProgramType 'internal')}} selected{{/if}}>{{localize 'SHADOWDARK.nano_internal'}}</option>
+					<option value="external" {{#if (eq system.nanoProgramType 'external')}} selected{{/if}}>{{localize 'SHADOWDARK.nano_external'}}</option>
+					<option value="internal_drawback" {{#if (eq system.nanoProgramType 'internal_drawback')}} selected{{/if}}>{{localize 'SHADOWDARK.nano_internal_drawback'}}</option>
+					<option value="external_drawback" {{#if (eq system.nanoProgramType 'external_drawback')}} selected{{/if}}>{{localize 'SHADOWDARK.nano_external_drawback'}}</option>
+				</select>
+			{{/if}}
 		</div>
 		<div class="centered-box" style="width: 99%">
 			<h3>{{localize 'SHADOWDARK.item.talent_multiple'}}</h3><input type="checkbox" name="system.allowMultipleChoice"{{#if system.allowMultipleChoice}} checked{{/if}}>
 		</div>
+		{{#if (eq system.talentClass 'nanoMagic')}}
+			{{#unless (eq system.nanoProgramType 'talent')}}
+			<div>
+				<h3>{{localize 'SHADOWDARK.item.nano_magic_cost'}}</h3>
+				<input type="number" name="system.nanoPointCost" value="{{system.nanoPointCost}}" default="0">
+			</div>
+			<div>
+				<h3>{{localize 'SHADOWDARK.item.nano_magic_cost_per_level'}}</h3>
+				<input type="number" name="system.nanoPointCostPerLevel" value="{{system.nanoPointCostPerLevel}}" default="0">
+			</div>
+			<div>
+				<h3>{{localize 'SHADOWDARK.item.nano_magic_cost_formula'}}</h3>
+				<select name="system.descriptionFormula">
+					<option value=""{{#if (eq system.descriptionFormula '')}}selected{{/if}}>-</option>
+					<option value="add"{{#if (eq system.descriptionFormula 'add')}}selected{{/if}}>number + increases</option>
+					<option value="multiply"{{#if (eq system.descriptionFormula 'multiply')}}selected{{/if}}>number * (increases + 1)</option>
+					<option value="power3"{{#if (eq system.descriptionFormula 'power3')}}selected{{/if}}>number * 3 ^ increases</option>
+				</select>
+			</div>
+			{{/unless}}
+		{{/if}}
+
 		{{#if system.isPower}}
 		<div>
 			<h3>{{localize 'SHADOWDARK.item.talent_powerLevel'}}</h3>

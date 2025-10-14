@@ -22,6 +22,8 @@ export function highlightSuccessFailure(app, html, data) {
     updateDiceTotal("failure", "SHADOWDARK.roll.critical.failure");
   } else if (app.flags?.critical?.value === "success") {
     updateDiceTotal("success", "SHADOWDARK.roll.critical.success");
+  } else if (app.flags?.hasTarget?.value === true && app.flags?.success?.value && app.flags?.success?.partial ) {
+    updateDiceTotal("partialSuccess", "SHADOWDARK.roll.partial_success");
   } else if (app.flags?.hasTarget?.value === true && app.flags?.success?.value) {
     updateDiceTotal("success", "SHADOWDARK.roll.success");
   } else if (app.flags?.hasTarget?.value === true && !app.flags?.success?.value) {

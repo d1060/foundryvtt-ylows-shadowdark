@@ -1,10 +1,13 @@
 import UtilitySD from "../utils/UtilitySD.mjs";
 import * as select from "../apps/CompendiumItemSelectors/_module.mjs";
+import RandomizerSD from "../apps/RandomizerSD.mjs";
+import CompendiumsSD from "../documents/CompendiumsSD.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api
 const { ActorSheetV2 } = foundry.applications.sheets
 export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV2) {
 	firstLoad = true;
+	static copiedItem = null;
 
 	constructor(object) {
 		super(object);
@@ -26,12 +29,14 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 			toggleLost: this.#onToggleLost,
 			itemCreate: this.#onItemCreate,
 			manageActiveEffect: this.#manageActiveEffect,
+			randomName: this.#randomName,
 		},
   	}
 
 	_hiddenSectionsLut = {
 		activeEffects: true,
 		activeSpells: true,
+		scars: true,
 	};
 
 	// Emulate a itom drop as it was on the sheet, when dropped on the canvas
@@ -111,6 +116,10 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 		}
 	}
 
+	async _onRender(context, options) {
+		await super._onRender(context, options);
+	}
+
 	_getActorOverrides() {
 		return Object.keys(foundry.utils.flattenObject(this.object.overrides || {}));
 	}
@@ -132,6 +141,14 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 			return result;
 		};
 
+		const canCopy = function(element, actor) {
+			let result = false;
+			if (actor.type === 'NPC' && game.user.isGM) {
+				result = true;
+			}
+			return result;
+		};
+
 		const isItem = function(element, actor) {
 			let result = false;
 			const itemId = element.dataset.itemId;
@@ -150,7 +167,12 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 					if (itemId)
 					{
 						const item = this.actor.items.get(itemId);
-						return item?.sheet.render(true);
+						if (item)
+							return item?.sheet.render(true);
+						const effect = this.actor.appliedEffects.find(e => e.id === itemId);
+						if (effect)
+							return effect?.sheet.render(true);
+						return;
 					}
 					const effectId = element.dataset.effectId;
 					if (effectId)
@@ -159,7 +181,8 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 						return effect?.sheet.render(true);
 					}
 				},
-			}];
+			}
+		];
 		if (ActorSheetSD.isThereALoggedGM())
 		{
 			options.push(
@@ -178,6 +201,24 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 				}
 			);
 		}
+
+		options.push(
+			{
+				name: game.i18n.localize("SHADOWDARK.sheet.general.item_copy.title"),
+				icon: '<i class="fas fa-copy"></i>',
+				condition: element => canCopy(element, this.actor),
+				callback: element => {
+					const itemId = element.dataset.itemId;
+					if (itemId)
+					{
+						const item = this.actor.items.get(itemId);
+						ActorSheetSD.copiedItem = item;
+						ui.notifications.info(game.i18n.format("SHADOWDARK.ui.ItemCopiedClipboard", {itemName: item.name}));
+					}
+				},
+			}
+		);
+
 		options.push(
 			{
 				name: game.i18n.localize("SHADOWDARK.sheet.general.item_delete.title"),
@@ -365,15 +406,13 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 
 		if (this._hiddenSectionsLut[sectionId]) {
 			UtilitySD.slideUp(hideableSection, 200);
-			event.target.dataset.tooltip = game.i18n.localize(
-				"SHADOWDARK.sheet.general.section.toggle_show"
-			);
+			if (event.target.dataset.tooltip && event.target.dataset.tooltip == game.i18n.localize("SHADOWDARK.sheet.general.section.toggle_hide"))
+				event.target.dataset.tooltip = game.i18n.localize("SHADOWDARK.sheet.general.section.toggle_show");
 		}
 		else {
 			UtilitySD.slideDown(hideableSection, 200);
-			event.target.dataset.tooltip = game.i18n.localize(
-				"SHADOWDARK.sheet.general.section.toggle_hide"
-			);
+			if (event.target.dataset.tooltip && event.target.dataset.tooltip == game.i18n.localize("SHADOWDARK.sheet.general.section.toggle_show"))
+				event.target.dataset.tooltip = game.i18n.localize("SHADOWDARK.sheet.general.section.toggle_hide");
 		}
 
 		let targetHtml = event.target instanceof HTMLElement ? event.target : event.target[0];
@@ -385,7 +424,14 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 	}
 
 	_onItemDelete(itemId) {
-		const itemData = this.actor.getEmbeddedDocument("Item", itemId);
+		let isEffect = false;
+		let itemData = this.actor.getEmbeddedDocument("Item", itemId);
+		if (!itemData)
+		{
+			itemData = this.actor.getEmbeddedDocument("ActiveEffect", itemId);
+			isEffect = true;
+		}
+		if (!itemData) return;
 
 		foundry.applications.handlebars.renderTemplate(
 			"systems/shadowdark/templates/dialog/delete-item.hbs",
@@ -407,8 +453,13 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 							if (itemData.system.light?.active) {
 								await itemData.parent.sheet._toggleLightSource(itemData);
 							}
+							
+							let type = "Item";
+							if (isEffect)
+								type = "ActiveEffect";
+
 							await this.actor.deleteEmbeddedDocuments(
-								"Item",
+								type,
 								[itemId]
 							);
 
@@ -564,6 +615,28 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 		if (event.shiftKey) {
 			options.fastForward = true;
 		}
+
+		for (const target of game.user.targets.values())
+		{
+			options.targetToken = target;
+			let bodySetup = null;
+			if (target.actor?.system?.bodySetup != null)
+				bodySetup = fromUuidSync(target.actor.system.bodySetup);
+			else
+				bodySetup = await CompendiumsSD.defaultBodySetup(true);
+			
+			if (bodySetup?.system?.bodyParts) {
+				for (let i = 0; i < bodySetup.system.bodyParts.length; i++) {
+					const part = bodySetup.system.bodyParts[i];
+					if (part.toHit == 0) {
+						options.hitLocationIndex = i;
+						options.hitLocationName = part.name;
+						break;
+					}
+				}
+			}
+			break;
+		}		
 		
 		this.actor.rollAttack(itemId, options);
 	}
@@ -617,11 +690,15 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 		event.preventDefault();
 		const itemType = target.dataset.itemType;
 
-		const itemData = {
+		let itemData = {
 			name: `New ${itemType}`,
 			type: itemType,
 			system: {},
 		};
+
+		if (ActorSheetSD.copiedItem && ActorSheetSD.copiedItem.type === itemType) {
+			itemData = structuredClone(ActorSheetSD.copiedItem);
+		}
 
 		switch (itemType) {
 			case "Basic":
@@ -641,7 +718,14 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 		}
 
 		const [newItem] = await this.actor.createEmbeddedDocuments("Item", [itemData]);
-		
+
+		if (ActorSheetSD.copiedItem && ActorSheetSD.copiedItem.type === itemType) {
+			var effects = await ActorSheetSD.copiedItem.getEmbeddedCollection("ActiveEffect");
+			if (effects.contents.length) {
+				newItem.createEmbeddedDocuments("ActiveEffect", effects.contents);
+			}
+		}
+
 		newItem.sheet.render(true);
 	}
 
@@ -653,6 +737,15 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 
 	static async #manageActiveEffect(event, target) {
 		shadowdark.effects.onManageActiveEffect(event, this.actor, target);
+	}
+
+	static async #randomName(event, target) {
+		if (await UtilitySD.AreYouSureDialog('SHADOWDARK.sheet.player.randomize_name', 'SHADOWDARK.sheet.player.randomize_name_are_you_sure')) {
+			const randomName = RandomizerSD.newName();
+			this.actor.name = randomName;
+			this.actor.update({ "name": randomName });
+			this.render(true);
+		}
 	}
 
 	static async showImageDialog(image, name, propagate, origin, width, height) {

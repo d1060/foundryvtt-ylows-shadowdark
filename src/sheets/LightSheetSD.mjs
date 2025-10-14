@@ -82,23 +82,33 @@ export default class LightSheetSD extends ActorSheetSD {
 				}
 			);
 
-			const targetActor = await Dialog.wait({
-				title: game.i18n.localize("SHADOWDARK.dialog.light_source.pick_up.title"),
+			const targetActor = await foundry.applications.api.DialogV2.wait({
+				classes: ["app", "shadowdark", "shadowdark-dialog", "window-app", 'themed', 'theme-light'],
+				position: {
+    				width: "auto",
+    				height: "auto"
+  				},
+				window: {
+					resizable: false,
+					title: game.i18n.localize("SHADOWDARK.dialog.light_source.pick_up.title"),
+				},
 				content,
-				buttons: {
-					select: {
-						icon: "<i class=\"fa fa-square-check\"></i>",
+				buttons: [
+					{
+						action: 'select',
+						icon: "fa fa-square-check",
 						label: `${game.i18n.localize("SHADOWDARK.dialog.general.select")}`,
 						callback: html => {
-							return html.find("input[type='radio']:checked").attr("id") ?? false;
+							return html.currentTarget.querySelector("input[type='radio']:checked")?.id ?? false;
 						},
 					},
-					cancel: {
-						icon: "<i class=\"fa fa-square-xmark\"></i>",
+					{
+						action: 'cancel',
+						icon: "fa fa-square-xmark",
 						label: `${game.i18n.localize("SHADOWDARK.dialog.general.cancel")}`,
 						callback: () => false,
 					},
-				},
+				],
 				default: "select",
 				close: () => console.log("Closed Dialog"),
 			});
@@ -181,23 +191,33 @@ export default class LightSheetSD extends ActorSheetSD {
 			}
 		);
 
-		const targetActor = await Dialog.wait({
-			title: game.i18n.localize("SHADOWDARK.dialog.item.pick_up.title"),
+		const targetActor = await foundry.applications.api.DialogV2.wait({
+			classes: ["app", "shadowdark", "shadowdark-dialog", "window-app", 'themed', 'theme-light'],
+			position: {
+				width: "auto",
+				height: "auto"
+			},
+			window: {
+				resizable: false,
+				title: game.i18n.localize("SHADOWDARK.dialog.item.pick_up.title"),
+			},
 			content,
-			buttons: {
-				select: {
-					icon: "<i class=\"fa fa-square-check\"></i>",
+			buttons: [
+				{
+					action: 'select',
+					icon: "fa fa-square-check",
 					label: `${game.i18n.localize("SHADOWDARK.dialog.general.select")}`,
 					callback: html => {
-						return html.find("input[type='radio']:checked").attr("id") ?? false;
+						return html.currentTarget.querySelector("input[type='radio']:checked")?.id ?? false;
 					},
 				},
-				cancel: {
-					icon: "<i class=\"fa fa-square-xmark\"></i>",
+				{
+					action: 'cancel',
+					icon: "fa fa-square-xmark",
 					label: `${game.i18n.localize("SHADOWDARK.dialog.general.cancel")}`,
 					callback: () => false,
 				},
-			},
+			],
 			default: "select",
 			close: () => console.log("Closed Dialog"),
 		});

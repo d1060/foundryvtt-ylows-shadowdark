@@ -2,7 +2,14 @@
 	<div class="grid-3-columns">
 		<div class="grid-colspan-3 grid-2-columns">
 			{{> items/armor/_partials/armor }}
-			{{> items/armor/_partials/armor-properties }}
+			{{#if showHitLocation}}
+			<div style="display: grid; row-gap: 8px; grid-template-rows: 116px 1fr;">
+			{{/if}}
+				{{> items/armor/_partials/armor-properties }}
+			{{#if showHitLocation}}
+				{{> items/armor/_partials/armor-coverage }}
+			</div>
+			{{/if}}
 		</div>
 		{{> items/_partials/cost }}
 		{{> items/_partials/slots }}

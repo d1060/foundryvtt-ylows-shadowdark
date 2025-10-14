@@ -852,9 +852,15 @@ export default class ActiveEffectsSD {
 		};
 
 		for (const effect of effects) {
+			let shortenedDurationLabel = effect.duration.remaining == null ? effect.duration.label : effect.duration.remaining + " " + game.i18n.localize(`SHADOWDARK.effect_duration.seconds`);
+			if (effect.duration.remaining > 31536000) shortenedDurationLabel = 'None';
+			else if (effect.duration.remaining > 86400) shortenedDurationLabel = Math.floor(effect.duration.remaining / 86400) + " " + game.i18n.localize(`SHADOWDARK.effect_duration.days`);
+			else if (effect.duration.remaining > 3600) shortenedDurationLabel = Math.floor(effect.duration.remaining / 3600) + " " + game.i18n.localize(`SHADOWDARK.effect_duration.hours`);
+			else if (effect.duration.remaining > 60) shortenedDurationLabel = Math.floor(effect.duration.remaining / 60) + " " + game.i18n.localize(`SHADOWDARK.effect_duration.minutes`);
+
 			const decoratedEffect = {
 				disabled: effect.disabled,
-				durationLabel: effect.duration.label,
+				durationLabel: shortenedDurationLabel,
 				id: effect.id,
 				img: effect.img,
 				name: effect.name,

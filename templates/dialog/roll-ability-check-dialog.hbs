@@ -35,6 +35,30 @@
 			<input type="number" name="item-bonus" value="{{ data.itemBonus }}" placeholder="0">
 		</div>
 {{/if}}
+{{#if data.spellPenalty}}
+		<div class="form-group">
+			<label style="color: darkred">
+				{{localize "SHADOWDARK.dialog.item_roll.spell_penalty"}}
+			</label>
+			<input style="color: red" type="number" name="spell-penalty" value="{{ data.spellPenalty }}" placeholder="0">
+		</div>
+{{/if}}
+{{#if data.woundPenalty}}
+		<div class="form-group">
+			<label style="color: darkred">
+				{{localize "SHADOWDARK.dialog.item_roll.wound_penalty"}}
+			</label>
+			<input style="color: red" type="number" name="wound-penalty" value="{{data.woundPenalty}}" placeholder="0">
+		</div>
+{{/if}}
+{{#if data.scarPenalty}}
+		<div class="form-group">
+			<label style="color: darkred">
+				{{localize "SHADOWDARK.dialog.item_roll.scar_penalty"}}
+			</label>
+			<input style="color: red" type="number" name="scar-penalty" value="{{data.scarPenalty}}" placeholder="0">
+		</div>
+{{/if}}
 		<div class="form-group">
 			<label>{{localize "SHADOWDARK.dialog.roll_mode_label"}}</label>
 			<select name="rollMode">

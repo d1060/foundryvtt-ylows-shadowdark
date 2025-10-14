@@ -221,7 +221,6 @@ export default class ItemSD extends Item {
 		await CONFIG.DiceSD.RollDialog(parts, data, options);
 	}
 
-
 	async rollNpcAttack(parts, data, options={}) {
 		options.dialogTemplate =  "systems/shadowdark/templates/dialog/roll-npc-attack-dialog.hbs";
 		options.chatCardTemplate = "systems/shadowdark/templates/chat/item-card.hbs";
@@ -371,6 +370,10 @@ export default class ItemSD extends Item {
 
 	async isMetallicArmor() {
 		return await this.hasProperties(["metallic-chainmail", "metallic-platemail", "metallic-shield"]);
+	}
+
+	async isRigidArmor() {
+		return await this.hasProperties(["metallic-platemail", "metallic-shield"]);
 	}
 
 	isTwoHanded() {

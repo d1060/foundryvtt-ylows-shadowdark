@@ -239,6 +239,10 @@ export default function registerSystemSettings() {
 			1: "SHADOWDARK.settings.use_fixed_hp.option1",
 			2: "SHADOWDARK.settings.use_fixed_hp.option2",
 			3: "SHADOWDARK.settings.use_fixed_hp.option3",
+			4: "SHADOWDARK.settings.use_fixed_hp.option_10_plus_con",
+			5: "SHADOWDARK.settings.use_fixed_hp.option_10_plus_con_st",
+			6: "SHADOWDARK.settings.use_fixed_hp.option_con",
+			7: "SHADOWDARK.settings.use_fixed_hp.option_con_str_mod",
 		},
 	});
 
@@ -340,12 +344,12 @@ export default function registerSystemSettings() {
 	});
 
 	// -------------------
-	//  Use Hit Location Armor Rules
+	//  Use Wounds
 	// -------------------
 	//
-	game.settings.register("shadowdark", "hitLocationArmor", {
-		name: "SHADOWDARK.settings.hitLocationArmor.name",
-		hint: "SHADOWDARK.settings.hitLocationArmor.hint",
+	game.settings.register("shadowdark", "wounds", {
+		name: "SHADOWDARK.settings.wounds.name",
+		hint: "SHADOWDARK.settings.wounds.hint",
 		scope: "world",
 		type: Boolean,
 		config: true,

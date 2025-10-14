@@ -144,7 +144,7 @@ export default class NpcSheetSD extends ActorSheetSD {
 				{
 					context.bodySetupChoicesKey = 'bodySetup';
 					context.bodySetups = await CompendiumsSD.bodySetups(false);
-					context.bodySetup = this.actor.system.bodySetup ? await fromUuid(this.actor.system.bodySetup) : null;
+					context.bodySetup = this.actor.system.bodySetup ? fromUuidSync(this.actor.system.bodySetup) : null;
 				}
 				break;
 		}

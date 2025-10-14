@@ -45,6 +45,12 @@ export default class BritannianMagicSD {
                 BritannianMagicSD.#onDecreaseRune(event, sheet, rune);
 			});
         }
+
+		const spellbook = sheet.element.querySelector(".spellbook-main");
+        const resizeObserver = new ResizeObserver(entry => {
+            BritannianMagicSD.#onResizeSpellbook(spellbook, entry[0].contentRect.width, entry[0].contentRect.height, sheet.actor);
+        });
+        resizeObserver.observe(spellbook);
     }
 
     static async prepareBritannianMagic(context, actor) {
@@ -356,6 +362,189 @@ export default class BritannianMagicSD {
 		await BritannianMagicSD.decreaseRune(sheet.actor, rune);
 		sheet.render(true);
 	}
+
+    static async #onResizeSpellbook(spellbookMain, width, height, actor) {
+        if (height == 0) return;
+        const spellbookRatio = 1.5454;
+        const bookWidth = height * spellbookRatio;
+
+        const spellbook = spellbookMain.querySelector(".britannian-spellbook");
+        const spellbookContent = spellbook?.querySelector(".spellbook-content");
+        const spellbookTopGap = spellbookMain.querySelector(".spellbook-top-gap");
+        const spellbookLeftFlip = spellbookMain.querySelector(".britannian-spellbook-left-flip");
+        const spellbookRightFlip = spellbookMain.querySelector(".britannian-spellbook-right-flip");
+        const spellbookParchment = spellbookMain.querySelector(".britannian-spellcasting-parchment");
+        const castBritannianMagic = spellbookMain.querySelector(".cast-britannian-magic");
+        const writeBritannianMagic = spellbookMain.querySelector(".write-britannian-magic");
+        const spellbookLines = spellbookMain.querySelectorAll(".britannian-spell-line");
+        const spellbookRunes = spellbookMain.querySelectorAll(".spell-magic-rune");
+        const spellbookEdits = spellbookMain.querySelectorAll(".edit-spell");
+        const spellbookRuneHeaders = spellbookMain.querySelectorAll(".rune-h2");
+        const spellbookRuneSpans = spellbookMain.querySelectorAll(".rune-span");
+        const leftRuneLines = spellbookMain.querySelectorAll(".britannian-rune-left");
+        const rightRuneLines = spellbookMain.querySelectorAll(".britannian-rune-right");
+        const rightEndRuneLines = spellbookMain.querySelectorAll(".britannian-rune-right-end");
+        const runes = [spellbookMain.querySelectorAll(".magic-rune-left"), spellbookMain.querySelectorAll(".magic-rune-right"), spellbookMain.querySelectorAll(".magic-rune-right-end")];
+        const selectedRunes = spellbookMain.querySelectorAll(".selected-rune-h2");
+        const spellCircleDesc = spellbookMain.querySelector(".spell-circle-desc");
+
+        const fontSizeParchment = 0.05220 * height;
+        const fontSizeHeader = 0.048192 * height;
+        const fontSizeLine = 0.032128 * height;
+        const fontSize14 = 0.028112 * height;
+        const columnSize32 = 0.041579 * bookWidth;
+        const columnSize45 = 0.058471 * bookWidth;
+
+        if (spellbook)
+        {
+            spellbook.style.fontSize = (0.0321285 * height) + 'px';
+        }
+
+        if (spellbookLeftFlip)
+        {
+            spellbookLeftFlip.style.left = (8 + 0.0485 * bookWidth) + 'px';
+            spellbookLeftFlip.style.top = (174 + 0.0175 * height) + 'px';
+            const spellbookLeftFlipWidth = 0.1091 * bookWidth;
+            const spellbookLeftFlipHeight = 0.1446 * height;
+            spellbookLeftFlip.style.width = spellbookLeftFlipWidth + 'px';
+            spellbookLeftFlip.style.height = spellbookLeftFlipHeight + 'px';
+            spellbookLeftFlip.style.backgroundSize = spellbookLeftFlip.style.width + ' ' + spellbookLeftFlip.style.height;
+        }
+
+        if (spellbookRightFlip) {
+            spellbookRightFlip.style.left = (8 + 0.86 * bookWidth) + 'px';
+            const spellbookRightFlipWidth = 0.1091 * bookWidth;
+            const spellbookRightFlipHeight = 0.1446 * height;
+            spellbookRightFlip.style.width = spellbookRightFlipWidth + 'px';
+            spellbookRightFlip.style.height = spellbookRightFlipHeight + 'px';
+            spellbookRightFlip.style.backgroundSize = spellbookRightFlip.style.width + ' ' + spellbookRightFlip.style.height;
+        }
+
+        if (spellbookParchment) {
+            spellbookParchment.style.left = (8 + 0.248178 * bookWidth) + 'px';
+            const spellbookParchmentWidth = 0.50545 * bookWidth;
+            const spellbookParchmentHeight = 0.128514 * height;
+            spellbookParchment.style.width = spellbookParchmentWidth + 'px';
+            spellbookParchment.style.height = spellbookParchmentHeight + 'px';
+            spellbookParchment.style.backgroundSize = spellbookParchment.style.width + ' ' + spellbookParchment.style.height;
+
+            const spellParchmentLine = spellbookParchment.querySelector(".britannian-spellcasting-parchment-select-runes");
+            if (spellParchmentLine)
+                spellParchmentLine.style.fontSize = fontSizeParchment + 'px';
+        }
+
+        if (castBritannianMagic) {
+            const imgSize = (128 / 498) * height + 'px';
+            const top = (174 + ((381 / 498) * height)) + 'px';
+            const left = (8 + ((327 / 769) * bookWidth)) + 'px'
+
+            castBritannianMagic.style.backgroundSize = imgSize + ' ' + imgSize;
+            castBritannianMagic.style.width = imgSize;
+            castBritannianMagic.style.height = imgSize;
+            castBritannianMagic.style.top = top;
+            castBritannianMagic.style.left = left;
+        }
+
+        if (writeBritannianMagic) {
+            const imgSize = (128 / 498) * height + 'px';
+            const top = (174 + ((396 / 498) * height)) + 'px';
+            const left = (8 + ((330 / 769) * bookWidth)) + 'px'
+
+            writeBritannianMagic.style.backgroundSize = imgSize + ' ' + imgSize;
+            writeBritannianMagic.style.width = imgSize;
+            writeBritannianMagic.style.height = imgSize;
+            writeBritannianMagic.style.top = top;
+            writeBritannianMagic.style.left = left;
+        }
+
+        if (spellbookTopGap) {
+            const topGap = 0.1 * height;
+            spellbookTopGap.style.height = topGap + 'px';
+        }
+
+        if (spellbookContent) {
+            const gridTemplateColumn1 = 0.382012 * bookWidth;
+            const gridTemplateColumn2 = 0.363821 * bookWidth;
+            const columnGap = 0.123 * bookWidth;
+            const marginLeft  = 0.064968 * bookWidth;
+            let gridAutoRows = 0.21084 * height;
+            if (actor.system.britannian_magic.page == 0)
+                gridAutoRows = 0.0625 * height;
+
+            let marginRight = 0.051974 * bookWidth;
+            if (bookWidth > width - marginRight) {
+                marginRight = width - bookWidth;
+                if (marginRight < 0) marginRight = 0;
+            }
+            spellbookContent.style.gridTemplateColumns = gridTemplateColumn1 + 'px ' + gridTemplateColumn2 + 'px';
+            spellbookContent.style.columnGap = columnGap + 'px';
+            spellbookContent.style.marginLeft = marginLeft + 'px';
+            spellbookContent.style.marginRight = marginRight + 'px';
+            spellbookContent.style.gridAutoRows = gridAutoRows + 'px';
+        }
+
+        for (const spellbookLine of spellbookLines) {
+            const spellbookLine1Height = 0.04819 * height;
+            spellbookLine.style.gridTemplateRows = spellbookLine1Height + 'px 1fr';
+
+            const spellHeaderLine = spellbookLine.querySelector(".britannian-spell-header-line");
+            if (spellHeaderLine)
+                spellHeaderLine.style.gridTemplateColumns = 'auto 1fr ' + fontSizeHeader + 'px';
+
+            const spellHeaderTitle = spellbookLine.querySelector(".spell-header-title");
+            if (spellHeaderTitle)
+                spellHeaderTitle.style.fontSize = fontSizeHeader + 'px';
+
+            const spellParameterLine = spellbookLine.querySelector(".britannian-spell-parameter-line");
+            if (spellParameterLine)
+                spellParameterLine.style.fontSize = fontSizeLine + 'px';
+        }
+
+        for (const spellbookRune of spellbookRunes) {
+            spellbookRune.style.height = fontSizeHeader + 'px';
+        }
+
+        for (const spellbookEdit of spellbookEdits) {
+            spellbookEdit.style.height = fontSizeHeader + 'px';
+            spellbookEdit.style.width = fontSizeHeader + 'px';
+        }
+
+        for (const leftRuneLine of leftRuneLines) {
+            leftRuneLine.style.gridTemplateColumns = columnSize32 + 'px ' + columnSize45 + 'px 1fr ' + columnSize32 + 'px'
+        }
+
+        for (const rightRuneLine of rightRuneLines) {
+            rightRuneLine.style.gridTemplateColumns = columnSize32 + 'px 1fr ' + columnSize45 + 'px ' + columnSize32 + 'px';
+        }
+
+        for (const rightEndRuneLine of rightEndRuneLines) {
+            rightEndRuneLine.style.gridTemplateColumns = columnSize32 + 'px 1fr ' + columnSize45 + 'px ' + columnSize32 + 'px';
+        }
+
+        for (const runeNodeList of runes) {
+            if (runeNodeList) {
+                for (const rune of runeNodeList) {
+                    rune.style.height = (0.064257 * height) + 'px';
+                }
+            }
+        }
+
+        for (const spellbookRuneHeader of spellbookRuneHeaders) {
+            spellbookRuneHeader.style.fontSize = (0.04016 * height) + 'px';
+        }
+
+        for (const spellbookRuneSpan of spellbookRuneSpans) {
+            spellbookRuneSpan.style.fontSize = (0.032128 * height) + 'px';
+        }
+
+        for (const selectedRune of selectedRunes) {
+            selectedRune.style.fontSize = fontSizeParchment + 'px';
+        }
+
+        if (spellCircleDesc) {
+            spellCircleDesc.style.fontSize = fontSize14 + 'px';
+        }
+    }
 
 	static async _onFlipSpellBookLeft(event, actor, sheet) {
         if (!actor.system.britannian_magic.page) actor.system.britannian_magic.page = 1;

@@ -20,7 +20,7 @@
                         {{#unless (eq @index 0)}}<hr />{{/unless}}
                         <div class="body-part-setup">
                             <div style="display:grid; grid-template-rows: 20px 20px; row-gap: 5px">
-                                <div style="display:grid; grid-template-columns: {{#unless (eq part.name 'Background')}}12px {{/unless}}4fr 1fr; column-gap: 5px">
+                                <div style="display:grid; grid-template-columns: {{#unless (eq part.name 'Background')}}12px {{/unless}}4fr {{#unless (eq part.name 'Background')}}20px {{/unless}}1fr; column-gap: 5px">
                                     {{#unless (eq part.name 'Background')}}
                                     <a  style="font-size: 16px; align-self: center;"
                                         class="item-selector fas fa-minus-square-o edit-button"
@@ -29,6 +29,14 @@
                                     </a>
                                     {{/unless}}
                                     <input type="text" name="body-part-name" data-index="{{@index}}" value="{{part.name}}">
+                                    {{#unless (eq part.name 'Background')}}
+                                    <a  style="font-size: 16px; align-self: center;"
+                                        class="item-selector fas fa-cogs"
+                                        data-index="{{@index}}"
+                                        data-action="subPartSetup"
+                                        data-tooltip="{{localize "SHADOWDARK.item.body_parts.subparts"}}" >
+                                    </a>
+                                    {{/unless}}
                                     <input type="number" name="body-part-toHit" data-index="{{@index}}" value="{{part.toHit}}">
                                 </div>
                                 
