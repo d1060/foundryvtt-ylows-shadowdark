@@ -14,7 +14,7 @@
 		<div class="shadowdark-logo">
 			<span>ShadowDark</span>
 		</div>
-   		{{#if (eq actor.type 'Player')}}<div class="randomize-name" style="position: absolute; right: 5px; top: 5px;"><a style="font-size: 18px;" class="fas fa-dice" data-action="randomName"></a></div>{{/if}}
+   		{{#if isOwnerOrGM}}<div class="randomize-name" style="position: absolute; right: 5px; top: 5px;"><a style="font-size: 18px;" class="fas fa-dice" data-action="randomName"></a></div>{{/if}}
 		<div class="SD-title">
 			<input
 				name="name"

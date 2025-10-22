@@ -11,8 +11,8 @@ export const LightSourceTrackerHooks = {
 			Hooks.on("updateActor", lst._makeDirty.bind(lst));
 			Hooks.on("activateTokenLayer", lst._makeDirty.bind(lst));
 			Hooks.on("updateUser", lst._makeDirty.bind(lst));
-			Hooks.on("updateWorldTime", lst.onUpdateWorldTime.bind(lst));
 			Hooks.on("userConnected", lst._makeDirty.bind(lst));
 		}
+		Hooks.on("updateWorldTime", lst.onUpdateWorldTime.bind(lst));
 	},
 };

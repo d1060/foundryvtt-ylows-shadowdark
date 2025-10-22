@@ -107,38 +107,26 @@ export default class NanoMagicSD {
 		
 		for (var nanoTalent of context.knownNanoMagicTalents ?? [])
 		{
-			if (!nanoTalent?.effects)
-				continue;
-			
-			for (var nanoTalentEffect of nanoTalent.effects)
+			if (nanoTalent.system.bonuses.knownNanoPrograms)
+				context.knownNanoProgramCount += parseInt(nanoTalent.system.bonuses.knownNanoPrograms);
+			else if (nanoTalent.system.bonuses.nanoProgramsFailureTolerance)
+				context.nanoProgramsFailureTolerance += parseInt(nanoTalent.system.bonuses.nanoProgramsFailureTolerance);
+			else if (nanoTalent.system.bonuses.nanoProtectedMemory)
+				context.nanoMemoryProtection += parseInt(nanoTalent.system.bonuses.nanoProtectedMemory);
+			else if (nanoTalent.system.bonuses.nanoTolerance)
+				context.nanoTolerance += parseInt(nanoTalent.system.bonuses.nanoTolerance);
+			else if (nanoTalent.system.bonuses.programOptimizationCount)
 			{
-				if (!nanoTalentEffect?.changes)
-					continue;
-				
-				for (var nanoTalentEffectChanges of nanoTalentEffect.changes)
-				{
-					if (nanoTalentEffectChanges.key === "system.bonuses.knownNanoPrograms")
-						context.knownNanoProgramCount += parseInt(nanoTalentEffectChanges.value);
-					else if (nanoTalentEffectChanges.key === "system.bonuses.nanoProgramsFailureTolerance")
-						context.nanoProgramsFailureTolerance += parseInt(nanoTalentEffectChanges.value);
-					else if (nanoTalentEffectChanges.key === "system.bonuses.nanoProtectedMemory")
-						context.nanoMemoryProtection += parseInt(nanoTalentEffectChanges.value);
-					else if (nanoTalentEffectChanges.key === "system.bonuses.nanoTolerance")
-						context.nanoTolerance += parseInt(nanoTalentEffectChanges.value);
-					else if (nanoTalentEffectChanges.key === "system.bonuses.programOptimizationCount")
-					{
-						context.programOptimizations += parseInt(nanoTalentEffectChanges.value);
-						context.programOptimization = true;
-					}
-					else if (nanoTalentEffectChanges.key === "system.bonuses.productionReady")
-					{
-						context.productionReadyCount += parseInt(nanoTalentEffectChanges.value);
-						context.productionReady = true;
-					}
-					else if (nanoTalentEffectChanges.key === "system.bonuses.solarNanobots")
-						context.durationReduction += parseInt(nanoTalentEffectChanges.value);
-				}
+				context.programOptimizations += parseInt(nanoTalent.system.bonuses.programOptimizationCount);
+				context.programOptimization = true;
 			}
+			else if (nanoTalent.system.bonuses.productionReady)
+			{
+				context.productionReadyCount += parseInt(nanoTalent.system.bonuses.productionReady);
+				context.productionReady = true;
+			}
+			else if (nanoTalent.system.bonuses.solarNanobots)
+				context.durationReduction += parseInt(nanoTalent.system.bonuses.solarNanobots);
 		}
 
 		this.durationReduction = context.durationReduction;
@@ -436,7 +424,11 @@ export default class NanoMagicSD {
 			for (const change of changes) {
 				if (UtilitySD.isNumeric(change.value)) {
 					let value = UtilitySD.parseIntIfNumeric(change.value);
-					change.value = -program.increases - 1;
+					if (change.key === 'system.penalties.maxHp') {
+						change.value = -program.effectLevels;
+					} else {
+						change.value = -program.increases - 1;
+					}
 				}
 			}
 
@@ -695,9 +687,10 @@ export default class NanoMagicSD {
 		await NanoMagicSD.removeActiveDrawback(actor, existingProgram);
 		await NanoMagicSD.removeActiveEffect(actor, existingProgram);
 
+		var nanoPoints = actor.nanoPoints;
 		actor.system.magic.nanoPoints.value += existingProgram.points;
-		if (actor.system.magic.nanoPoints.value > actor.level)
-			actor.system.magic.nanoPoints.value = actor.level;
+		if (actor.system.magic.nanoPoints.value > nanoPoints)
+			actor.system.magic.nanoPoints.value = nanoPoints;
 
 		actor.system.magic.nanoMagicPrograms[powerIndex].active = false;
 		actor.update({"system.magic.nanoPoints.value": actor.system.magic.nanoPoints.value});

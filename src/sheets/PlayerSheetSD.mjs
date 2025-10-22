@@ -244,6 +244,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		shadowdark.resetTimestamp();
 		shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' START.`);
 		context = await super._preparePartContext(partId, context, options);
+		context.evolutionGrid = game.settings.get("shadowdark", "evolutionGrid");
 
 		switch (partId)
 		{
@@ -256,17 +257,24 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				const imageAspect = width / height;
 				context.imgHeight = 110;
 				context.imgWidth = 110 * imageAspect;
+				context.isOwnerOrGM = false;
+
+				if (this.actor.ownership[game.user._id] === CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER || this.actor.ownership.default === CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER) context.isOwnerOrGM = true;
+				if (game.user.isGM) context.isOwnerOrGM = true;
 				break;
 			case "details":
 				context.showBritannianMagic = game.settings.get("shadowdark", "use_britannianRuneMagic");
-				context.evolutionGrid = game.settings.get("shadowdark", "evolutionGrid");
 				context.showHitLocation = game.settings.get("shadowdark", "hitLocation");
 
 				if (context.evolutionGrid) {
 					context.evolutionGridItems = [];
 					for (let node of this.actor.system.evolutionGrid?.openNodes ?? []) {
 						let nodeItem = fromUuidSync(node.itemUuid);
-						context.evolutionGridItems.push(nodeItem);
+						if (nodeItem != null) {
+							if (!nodeItem.system) nodeItem.system = {};
+							if (!nodeItem.system.description) nodeItem.system.description = '';
+							context.evolutionGridItems.push(nodeItem);
+						}
 					}
 				}
 
@@ -293,8 +301,9 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got Patron.`);
 				break;
 			case "abilities":
-				if (game.settings.get("shadowdark", "evolutionGrid")) {
-					this.actor.recalculateHp();
+				//shadowdark.debug(`PlayerSheetSD _preparePartContext Abilities for ${this.actor.name}. this.actor.system.attributes.hp.value: ${this.actor.system.attributes.hp.value}`);
+				if (context.evolutionGrid) {
+					[context.maxHp, context.hpTooltip] = await this.actor.recalculateHp();
 				}
 
 				let numLuckTokens = 1;
@@ -326,16 +335,21 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got AC and DR.`);
 				context.hasTempHP = this.actor.system.attributes.hp.temp && this.actor.system.attributes.hp.temp > 0;
 				context.actor.system.attributes.hp.temp = this.actor.system.attributes.hp.temp;
-				context.maxHp = this.actor.system.attributes.hp.base
-					+ this.actor.system.attributes.hp.bonus;
+				if (!context.evolutionGrid) {
+					context.maxHp = this.actor.system.attributes.hp.base
+						+ this.actor.system.attributes.hp.bonus;
 
-				if (this.actor.system.penalties?.maxHp)
-					context.maxHp += this.actor.system.penalties.maxHp;
+					if (this.actor.system.penalties?.maxHp)
+						context.maxHp += this.actor.system.penalties.maxHp;
+				}
 
 				context.hpValue = this.actor.system.attributes.hp.value;
+				//shadowdark.debug(`PlayerSheetSD _preparePartContext hpValue: ${context.hpValue}`);
 
 				if (context.hpValue > context.maxHp) context.hpValue = context.maxHp;
+				//shadowdark.debug(`PlayerSheetSD _preparePartContext hpValue 2: ${context.hpValue}`);
 				if (context.hpValue < 0) context.hpValue = 0;
+				//shadowdark.debug(`PlayerSheetSD _preparePartContext hpValue 3: ${context.hpValue}`);
 
 				context.abilities = this.actor.getCalculatedAbilities();
 				shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' Got Abilities.`);
@@ -360,7 +374,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 					)
 				);
 				
-				context.editingHp = this.editingHp;
+				context.editingHp = this.editingHp && !context.evolutionGrid;
 				context.editingStats = this.editingStats;
 				context.scars = this.actor.system.scars;
 				context.wounds = this.actor.system.wounds;
@@ -750,27 +764,20 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		}
 		else if (event.target?.name === "system.attributes.hp.max")
 		{
+			if (game.settings.get("shadowdark", "evolutionGrid")) 
+				return;
+
 			let hpBase = this.actor.system.attributes.hp.base;
 			let hpBonus = this.actor.system.attributes.hp.bonus;
 			let currentHpMax = hpBase + hpBonus;
 			let newHpMax = parseInt(event.target.value);
 			let hpMaxDiff = newHpMax - currentHpMax;
+			let newHpBase = hpBase + hpMaxDiff;
 
-			if (game.settings.get("shadowdark", "evolutionGrid")) {
-				let newHpBonus = hpBase + hpMaxDiff;
-
-				await this.actor.update({
-					"system.attributes.hp.max": newHpMax,
-					"system.attributes.hp.bonus": newHpBonus,
-				});
-			} else {
-				let newHpBase = hpBase + hpMaxDiff;
-
-				await this.actor.update({
-					"system.attributes.hp.max": newHpMax,
-					"system.attributes.hp.base": newHpBase,
-				});
-			}
+			await this.actor.update({
+				"system.attributes.hp.max": newHpMax,
+				"system.attributes.hp.base": newHpBase,
+			});
 		}
 		else if (event.target?.name.includes('bulkSell.'))
 			BulkSellSD.onSubmit(this.actor, event);
@@ -778,12 +785,8 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			shadowdark.effects.fromPreDefined(this.actor, event.target.value);
 		else if (event.target?.name === "system.attributes.hp.value")
 		{
-			var newHpValue = this.actor.updateHP(event.target.value);
-
-			await this.actor.update({
-				"system.attributes.hp.value": newHpValue,
-				"system.attributes.hp.temp": this.actor.system.attributes.hp.temp,
-			});
+			await this.actor.updateHP(event.target.value);
+			this.render(true);
 		}
 		else if (event.target?.name === "system.bodySetup")
 		{
@@ -1439,13 +1442,48 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		};
 
 		const freeCarrySeen = {};
-		const freeCarryBodyPart = {};
 
 		context.hasEquippedGearWithMagicalCharges = false;
 		context.hasCarriedGearWithMagicalCharges = false;
 		context.hasTreasureWithMagicalCharges = false;
+		const sortedItems = this._sortAllItems(context);
 
-		for (const i of this._sortAllItems(context)) {
+		const equippedArmorByPart = {};
+		const partsCoveredByArmor = [];
+		for (const item of sortedItems) {
+			if (item.type === 'Armor' && item.system.equipped && item.system.coverage?.length) {
+				for (let part of item.system.coverage) {
+					if (!Object.hasOwn(equippedArmorByPart, part)) {
+						equippedArmorByPart[part] = [];
+						partsCoveredByArmor.push(part);
+					}
+					equippedArmorByPart[part].push(item);
+				}
+			}
+		}
+
+		if (game.settings.get("shadowdark", "hitLocation")) {
+			for (const part of partsCoveredByArmor) {
+				let items = equippedArmorByPart[part];
+				items = items.sort((a, b) => a.system.coverage.length - b.system.coverage.length);
+				if (items.length) {
+					items[0].bodyPartFreeSlot = true;
+
+					for (const part2 of partsCoveredByArmor) {
+						if (part === part2) continue;
+						for (let i = 0; i < equippedArmorByPart[part2].length; i++) {
+							if (equippedArmorByPart[part2][i]._id == items[0]._id)
+							{
+								equippedArmorByPart[part2].splice(i, 1);
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		for (const i of sortedItems) {
 			i.uuid = `Actor.${this.actor._id}.Item.${i._id}`;
 
 			i.hasCharges = i.system.max_magic_charges && i.system.max_magic_charges > 0;
@@ -1469,24 +1507,13 @@ export default class PlayerSheetSD extends ActorSheetSD {
 					freeCarrySeen[i.name] = freeCarry;
 				}
 
-				if (game.settings.get("shadowdark", "hitLocation")) {
-					if (i.type === 'Armor' && i.system.coverage?.length && i.system.slots.free_carry && !i.system.stashed) {
-						for (let part of i.system.coverage) {
-							if (Object.hasOwn(freeCarryBodyPart, part))
-								freeCarry = 0;
-							else
-								freeCarryBodyPart[part] = i.system.slots.free_carry;
-						}
-					}
-				}
-
 				const perSlot = i.system.slots.per_slot;
 				const quantity = i.system.quantity;
 				var slotsUsed = i.system.slots.slots_used;
 
 				if (i.type === "Armor" && i.system.equipped)
 				{
-					if (this.actor.system.bonuses.armorConditioning && this.actor.system.bonuses.armorConditioning == i.name.slugify())
+					if (this.actor.system.bonuses.armorConditioning && (this.actor.system.bonuses.armorConditioning == i.name.slugify() || i.system.baseArmor == this.actor.system.bonuses.armorConditioning))
 						slotsUsed--;
 					if (this.actor.system.bonuses.armorBorn)
 						slotsUsed--;
@@ -1502,6 +1529,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 
 				let totalSlotsUsed = Math.ceil(quantity / perSlot) * slotsUsed;
 				totalSlotsUsed -= freeCarry * slotsUsed;
+				if (i.bodyPartFreeSlot && totalSlotsUsed >= 1) totalSlotsUsed -= 1;
 
 				i.slotsUsed = totalSlotsUsed;
 
@@ -1712,11 +1740,8 @@ export default class PlayerSheetSD extends ActorSheetSD {
  	async _updateObject(event, formData) {
 		if (event.target) {
 			if (event.target.name === "system.attributes.hp.value" && this.actor.system.bonuses.tempHP) {
-				var newHpValue = this.actor.updateHP(event.target.value);
-				
-				formData["system.attributes.hp.value"] = newHpValue;
-				formData["system.attributes.hp.temp"] = this.actor.system.attributes.hp.temp
-				//this.editingHp = false;
+				await this.actor.updateHP(event.target.value);
+				this.render(true);
 			}
 			
 			// if HP MAX was change, turn off editing and set base hp value

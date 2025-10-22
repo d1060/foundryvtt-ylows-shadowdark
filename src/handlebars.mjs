@@ -211,6 +211,7 @@ export default function registerHandlebarsHelpers() {
 	});
 
 	Handlebars.registerHelper("secondsToMins", seconds => {
+		if (seconds < 60) return seconds;
 		return Math.ceil(seconds / 60);
 	});
 

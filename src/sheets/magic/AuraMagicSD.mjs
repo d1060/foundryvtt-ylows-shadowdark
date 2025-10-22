@@ -198,9 +198,7 @@ export default class AuraMagicSD {
 			if (result?.rolls?.main?.critical !== "success" && parseInt(result.cost) > 0)
 			{
 				var newHp = parseInt(actor.system.attributes.hp.value) - parseInt(result.cost);
-				actor.updateHP(newHp);
-				actor.update({"system.attributes.hp.value": actor.system.attributes.hp.value});
-				actor.update({"system.attributes.hp.temp": actor.system.attributes.hp.temp});
+				await actor.updateHP(newHp);
 
 				if (power)
 				{
@@ -239,6 +237,7 @@ export default class AuraMagicSD {
 						const [newEffect] = await actor.createEmbeddedDocuments("ActiveEffect", [newEffectData]);
 					}
 				}
+				actor.sheet.render(true);
 			}
 		}
 		else
@@ -259,9 +258,8 @@ export default class AuraMagicSD {
 			if (result?.rolls?.main?.critical === "failure")
 			{
 				var newHp = actor.system.attributes.hp.value - result.cost;
-				actor.updateHP(newHp);
-				actor.update({"system.attributes.hp.value": actor.system.attributes.hp.value});
-				actor.update({"system.attributes.hp.temp": actor.system.attributes.hp.temp});
+				await actor.updateHP(newHp);
+				actor.sheet.render(true);
 			}
 		}
 	}

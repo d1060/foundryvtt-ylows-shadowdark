@@ -1,6 +1,5 @@
 <section class="{{cssClass}}" autocomplete="off">
 	<header>
-
 		<h1 class="centered">
 			{{localize 'SHADOWDARK.light-tracker.title'}}
 		</h1>
@@ -35,6 +34,7 @@
 			</div>
 		{{/if}}
 
+		{{#if isGM}}
 		<button class="toggle-show-all" data-action="toggleShowAll" type="submit" name="submit" value="1">
 			{{#if showAllPlayerActors}}
 				{{localize "SHADOWDARK.app.light-tracker.hide-inactive"}}
@@ -42,6 +42,7 @@
 				{{localize "SHADOWDARK.app.light-tracker.show-all-actors"}}
 			{{/if}}
 		</button>
+		{{/if}}
 
 	</header>
 	<hr />
@@ -68,6 +69,7 @@
 						{{#each actor.lightSources as |light|}}
 							<div class="light-source">
 								<div class="light-controls">
+									{{#if actor.isOwnerOrGM}}
 									<a
 										class="disable-light"
 										data-action="disableLight"
@@ -81,16 +83,21 @@
 											<i class="fa-solid fa-hand-sparkles"></i>
 										{{/ifEq}}
 									</a>
+									{{/if}}
 								</div>
 								<div>
 									{{light.name}}
 								</div>
 								<div class="time-remaining">
 									({{secondsToMins light.system.light.remainingSecs}}
-									{{#ifCond light.system.light.remainingSecs '<=' 60}}
-										{{localize 'SHADOWDARK.app.light_tracker.minute_short'}})
+									{{#ifCond light.system.light.remainingSecs '<' 60}}
+										{{localize 'SHADOWDARK.app.light_tracker.seconds_short'}})
 									{{else}}
-										{{localize 'SHADOWDARK.app.light_tracker.minutes_short'}})
+										{{#ifCond light.system.light.remainingSecs '<' 120}}
+											{{localize 'SHADOWDARK.app.light_tracker.minute_short'}})
+										{{else}}
+											{{localize 'SHADOWDARK.app.light_tracker.minutes_short'}})
+										{{/ifCond}}
 									{{/ifCond}}
 								</div>
 							</div>
@@ -100,7 +107,9 @@
 			{{/if}}
 		{{/each}}
 	</section>
+	{{#if isGM}}
 	<button class="disable-all-lights" data-action="disableAllLights" type="submit" name="submit" value="1">
 		<i class="fa-regular fa-face-fearful"></i> {{localize "SHADOWDARK.app.light-tracker.turn-out-the-lights"}}
 	</button>
+	{{/if}}
 </section>

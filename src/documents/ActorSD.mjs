@@ -33,6 +33,17 @@ export default class ActorSD extends Actor {
 		return level;
 	}
 
+	get nanoPoints() {
+		var nanoPoints = this.level;
+		for (const uuid of this.system?.magic?.nanoMagicTalents ?? []) {
+			const nanoTalent = fromUuidSync(uuid);
+			if (nanoTalent.system.bonuses.nanoTolerance)
+				nanoPoints += Math.floor(this.level / 2) * parseInt(nanoTalent.system.bonuses.nanoTolerance);
+
+		}
+		return nanoPoints;
+	}
+
 	async _applyHpRollToMax(value) {
 		const currentHpBase = this.system.attributes.hp.base;
 		await this.update({"system.attributes.hp.base": currentHpBase + value,});
@@ -333,6 +344,7 @@ export default class ActorSD extends Actor {
 			if (foundItem.system.quantity > 1)
 			{
 				foundItem.reduceAmmunition(amount);
+				return true;
 			}
 			else
 			{
@@ -340,6 +352,7 @@ export default class ActorSD extends Actor {
 					"Item",
 					[foundItem._id]
 				);
+				return false;
 			}
 		}
 	}
@@ -413,6 +426,7 @@ export default class ActorSD extends Actor {
 			// Ensures that we don't go above Max or below Zero
 			const newHpValue = Math.clamp(currentHpValue - leftoverDamage, 0, maxHpValue);
 
+			//shadowdark.debug(`applyDamage final HP: ${newHpValue}`);
 			this.system.attributes.hp.value = newHpValue;
 			await this.update({"system.attributes.hp.value": newHpValue});
 		}
@@ -470,6 +484,7 @@ export default class ActorSD extends Actor {
 			};
 		}
 
+		if (!this.system.wounds) this.system.wounds = [];
 		this.system.wounds.push(wound);
 		await this.update({"system.wounds": this.system.wounds});
 		return [wound, hitLocation];
@@ -595,7 +610,7 @@ export default class ActorSD extends Actor {
 		await this.update({"system.attributes.hp.value": newHpValue});
 	}
 
-	async onActionPerformed() {
+	async onActionPerformed(item, exists) {
 		if (this.isBurning()) this.burnOut();
 		if (this.isFrozen()) this.thawFrost(); 
 		if (!game.settings.get("shadowdark", "wounds")) {
@@ -604,6 +619,11 @@ export default class ActorSD extends Actor {
 			autoEase = autoEase.filter(item => !easedEffects.includes(item));
 			if (autoEase.length)
 				this.easeEffects(autoEase);
+		}
+		if (item && exists) {
+			if (exists && await item.isExpendable()) {
+				this.deleteEmbeddedDocuments("Item", [item.id]);
+			}
 		}
 	}
 
@@ -686,7 +706,7 @@ export default class ActorSD extends Actor {
 	async easeHitLocationEffects() {
 		const items = await this.getEmbeddedCollection("Item");
 		const existingConditions = items.contents.filter(i => i.system.category == 'condition' && i.system.hitLocationEffect);
-		if (!existingConditions || !existingConditions.length) return;
+		if (!existingConditions || !existingConditions.length) return [];
 
 		let hasBled = 0;
 		const easedEffects = [];
@@ -1249,6 +1269,15 @@ export default class ActorSD extends Actor {
 					itemId,
 				});
 			}
+			if (!oneHanded && !twoHanded) {
+				weaponOptions.handedness = game.i18n.localize("SHADOWDARK.item.weapon_damage.oneHanded_short");
+				weaponDisplays.ranged.push({
+					display: await this.buildWeaponDisplay(weaponOptions),
+					handedness: "1h",
+					baseDamage: weaponOptions.baseDamage,
+					itemId,
+				});
+			}
 		}
 
 		return weaponDisplays;
@@ -1427,6 +1456,7 @@ export default class ActorSD extends Actor {
 			"prototypeToken.light": lightData,
 		}]);
 
+		game.shadowdark.lightSourceTracker._makeDirty();
 		game.shadowdark.lightSourceTracker._updateLightSources();
 	}
 
@@ -1467,7 +1497,7 @@ export default class ActorSD extends Actor {
 			return [acValue, '', this.system.bonuses?.metallic ?? false, this.system.attributes.ac.value];
 		}
 
-		const dexModifier = this.abilityModifier("dex");
+		let dexModifier = this.abilityModifier("dex");
 		let isWearingMetallicArmor = false;
 		let metallicArmorValue = 0;
 
@@ -1484,7 +1514,8 @@ export default class ActorSD extends Actor {
 			}
 		}
 
-		if (this.system.bonuses?.dexBonusToAc) dexModifier += this.system.bonuses?.dexBonusToAc;
+		if (this.system.bonuses?.dexBonusToAc)
+			dexModifier += this.system.bonuses.dexBonusToAc;
 		
 		baseArmorClass += dexModifier;
 		if (dexModifier)
@@ -1563,14 +1594,12 @@ export default class ActorSD extends Actor {
 				let bestArmorClass = -1;
 				let bestArmorClassTooltip = '';
 				for (const armor of equippedArmor) {
-					const [armorAC, armorTooltip, armorMastery, bestAttribute, bestAttributeFor, baseACApplied] = await this.getArmorAC(armor);
-					let fullAC = armorAC + armorMastery + bestAttribute;
+					const [armorAC, armorTooltip, armorMastery, baseACApplied] = await this.getArmorAC(armor);
+					let fullAC = armorAC + armorMastery;
 					if (fullAC > bestArmorClass) {
 						bestArmorClass = armorAC;
 						bestArmorClassTooltip = armorTooltip;
 						armorMasteryBonus = armorMastery;
-						bestAttributeBonus = bestAttribute;
-						bestAttributeForBonus = bestAttributeFor;
 						baseArmorClassApplied = baseACApplied;
 					}
 				}
@@ -1595,7 +1624,6 @@ export default class ActorSD extends Actor {
 					armorClassTooltip = baseArmorClass + "<br>" + armorClassTooltip;
 				}
 
-				newArmorClass += bestAttributeBonus;
 				newArmorClass += armorMasteryBonus;
 				newArmorClass += shieldBonus;
 
@@ -1606,7 +1634,6 @@ export default class ActorSD extends Actor {
 						metallicArmorValue += (newArmorClass - baseArmorClass);
 				}
 
-				if (bestAttributeBonus) armorClassTooltip += "Best Attribute (" + bestAttributeForBonus.toUpperCase() + ") Bonus:" + bestAttributeBonus + "<br>";
 				if (armorMasteryBonus) armorClassTooltip += "Armor Mastery:" + armorMasteryBonus + "<br>";
 				if (shieldBonus) armorClassTooltip += "Shield Bonus:" + shieldBonus + "<br>";
 				shadowdark.logTimestamp(`ActorSD getArmorClass Other Bonuses.`);
@@ -1682,7 +1709,7 @@ export default class ActorSD extends Actor {
 		if (armor.system.ac.base > 0)
 		{
 			baseArmorClassApplied = true;
-			armorClassTooltip += "Base AC: " + armor.system.ac.base + "<br>";
+			armorClassTooltip += "Base AC: " + armor.system.ac.base + " (" + armor.name + ")<br>";
 		}
 
 		let armorClass = armor.system.ac.base;
@@ -1695,24 +1722,18 @@ export default class ActorSD extends Actor {
 		if (armorExpertise)
 			armorClassTooltip += "Armor Expertise: " + armorExpertise + "<br>";
 	
-		let bestAttributeBonus = null;
-		let bestAttributeForBonus = null;
-
 		const attribute = armor.system.ac.attribute;
 		if (attribute) {
 			const attributeBonus = this.abilityModifier(attribute);
-			if (bestAttributeBonus === null) {
-				bestAttributeBonus = attributeBonus;
-				bestAttributeForBonus = attribute;
+
+			if (attributeBonus) {
+				armorClass += attributeBonus;
+				armorClassTooltip += UtilitySD.capitalize(attribute) + " Ac Modifier: " + attributeBonus + "<br>";
 			}
-			else {
-				bestAttributeBonus =
-					attributeBonus > bestAttributeBonus
-						? attributeBonus
-						: bestAttributeBonus;
-				bestAttributeForBonus = attributeBonus > bestAttributeBonus
-						? attribute
-						: bestAttributeForBonus;
+
+			if (attribute == 'dex' && this.system.bonuses?.dexBonusToAc) {
+				armorClass += this.system.bonuses.dexBonusToAc;
+				armorClassTooltip += "Dex Ac Modifier Bonus: " + this.system.bonuses.dexBonusToAc + "<br>";
 			}
 		}
 		else
@@ -1723,7 +1744,7 @@ export default class ActorSD extends Actor {
 		if (await armor.isMetallicArmor()) this.isEquippingMetallicArmor = true;
 		if (await armor.isRigidArmor()) this.isEquippingRigidArmor = true;
 		shadowdark.logTimestamp(`ActorSD getArmorClass Checked Armor ${armor.name}.`);
-		return [armorClass, armorClassTooltip, armorMasteryBonus, bestAttributeBonus, bestAttributeForBonus, baseArmorClassApplied];
+		return [armorClass, armorClassTooltip, armorMasteryBonus, baseArmorClassApplied];
 	}
 
 	getDamageReduction(hitLocation) {
@@ -1830,6 +1851,19 @@ export default class ActorSD extends Actor {
 		}
 	}
 
+	async setMetalCoreHp(event, options) {
+		const newMetalCoreHp = parseInt(event.currentTarget.value);
+		const prevMetalCoreHp = parseInt(event.currentTarget.dataset.previousValue);
+		if (this.system.magic.metalCore.hp)
+		{
+			this.system.magic.metalCore.hp.value = newMetalCoreHp;
+			await this.update({"system.magic.metalCore.hp.value": this.system.magic.metalCore.hp.value});
+
+			if (newMetalCoreHp <= 0)
+				MetalMagicSD._onManifestMetalCore(this, null, null);
+		}
+	}
+
 	async removeTempHpEffects() {
 		let itemTempHPeffects = await this.items.filter(i => i.effects.find(e => e.changes.some(c => c.key === "system.bonuses.tempHP")));
 		if (itemTempHPeffects) {
@@ -1877,18 +1911,33 @@ export default class ActorSD extends Actor {
 	}
 
 	async recalculateHp() {
-		let maxHp = 0;
+		let maxHp = 1;
+		let hpTooltip = '1 Base.';
 
-		if (maxHp < 1) maxHp = 1;
-		maxHp += (this.system.abilities['con'].mod > 0 ? this.system.abilities['con'].mod : 0);
+		//const hp = this.system.attributes.hp;
+		let hpFrac = this.system.attributes.hp.frac;
+		let hpBase = this.system.attributes.hp.base;
+		let hpMax = this.system.attributes.hp.bax;
+
+		//shadowdark.debug(`recalculateHp Bonus HP: ${hp.bonus}`);
+		let conMod = (this.system.abilities['con'].mod > 0 ? this.system.abilities['con'].mod : 0);
+		let strMod = (this.system.abilities['str'].mod > 0 ? this.system.abilities['str'].mod : 0);
+		if (conMod != 0)
+		{
+			maxHp += conMod;
+			hpTooltip += '<br>' + (conMod > 0 ? '+' : '') + conMod + ' from CON';
+		}
 		if (this.system.bonuses.hardy)
-			maxHp += (this.system.abilities['str'].mod > 0 ? this.system.abilities['str'].mod : 0);
+		{
+			maxHp += strMod;
+			hpTooltip += '<br>' + (strMod > 0 ? '+' : '') + strMod + ' from Hardy';
+		}
 
 		if (this.type === "Player") {
-			if (this.level > 0 && this.system.attributes.hp.base != 0 && !this.system.attributes.hp.rolls)
+			if (this.level > 0 && hpBase != 0 && !this.system.attributes.hp.rolls)
 				this.system.attributes.hp.rolls = [];
 
-			if (this.level > 0 && this.system.attributes.hp.base != 0 && this.system.attributes.hp.rolls.length == 0)
+			if (this.level > 0 && hpBase != 0 && this.system.attributes.hp.rolls.length == 0)
 				this.distributeHpRolls();
 		}
 
@@ -1896,45 +1945,74 @@ export default class ActorSD extends Actor {
 		switch (hpRollMode) {
 			case 4:  // Fixed at 10 + CON Mod.
 				maxHp = 10 + (this.system.abilities['con'].mod > 0 ? this.system.abilities['con'].mod : 0);
+				hpTooltip = maxHp + ' Base';
 				break;
 			case 5: // Fixed at 10 + CON Mod + STR Mod.
 				maxHp = 10 + (this.system.abilities['con'].mod > 0 ? this.system.abilities['con'].mod : 0) + (this.system.abilities['str'].mod > 0 ? this.system.abilities['str'].mod : 0);
+				hpTooltip = maxHp + ' Base';
 				break;
 			case 6: // Fixed at CON.
 				maxHp = calcAbilityValues('con').total;
+				hpTooltip = maxHp + ' Base';
 				break;
 			case 7: // Fixed at CON + STR Mod.
 				maxHp = calcAbilityValues('con').total + (this.system.abilities['str'].mod > 0 ? this.system.abilities['str'].mod : 0);
+				hpTooltip = maxHp + ' Base';
 				break;
 		}
 
-		const items = await this.getEmbeddedCollection("Item");
-		for (const item of items) {
-			for (const effect of item.effects) {
-				for (const change of effect.changes) {
-					if (change.key === 'system.bonuses.rollHP' || change.key === 'system.bonuses.hpBonus') {
+		let bonusHpFromItems = 0;
+		for (const item of this.items) {
+			for (const effect of item.effects ?? []) {
+				for (const change of effect.changes ?? []) {
+					if (change.key == 'system.attributes.hp.bonus') {
+						bonusHpFromItems += parseFloat(change.value);
+					}
+					if (change.key == 'system.bonuses.rollHP') {
 						maxHp += parseFloat(change.value);
+						hpTooltip += '<br>' + (change.value > 0 ? '+' : '') + change.value + ' from ' + item.name;
+					}
+					if (change.key == 'system.bonuses.hpBonus') {
+						maxHp += parseFloat(change.value);
+						hpTooltip += '<br>' + (change.value > 0 ? '+' : '') + change.value + ' from ' + item.name;
 					}
 				}
 			}
 		}
 
+		//let extraBonusHp = this.system.attributes.hp.bonus - bonusHpFromItems;
+		//if (extraBonusHp) {
+			//maxHp += parseFloat(extraBonusHp);
+			//hpTooltip += '<br>' + (extraBonusHp > 0 ? '+' : '') + extraBonusHp + ' from extra Bonus HP';
+			//if (extraBonusHp != 0) {
+				
+			//}
+		//}
+
+		hpFrac = maxHp;
+		hpBase = Math.floor(hpFrac);
+
+		if (bonusHpFromItems) {
+			maxHp += bonusHpFromItems;
+			hpTooltip += '<br>' + (bonusHpFromItems > 0 ? '+' : '') + bonusHpFromItems + ' from bonus HP';
+		}
+
 		let hpPenalty = this.system.penalties?.maxHp ?? 0;
+		if (hpPenalty != 0)
+		{
+			hpTooltip += '<br>' + (hpPenalty > 0 ? '+' : '') + hpPenalty + ' from HP Penalty';
+		}
 
-		this.system.attributes.hp.frac = maxHp;
-		this.system.attributes.hp.base = Math.floor(this.system.attributes.hp.frac);
-		this.system.attributes.hp.max = Math.floor(this.system.attributes.hp.frac) + this.system.attributes.hp.bonus + hpPenalty;
+		hpMax = hpBase + bonusHpFromItems + hpPenalty;
 
-		if (this.system.attributes.hp.value < 1) this.system.attributes.hp.value = 1;
-		if (this.system.attributes.hp.value > this.system.attributes.hp.max)
-			this.system.attributes.hp.value = this.system.attributes.hp.max;
+		//shadowdark.debug(`recalculateHp Frac: ${hpFrac}, Base: ${hpBase}, Bonus: ${bonusHpFromItems}, Max: ${hpMax}`);
 
-		this.update({
-			"system.attributes.hp.base": this.system.attributes.hp.base,
-			"system.attributes.hp.max": this.system.attributes.hp.max,
-			"system.attributes.hp.value": this.system.attributes.hp.value,
-			"system.attributes.hp.frac": this.system.attributes.hp.frac
-		});
+		if (bonusHpFromItems != this.system.attributes.hp.bonus) await this.update({ "system.attributes.hp.bonus": bonusHpFromItems });
+		if (hpFrac != this.system.attributes.hp.frac) await this.update({ "system.attributes.hp.frac": hpFrac });
+		if (hpBase != this.system.attributes.hp.base) await this.update({ "system.attributes.hp.base": hpBase });
+		if (hpMax  != this.system.attributes.hp.max)  await this.update({ "system.attributes.hp.max":  hpMax });
+
+		return [hpMax, hpTooltip];
 	}
 
 	distributeHpRolls() {
@@ -1961,6 +2039,7 @@ export default class ActorSD extends Actor {
 		let bonusHPchange = itemBonusHPeffect.changes.find(c => c.key === "system.bonuses.hpBonus");
 		let bonusHPvalue = parseInt(bonusHPchange.value);
 
+		//shadowdark.debug(`applyBonusHp bonusHPvalue=${bonusHPvalue}`);
 		this.system.attributes.hp.bonus += bonusHPvalue;
 
 		await this.update({
@@ -1970,6 +2049,7 @@ export default class ActorSD extends Actor {
 
 	async removeBonusHp(value)
 	{
+		//shadowdark.debug(`applyBonusHp removeBonusHp=${value}`);
 		this.system.attributes.hp.bonus -= value;
 		if (this.system.attributes.hp.bonus < 0) this.system.attributes.hp.bonus = 0;
 		await this.update({
@@ -1977,32 +2057,44 @@ export default class ActorSD extends Actor {
 		});
 	}
 	
-	updateHP(newHP) {
-		var currHP = this.system.attributes.hp.value;
-		var damage = currHP - newHP;
+	async updateHP(newHP) {
+		var currHP = this.system.attributes.hp;
+		var damage = currHP.value - newHP;
 
 		var finalHp = newHP;
 		if (damage > 0)
 		{
-			if (damage >= this.system.attributes.hp.temp)
+			if (damage >= currHP.temp)
 			{
-				var overflowDamage = damage - this.system.attributes.hp.temp;
-				finalHp = this.system.attributes.hp.value - overflowDamage;
-				this.system.attributes.hp.value = finalHp;
+				var overflowDamage = damage - currHP.temp;
+				finalHp = currHP.value - overflowDamage;
+				//shadowdark.debug(`updateHP final HP: ${finalHp}`);
+				currHP.value = finalHp;
 
 				this.system.bonuses.tempHP = 0;
-				this.system.attributes.hp.temp = 0;
+				currHP.temp = 0;
 				this.removeTempHpEffects();
 			}
 			else
 			{
-				finalHp = currHP;
-				this.system.attributes.hp.value = finalHp;
+				finalHp = currHP.value;
+				//shadowdark.debug(`updateHP 2 final HP: ${finalHp}`);
+				currHP.value = finalHp;
 				this.system.bonuses.tempHP -= damage;
-				this.system.attributes.hp.temp -= damage;
+				currHP.temp -= damage;
 			}
 		}
-		return finalHp;
+		else if (damage < 0)
+			currHP.value = finalHp;
+
+		if (currHP.value < 0) currHP.value = 0;
+		if (currHP.value > currHP.max) currHP.value = currHP.max;
+
+		await this.update({
+			"system.attributes.hp.value": currHP.value,
+		});
+
+		return currHP;
 	}
 
 	onDeleteDocuments(deleted) {
@@ -2274,7 +2366,14 @@ export default class ActorSD extends Actor {
 		const languageItems = [];
 
 		for (const uuid of this.system.languages ?? []) {
-			languageItems.push(fromUuidSync(uuid));
+			const l = fromUuidSync(uuid);
+			if (l)
+			{
+				if (!l.system.description)
+					l.system.description = '';
+
+				languageItems.push(l);
+			}
 		}
 
 		return languageItems.sort((a, b) => a.name.localeCompare(b.name));
@@ -2867,6 +2966,27 @@ export default class ActorSD extends Actor {
 	}
 
 	async setRollDamage(data, options, damageMultiplier) {
+		if (!options.baseDamage || options.baseDamage == '') {
+			if (data.item.system.damage.numDice && (data.item.system.damage.oneHanded || data.item.system.damage.twoHanded))
+			{
+				if (data.item.system.damage.twoHanded)
+				{
+					options.baseDamage = data.item.system.damage.numDice + data.item.system.damage.twoHanded;
+					options.handedness = '2h';
+				}
+				else if (data.item.system.damage.oneHanded)
+				{
+					options.baseDamage = data.item.system.damage.numDice + data.item.system.damage.oneHanded;
+					options.handedness = '1h';
+				}
+			}
+			else
+			{
+				data.item.system.damage.value = null;
+				return;
+			}
+		}
+
 		data.item.system.damage.value = options.baseDamage;
 
 		let baseDamage = options.baseDamage;
@@ -3319,13 +3439,12 @@ export default class ActorSD extends Actor {
 		const item = this.items.get(itemId);
 
 		// Get the mappings
-		const lightSources = await foundry.utils.fetchJsonWithTimeout(
-			"systems/shadowdark/assets/mappings/map-light-sources.json"
-		);
-
-		const lightData = lightSources[
-			item.system.light.template
-		].light;
+		const lightSources = await foundry.utils.fetchJsonWithTimeout("systems/shadowdark/assets/mappings/map-light-sources.json");
+		const lightData = lightSources[item.system.light.template].light;
+		if (item.system.light.intensity) {
+			lightData.dim = Math.round(50 * item.system.light.intensity * canvas.scene.grid.distance) / 50;
+			lightData.bright = lightData.dim / 2;
+		}
 
 		await this.changeLightSettings(lightData);
 	}
@@ -3486,11 +3605,18 @@ export default class ActorSD extends Actor {
 		this.turnLightOff(itemId);
 
 		const item = this.items.get(itemId);
-		const message = item.type != 'Player' 
-			? game.i18n.format(
-				"SHADOWDARK.chat.light_source.dropped_expired", { name: this.name }
-			)
-			: game.i18n.format(
+		// const message = item.type != 'Player' 
+		// 	? game.i18n.format(
+		// 		"SHADOWDARK.chat.light_source.dropped_expired", { name: this.name }
+		// 	)
+		// 	: game.i18n.format(
+		// 		"SHADOWDARK.chat.light_source.expired",
+		// 		{
+		// 			name: this.name,
+		// 			lightSource: item.name,
+		// 		}
+		// 	);
+		const message = game.i18n.format(
 				"SHADOWDARK.chat.light_source.expired",
 				{
 					name: this.name,
@@ -3611,6 +3737,8 @@ export default class ActorSD extends Actor {
 	async isProficient(item) {
 		if (await item.isBasicWeapon())
 			return true;
+		if (await item.isBasicArmor())
+			return true;
 
 		var proficiencyName = item.name.slugify();
 		if (item.isWeapon() && item.system.baseWeapon && item.system.baseWeapon !== "")
@@ -3710,9 +3838,15 @@ export default class ActorSD extends Actor {
 		if (this.system?.bonuses?.mistdarkCreature) return;
 		if (this.system?.bonuses?.helvarion) return;
 		if (await this.isWearingSealedArmor()) return;
+		if ((this.system?.magic?.metalMagicPowers ?? []).some(p => p.name.slugify() == 'biological-resistance') && this.system?.magic?.manifestedMetalCore)
+			return;
 
-		var rollParts = [game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20",
-			this.system.abilities['con'].mod.toString()];
+		let diceRoll = game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20";
+		if (this.system.bonuses.advantage == 'physical-resistance' || this.system.bonuses.con?.advantage) {
+			diceRoll = game.settings.get("shadowdark", "use2d10") ? "3d10kh2" : "2d20kh1";
+		}
+
+		var rollParts = [diceRoll, this.system.abilities['con'].mod.toString()];
 		var rollResult = await shadowdark.dice.DiceSD._roll(rollParts, {target: 12});
 
 		if (rollResult.roll.total < 12)

@@ -270,7 +270,7 @@ export default class MetalMagicSD {
 		
 		if (actor.system.magic.manifestedMetalCore)
 		{
-			for (var power of actor.system?.magic?.metalMagicPowers)
+			for (var power of actor.system?.magic?.metalMagicPowers ?? [])
 			{
 				await this._embedMetalMagicPower(actor, power);
 			}
@@ -278,7 +278,7 @@ export default class MetalMagicSD {
 		else
 		{
 			var embeddedItems = await actor.getEmbeddedCollection("Item");
-			for (var power of actor.system?.magic?.metalMagicPowers)
+			for (var power of actor.system?.magic?.metalMagicPowers ?? [])
 			{
 				await this._removeEmbeddedMetalMagicPower(actor, power, embeddedItems);
 			}

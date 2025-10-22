@@ -58,6 +58,7 @@
 		</div>
 		{{/if}}
 		{{#if data.itemDamage}}
+		{{#if data.itemDamage.value}}
 		<div class="form-group"{{#if data.damageDisadvantage}} style="color: darkred"{{/if}}>
 			<label{{#if data.damageDisadvantage}} style="color: darkred"{{/if}}>{{localize "SHADOWDARK.item.damage"}}</label>
 			<div{{#if data.itemDamage.type}} style="display: grid; grid-template-columns: 1fr 120px"{{/if}}>
@@ -75,6 +76,7 @@
 		</div>
 		{{/each}}
 		<hr />
+		{{/if}}
 		{{/if}}
 
 

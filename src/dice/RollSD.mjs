@@ -238,11 +238,12 @@ export default class RollSD extends Roll {
 			data.ammunitionItem.reduceAmmunition(1);
 		}
 
+		let itemStillExists = true;
 		if (await data.item?.isExplosive())
-			data.actor?.reduceQuantity(data.item, 1);
+			itemStillExists = data.actor?.reduceQuantity(data.item, 1);
 
 		await this._applyDamageToTargets(result, options, data, damageResult);
-		data.actor?.onActionPerformed();
+		data.actor?.onActionPerformed(data.item, itemStillExists);
 		return result;
 	}
 
@@ -567,6 +568,15 @@ export default class RollSD extends Roll {
 		if (target.system.bonuses?.immunity && !Array.isArray(target.system.bonuses.immunity)) target.system.bonuses.immunity = [target.system.bonuses.immunity];
 		if (target.system.bonuses?.resistance && !Array.isArray(target.system.bonuses.resistance)) target.system.bonuses.resistance = [target.system.bonuses.resistance];
 
+		if (roll.criticalRolls) {
+			let criticalDamage = 0;
+			for (const critical of roll.criticalRolls) {
+				criticalDamage += critical.roll.total;
+			}
+			damageTotal += criticalDamage;
+			damageTooltip += "+" + criticalDamage + " " + game.i18n.localize("SHADOWDARK.damage.criticalHit") + "<br>";
+		}
+
 		if (target.system.bonuses?.inanimate && roll.roll.data?.actor?.system?.bonuses?.hammerMaster && attackDamageType === 'bludgeoning') {
 			damageTooltip += "+" + damageTotal + " " + game.i18n.localize("SHADOWDARK.damage.hammerMaster") + "<br>";
 			damageTotal *= 2;
@@ -692,7 +702,7 @@ export default class RollSD extends Roll {
 			woundDamageThreshold += Math.floor(token.actor.system.scars.length * CONFIG.SHADOWDARK.SCAR_EFFECT_RATIO);
 
 		const useWounds = game.settings.get("shadowdark", "wounds");
-		if (useWounds && damage >= woundDamageThreshold) {
+		if (useWounds && damage >= woundDamageThreshold && token.actor.type === "Player") {
 			[wound, hitLocation] = await token.actor.applyWound(damage - (woundDamageThreshold - 1), hitLocation, damageType);
 		}
 
@@ -1012,29 +1022,25 @@ export default class RollSD extends Roll {
 		if (data.damageBonus) data.damageParts.push("@damageBonus");
 
 		if (data.rolls?.main?.critical !== "failure") {
-			if (data.rolls?.main?.critical === "success") {
-				// We only support multiplication of the first damage dice,
-				// which is probably enough. None of the core game NPC attacks
-				// involve multiple dice parts
-				//
-				if (baseDamageFormula !== "0") {
-					const parts = /^(\d*)d(.*)/.exec(baseDamageFormula);
+			// if (data.rolls?.main?.critical === "success") {
+			// 	if (baseDamageFormula !== "0") {
+			// 		const parts = /^(\d*)d(.*)/.exec(baseDamageFormula);
 
-					let numDice = "1";
-					let formulaSuffix = "";
-					if (parts) {
-						numDice = parts[1] !== "" ? parts[1] : "1";
-						formulaSuffix = parts[2] ? parts[2] : "";
-					}
+			// 		let numDice = "1";
+			// 		let formulaSuffix = "";
+			// 		if (parts) {
+			// 			numDice = parts[1] !== "" ? parts[1] : "1";
+			// 			formulaSuffix = parts[2] ? parts[2] : "";
+			// 		}
 
-					numDice = parseInt(numDice, 10);
-					numDice *= parseInt(data.item.system.bonuses?.critical.multiplier, 10);
+			// 		numDice = parseInt(numDice, 10);
+			// 		numDice *= parseInt(data.item.system.bonuses?.critical.multiplier, 10);
 
-					baseDamageFormula = formulaSuffix !== ""
-						? `${numDice}d${formulaSuffix}`
-						: `${numDice}`;
-				}
-			}
+			// 		baseDamageFormula = formulaSuffix !== ""
+			// 			? `${numDice}d${formulaSuffix}`
+			// 			: `${numDice}`;
+			// 	}
+			// }
 
 			const damageParts = [baseDamageFormula, ...data.damageParts];
 
@@ -1056,9 +1062,34 @@ export default class RollSD extends Roll {
 					data.rolls.damage = damageRoll2;
 					data.rolls.damage2 = damageRoll1;
 				}
+
+				if (data.rolls?.main?.critical === "success") {
+					const criticalMultiplier = data.item.system.bonuses?.critical.multiplier;
+					for (let i = 1; i < criticalMultiplier; i++) {
+						if (!data.rolls.main.criticalRolls) data.rolls.main.criticalRolls = [];
+
+						const criticalRoll1 = await this._roll(damageParts, data);
+						const criticalRoll2 = await this._roll(damageParts, data);
+
+						if (criticalRoll1.roll.total > criticalRoll2.roll.total)
+							data.rolls.main.criticalRolls.push(criticalRoll1);
+						else
+							data.rolls.main.criticalRolls.push(criticalRoll2);
+					}
+				}
 			}
 			else
+			{
 				data.rolls.damage = await this._roll(damageParts, data);
+				if (data.rolls?.main?.critical === "success") {
+					const criticalMultiplier = data.item.system.bonuses?.critical.multiplier;
+					for (let i = 1; i < criticalMultiplier; i++) {
+						const criticalRoll = await this._roll(damageParts, data);
+						if (!data.rolls.main.criticalRolls) data.rolls.main.criticalRolls = [];
+						data.rolls.main.criticalRolls.push(criticalRoll);
+					}
+				}
+			}
 		}
 
 		return data;
@@ -1073,7 +1104,8 @@ export default class RollSD extends Roll {
 
 		if (data.item?.system?.damage?.type) data.type = data.item.system.damage.type;
 		// Get dice information from the weapon
-		let baseDamageFormula = data.damage ?? data.item.system.damage.value ?? "";
+		let baseDamageFormula = data.damage ?? data.item.system.damage.value ?? null;
+		if (!baseDamageFormula) return data;
 		let dualBonus = null;
 		if (baseDamageFormula.includes('+'))
 		{
@@ -1224,7 +1256,6 @@ export default class RollSD extends Roll {
 			// Adds dice if backstabbing
 			if (data.backstab) {
 				// Additional dice
-
 				numDice += 1 + Math.floor(data.actor.level / 2);
 
 				if (data.actor.system.bonuses?.backstabDie) {
@@ -1234,13 +1265,13 @@ export default class RollSD extends Roll {
 			}
 
 			// Multiply the dice with the items critical multiplier
-			if ( data.rolls.main.critical === "success") {
-				numDice
-					*= parseInt(data.item.system.bonuses?.critical.multiplier, 10);
+			// if ( data.rolls.main.critical === "success") {
+			// 	numDice
+			// 		*= parseInt(data.item.system.bonuses?.critical.multiplier, 10);
 
-				if (data.actor.system.bonuses?.perfectStrike)
-					data.maxDamage = true;
-			}
+			// 	if (data.actor.system.bonuses?.perfectStrike)
+			// 		data.maxDamage = true;
+			// }
 
 			// Check if a damage multiplier is active for either Weapon or Actor
 			const damageMultiplier = Math.max(
@@ -1311,9 +1342,36 @@ export default class RollSD extends Roll {
 						data.rolls.damage2 = damageRoll2;
 					}
 				}
+
+				if (data.rolls?.main?.critical === "success") {
+					const criticalMultiplier = data.item.system.bonuses?.critical.multiplier;
+					if (!data.rolls.main.criticalRolls) data.rolls.main.criticalRolls = [];
+
+					for (let i = 1; i < criticalMultiplier; i++) {
+						const criticalRoll1 = await this._rollDamage(data, dualWieldParts, oneHandedParts, twoHandedParts, damageDie1H, damageDie2H);
+						const criticalRoll2 = await this._rollDamage(data, dualWieldParts, oneHandedParts, twoHandedParts, damageDie1H, damageDie2H);
+
+						if (criticalRoll1.roll.total > criticalRoll2.roll.total)
+							data.rolls.main.criticalRolls.push(criticalRoll1);
+						else
+							data.rolls.main.criticalRolls.push(criticalRoll2);
+					}
+				}
 			}
 			else
+			{
 				data.rolls.damage = await this._rollDamage(data, dualWieldParts, oneHandedParts, twoHandedParts, damageDie1H, damageDie2H);
+
+				if (data.rolls?.main?.critical === "success") {
+					const criticalMultiplier = data.item.system.bonuses?.critical.multiplier;
+					if (!data.rolls.main.criticalRolls) data.rolls.main.criticalRolls = [];
+
+					for (let i = 1; i < criticalMultiplier; i++) {
+						const criticalRoll = await this._rollDamage(data, dualWieldParts, oneHandedParts, twoHandedParts, damageDie1H, damageDie2H);
+						data.rolls.main.criticalRolls.push(criticalRoll);
+					}
+				}
+			}
 		}
 
 		if (data.extraDamage?.length) {
@@ -1366,10 +1424,12 @@ export default class RollSD extends Roll {
 				damageRoll = await this._roll(dualWieldParts, data);
 				break;
 			case "1h":
-				damageRoll = await this._roll(oneHandedParts, data);
+				if (oneHandedParts)
+					damageRoll = await this._roll(oneHandedParts, data);
 				break;
 			case "2h":
-				damageRoll = await this._roll(twoHandedParts, data);
+				if (twoHandedParts)
+					damageRoll = await this._roll(twoHandedParts, data);
 				break;
 			case undefined:
 				if (damageDie1H && damageDie2H) {
@@ -1477,8 +1537,9 @@ export default class RollSD extends Roll {
 			radios = $form.querySelector('[name="weapon-handedness"]');
 		}
 
+		if (radios == null)  return "1h";
 		if (radios[0]?.checked) return "1h";
-		if (radios[1]?.checked) return "2h";""
+		if (radios[1]?.checked) return "2h";
 	}
 
 	/* -------------------------------------------- */

@@ -3,6 +3,7 @@
 		<label>{{localize 'SHADOWDARK.sheet.actor.hp'}}</label>
 		<span>
 			{{#if owner}}
+			{{#unless evolutionGrid}}
 				<a
 					{{#if editingHp}}
 						class="item-selector fas fa-square-xmark edit-button"
@@ -12,6 +13,7 @@
 					data-action="toggleEditHp"
 					data-tooltip="{{localize 'SHADOWDARK.sheet.player.toggle_edit_hp'}}"
 				></a>
+			{{/unless}}
 			{{/if}}
 		</span>
 	</div>
@@ -25,7 +27,7 @@
 			}}
 			<span class="temp-hp">+ {{actor.system.attributes.hp.temp}}</span>
 			<div>/</div>
-			<div>
+			<div{{#if hpTooltip}} data-tooltip="{{hpTooltip}}"{{/if}}>
 				{{#if editingHp}}
 					{{numberInput
 						maxHp
@@ -47,7 +49,7 @@
 				placeholder="0"
 			}}
 			<div>/</div>
-			<div>
+			<div{{#if hpTooltip}} data-tooltip="{{hpTooltip}}"{{/if}}>
 				{{#if editingHp}}
 					{{numberInput
 						maxHp

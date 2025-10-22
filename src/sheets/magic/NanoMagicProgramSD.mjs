@@ -334,10 +334,10 @@ export default class NanoMagicProgramSD extends HandlebarsApplicationMixin(Appli
 			totalNanoPoints += durationCost;
 		}
 
-		var drawbackCost = parseInt(program.drawback.system.nanoPointCost);
+		var drawbackCost = parseInt(program.drawback?.system?.nanoPointCost ?? '0');
 		if (program.drawback.system.nanoPointCostPerLevel)
 		{
-			drawbackCost += (program.effectLevels - 1) * parseInt(program.drawback.system.nanoPointCostPerLevel);
+			drawbackCost += (program.effectLevels - 1) * parseInt(program.drawback?.system?.nanoPointCostPerLevel ?? '0');
 		}
 		totalNanoPoints += drawbackCost;
 		
@@ -416,10 +416,7 @@ export default class NanoMagicProgramSD extends HandlebarsApplicationMixin(Appli
 		var effectLevelList = {};
 
 		for (var l = 1; l <= 10; l++)
-		{
-			if ((l-1) % effectiveEffect.system.nanoPointCostPerLevel === 0)
-				effectLevelList[l] = l;
-		}
+			effectLevelList[l * effectiveEffect.system.nanoPointCostPerLevel] = l;
 
 		this.effectLevelList = effectLevelList;
 	}

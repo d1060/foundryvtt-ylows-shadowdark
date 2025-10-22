@@ -318,9 +318,7 @@ export default class ActiveEffectsSD {
 
 			// TODO Need to move to light source objects to allow customisation
 			//
-			const lightSourceList = await foundry.utils.fetchJsonWithTimeout(
-				"systems/shadowdark/assets/mappings/map-light-sources.json"
-			);
+			const lightSourceList = await foundry.utils.fetchJsonWithTimeout("systems/shadowdark/assets/mappings/map-light-sources.json");
 
 			const options = {};
 			Object.keys(lightSourceList).map(i => {
@@ -506,15 +504,8 @@ export default class ActiveEffectsSD {
 			for (const key of Object.keys(options))
 			{
 				var isRanged = rangedWeaponOptions[key] ? true : false;
-
-				for (var proficiency of existingWeaponProficiencies)
-				{
-					if (key !== proficiency && proficiency !== 'all' && !(isRanged && proficiency === 'allRanged') && !(!isRanged && proficiency === 'allMelee'))
-					{
+				if (isRanged)
 						delete options[key];
-						break;
-					}
-				}
 			}
 
 			if (Object.keys(options).length === 0) return [];

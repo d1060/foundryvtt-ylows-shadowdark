@@ -94,10 +94,14 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 						await actor.deleteEmbeddedDocuments("Item", [itemData._id]);
 					}
 					else {
+						const item = actor.getEmbeddedDocument("Item", itemData._id);
+
 						await actor.updateEmbeddedDocuments("Item", [{
 							"_id": itemData._id,
 							"system.light.active": false,
 						}]);
+
+						this.toggleLightSource(actor, item);
 					}
 				}
 			}
@@ -148,9 +152,9 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 			await actor.updateEmbeddedDocuments("Item", [dataUpdate]);
 		}
 
-
 		this.dirty = true;
 		this._updateLightSources();
+		this.toggleLightSource(actor, item);
 	}
 
 	static async #toggleShowAll(event, target) {
@@ -338,6 +342,7 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 			paused: this._isPaused(),
 			showAllPlayerActors: this.showAllPlayerActors,
 			showUserWarning: this.showUserWarning,
+			isGM: game.user.isGM
 		};
 
 		return context;
@@ -446,8 +451,7 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 
 	async render(force, options) {
 		// Don't allow non-GM users to view the UI
-		if (!game.user.isGM) return;
-
+		//if (!game.user.isGM) return;
 		super.render(force, options);
 	}
 
@@ -459,7 +463,7 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 		}
 
 		// we only run the timer on the GM instance
-		if (!game.user.isGM) return;
+		//if (!game.user.isGM) return;
 
 		// set default state for flag
 		await game.user.setFlag("shadowdark", "primaryGM", false);
@@ -504,7 +508,7 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 	async toggleLightSource(actor, item) {
 		if (this._isDisabled()) return;
 
-		if (!game.user.isGM) {
+		//if (!game.user.isGM) {
 			game.socket.emit(
 				"system.shadowdark",
 				{
@@ -515,14 +519,25 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 					},
 				}
 			);
-			return;
-		}
+			//return;
+		//}
+
+		//const status = item.system.light.active ? "on" : "off";
+
+		//shadowdark.log(`Turning ${status} ${actor.name}'s ${item.name} light source`);
+
+		//this._onToggleLightSource();
+	}
+
+	async externalToggleLightSource(actor, item) {
+		if (this._isDisabled()) return;
 
 		const status = item.system.light.active ? "on" : "off";
 
 		shadowdark.log(`Turning ${status} ${actor.name}'s ${item.name} light source`);
 
 		this._onToggleLightSource();
+		this._makeDirty();
 	}
 
 	async _deleteActorHook(actor, options, userId) {
@@ -589,19 +604,26 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 			for (const actor of playerActors) {
 
 				let hasActiveOwner = false;
+				let isOwnerOrGM = false;
 				for (const user of onlineUsers) {
 					if (actor.ownership[user._id] === CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER
 						|| actor.ownership.default === CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER
 					) {
 						hasActiveOwner = true;
+						if (game.user.id == user._id)
+							isOwnerOrGM = true;
 						break;
 					}
 				}
+
+				if (game.user.isGM)
+					isOwnerOrGM = true;
 
 				if (!(hasActiveOwner || game.settings.get("shadowdark", "trackInactiveUserLightSources"))) continue;
 
 				const actorData = actor.toObject(false);
 				actorData.lightSources = [];
+				actorData.isOwnerOrGM = isOwnerOrGM;
 
 				const activeLightSources = await actor.getActiveLightSources();
 
@@ -654,7 +676,10 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 	}
 
 	async _makeDirty() {
-		if (this._isEnabled() && game.user.isGM) this.dirty = true;
+		//if (this._isEnabled() && game.user.isGM) this.dirty = true;
+		if (this._isEnabled()) this.dirty = true;
+		// Make all other user's Trackers Dirty as well.
+
 	}
 
 	_monitorInactiveUsers() {
@@ -662,12 +687,13 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 	}
 
 	async _onToggleLightSource() {
-		if (!(this._isEnabled() && game.user.isGM)) return;
-		this.dirty = true;
+		//if (!(this._isEnabled() && game.user.isGM)) return;
+		if (!(this._isEnabled())) return;
 	}
 
 	async onUpdateWorldTime(worldTime, worldDelta) {
-		if (!(this._isEnabled() && game.user.isGM)) return;
+		//if (!(this._isEnabled() && game.user.isGM)) return;
+		if (!(this._isEnabled())) return;
 		if (this.updatingLightSources) return;
 
 		const updateSecs = game.settings.get(
@@ -688,10 +714,10 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 
 		this.lastUpdate = worldTime;
 
-		if (!shadowdark.utils.isPrimaryGM()) {
-			this.render(false);
-			return;
-		}
+		//if (!shadowdark.utils.isPrimaryGM()) {
+		//	this.render(false);
+		//	return;
+		//}
 		//shadowdark.log("Updating light sources");
 
 		try {
@@ -737,6 +763,8 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 						}
 
 						if (actor.type !== "Light") {
+							const item = actor.getEmbeddedDocument("Item", itemData._id);
+							this.toggleLightSource(actor, item);
 							await actor.yourLightExpired(itemData._id);
 							await actor.updateEmbeddedDocuments("Item", [{
 								"_id": itemData._id,
@@ -821,7 +849,8 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 	}
 
 	async _updateLightSources() {
-		if (!(this._isEnabled() && game.user.isGM)) return;
+		//if (!(this._isEnabled() && game.user.isGM)) return;
+		if (!(this._isEnabled())) return;
 		if (!this.dirty) return;
 		if (this.performingTick) return;
 

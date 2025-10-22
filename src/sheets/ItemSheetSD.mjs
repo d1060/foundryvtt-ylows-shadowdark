@@ -934,6 +934,13 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			}
 			const lightRemainingSetting = (game.user.isGM)? 2 : game.settings.get("shadowdark", "playerShowLightRemaining");
 			context.showRemainingMins = lightRemainingSetting > 1;
+
+			if (item.system.light.intensity)
+				context.lightIntensity = item.system.light.intensity;
+			else {
+				const lightSources = await foundry.utils.fetchJsonWithTimeout("systems/shadowdark/assets/mappings/map-light-sources.json");
+				context.lightIntensity = lightSources[item.system.light.template].light.dim;
+			}
 		}
 	}
 

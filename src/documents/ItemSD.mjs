@@ -332,6 +332,10 @@ export default class ItemSD extends Item {
 		return await this.hasProperty("basic-weapon");
 	}
 
+	async isBasicArmor() {
+		return await this.hasProperty("basic-armor");
+	}
+
 	async isFinesseWeapon() {
 		return await this.hasProperty("finesse");
 	}
@@ -374,6 +378,10 @@ export default class ItemSD extends Item {
 
 	async isRigidArmor() {
 		return await this.hasProperties(["metallic-platemail", "metallic-shield"]);
+	}
+
+	async isExpendable() {
+		return await this.hasProperty("expendable");
 	}
 
 	isTwoHanded() {
