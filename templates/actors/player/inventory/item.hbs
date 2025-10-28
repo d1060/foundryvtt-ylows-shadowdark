@@ -116,14 +116,27 @@
 			{{/unless}}
 		{{/if}}
 		{{#ifEq item.type "Potion"}}
-			<a
-				class="item-control use-potion"
-				data-action="usePotion"
-				data-item-id="{{item._id}}"
-				data-tooltip="{{localize 'SHADOWDARK.sheet.player.tooltip.use_potion'}}"
-			>
-				<i class="fas fa-prescription-bottle" data-item-id="{{item._id}}"></i>
-			</a>
+			{{#if item.system.isPotionIngredient}}
+				{{#if potionCrafter}}
+					<a
+						class="item-control craft-potion"
+						data-action="craftPotion"
+						data-item-id="{{item._id}}"
+						data-tooltip="{{localize 'SHADOWDARK.sheet.player.tooltip.craft_potion'}}"
+					>
+						<i class="fas fa-flask" data-item-id="{{item._id}}"></i>
+					</a>
+				{{/if}}
+			{{else}}
+				<a
+					class="item-control use-potion"
+					data-action="usePotion"
+					data-item-id="{{item._id}}"
+					data-tooltip="{{localize 'SHADOWDARK.sheet.player.tooltip.use_potion'}}"
+				>
+					<i class="fas fa-prescription-bottle" data-item-id="{{item._id}}"></i>
+				</a>
+			{{/if}}
 		{{/ifEq}}
 		{{#unless item.system.equipped}}
 		<a

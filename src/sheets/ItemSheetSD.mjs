@@ -45,6 +45,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			classTitleDelete: this.#onClassTitleDelete,
 			npcAttackRanges: this.#onNpcAttackRanges,
 			removeNameTable: this.#onRemoveTable,
+			deleteCraftTarget: this.#onDeleteCraftTarget,
 			deleteRequirement: this.#onDeleteRequirement,
 			addPrefix: this.#onAddPrefix,
 			addSuffix: this.#onAddSuffix,
@@ -702,6 +703,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 				await this.getSheetDataForArmorItem(context);
 				break;
 			case "basic":
+			case "basicDetails":
 				await this.getSheetDataForBasicItem(context);
 				break;
 			case "bodyPartsDetails":
@@ -856,10 +858,17 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			await this[itemTypeFunctionName](context);
 		}
 
+		context.requirementsChosen = true;
 		if (!this.item.system.requirements || this.item.system.requirements.length === 0)
 			context.requirementsChosen = false;
-		else
-			context.requirementsChosen = true;
+
+		context.allowsCrafting = false;
+		if (this.item.system.craftablePotion)
+			context.allowsCrafting = true;
+
+		context.craftTargetsChosen = true;
+		if (!this.item.system.craftTargets || this.item.system.craftTargets.length === 0)
+			context.craftTargetsChosen = false;
 
 		return context;
 	}
@@ -913,8 +922,9 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 
 	async getSheetDataForBasicItem(context) {
 		const item = context.item;
+		if (!item) return;
 
-		if (item.system.light.isSource) {
+		if (item.system.light?.isSource) {
 			if (!item.system.light.hasBeenUsed) {
 				// Unused light sources should always have their remaining time
 				// at maximum
@@ -942,6 +952,8 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 				context.lightIntensity = lightSources[item.system.light.template].light.dim;
 			}
 		}
+
+		item.potion = item.isPotion();
 	}
 
 	async getSheetDataForBodyParts(context) {
@@ -1091,6 +1103,8 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		context.baseWeapons = await shadowdark.utils.getSlugifiedItemList(
 			await shadowdark.compendiums.baseWeapons()
 		);
+
+		context.item.potion = context.propertyItems.some(p => p && p.name.slugify() === 'potion');
 
 		delete context.baseWeapons[mySlug];
 	}
@@ -1392,6 +1406,25 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			return;
 		}
 
+		if (myType == 'Talent' && data.type == 'Item' && this.item.system.craftablePotion)
+		{
+			const droppedItem = await fromUuid(data.uuid);
+			if (droppedItem.isPotion() || await droppedItem.hasProperty('potion'))
+			{
+				const pushData = {
+					name: droppedItem.name,
+					_id: droppedItem._id,
+					uuid: droppedItem.uuid,
+					img: droppedItem.img
+				}
+
+				if (!this.item.system.craftTargets) this.item.system.craftTargets = [];
+				this.item.system.craftTargets.push(pushData);
+				this.item.update({"system.craftTargets": this.item.system.craftTargets});
+			}
+			return;
+		}
+
 		if (!(allowedType && isSpellDrop)) return super._onDrop();
 
 		const name = game.i18n.format(
@@ -1587,6 +1620,14 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		}
 
 		return duration;
+	}
+
+	static async #onDeleteCraftTarget(event, target) {
+		const targetId = target.dataset.id;
+		var target = this.item.system.craftTargets.find(r => r._id === targetId);
+		var index = this.item.system.craftTargets.indexOf(target);
+		this.item.system.craftTargets.splice(index, 1);
+		this.item.update({"system.craftTargets": this.item.system.craftTargets});
 	}
 
 	static async #onDeleteRequirement(event, target) {

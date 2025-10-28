@@ -20,13 +20,15 @@
 		</span>
 	</div>
 	<div class="content">
-		<a
-			class="content-link background-content-link"
-			data-link
-			data-uuid="{{system.deity}}"
-			data-tooltip="{{uuidToDescription system.deity}}"
-		>
-			{{uuidToName system.deity}}
-		</a>
+		{{#if system.deity}}
+			<a
+				class="content-link background-content-link"
+				data-link
+				data-uuid="{{system.deity}}"
+				data-tooltip="{{uuidToDescription system.deity}}"
+			>
+				{{uuidToName system.deity}}
+			</a>
+		{{/if}}
 	</div>
 </div>

@@ -16,12 +16,14 @@
 		</span>
 	</div>
 	<div class="content">
-		<a
-			class="content-link background-content-link"
-			data-link
-			data-uuid="{{system.ancestry}}"
-		>
-			{{uuidToName system.ancestry}}
-		</a>
+		{{#if system.ancestry}}
+			<a
+				class="content-link background-content-link"
+				data-link
+				data-uuid="{{system.ancestry}}"
+			>
+				{{uuidToName system.ancestry}}
+			</a>
+		{{/if}}
 	</div>
 </div>

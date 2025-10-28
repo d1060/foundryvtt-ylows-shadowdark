@@ -1,0 +1,13 @@
+{{#if (lookup resistedBy system.talentClass)}}
+    <h3>{{localize 'SHADOWDARK.item.talent_resistedBy'}}</h3>
+    <select name="system.resistedBy" >
+        <option value="">&mdash;</option>
+        {{selectOptions
+            config.ABILITIES_LONG
+            selected=system.resistedBy
+            localize=true
+        }}
+        <option value="ac"{{#if (eq system.resistedBy 'ac')}} selected{{/if}}>{{localize "SHADOWDARK.item.armor_ac"}}</option>
+    </select>
+    <div>{{localize 'SHADOWDARK.item.resistance_penalty_ignores_metallic'}} <input style="width: 12px; height: 12px;" name="system.resistance_penalty_metallic" type="checkbox" {{#if system.resistance_penalty_metallic}} checked{{/if}}></div>
+{{/if}}

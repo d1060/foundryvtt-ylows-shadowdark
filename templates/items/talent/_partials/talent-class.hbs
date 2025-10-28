@@ -1,0 +1,10 @@
+<div>
+    <h3>{{localize 'SHADOWDARK.item.talent_class'}}</h3>
+    <select name="system.talentClass">
+        {{selectOptions
+            config.TALENT_CLASSES
+            selected=system.talentClass
+            localize=false
+        }}
+    </select>
+</div>

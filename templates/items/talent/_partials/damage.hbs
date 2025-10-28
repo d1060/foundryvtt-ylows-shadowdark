@@ -1,0 +1,40 @@
+<div class="content" style="width: 99%">
+    <h3>{{localize 'SHADOWDARK.item.damage'}}</h3>
+    <div>
+        <input
+        name="system.damage"
+        type="text"
+        value="{{system.damage}}"
+        />
+    </div>
+    <h3>{{localize 'SHADOWDARK.item.weapon_damage.type'}}</h3>
+    <select name="system.damage_type">
+        {{selectOptions
+            config.DAMAGE_TYPES
+            selected=system.damage_type
+            localize=false
+        }}
+    </select>
+    <div>
+        {{localize 'SHADOWDARK.item.damage_increase'}}
+        <input
+        name="system.damage_increase"
+        type="text"
+        value="{{ system.damage_increase }}"
+        />
+    </div>
+    {{#if system.damage_increase}}
+    <div>
+        {{localize 'SHADOWDARK.item.damage_increase_step'}}
+        <select
+        name="system.damage_increase_step"
+        />
+            <option value="1"{{#if (eq system.damage_increase_step '1')}} selected{{/if}}>{{localize 'SHADOWDARK.item.damage_increase_step_1'}}</option>
+            <option value="2"{{#if (eq system.damage_increase_step '2')}} selected{{/if}}>{{localize 'SHADOWDARK.item.damage_increase_step_2'}}</option>
+            <option value="3"{{#if (eq system.damage_increase_step '3')}} selected{{/if}}>{{localize 'SHADOWDARK.item.damage_increase_step_3'}}</option>
+            <option value="4"{{#if (eq system.damage_increase_step '4')}} selected{{/if}}>{{localize 'SHADOWDARK.item.damage_increase_step_4'}}</option>
+            <option value="5"{{#if (eq system.damage_increase_step '5')}} selected{{/if}}>{{localize 'SHADOWDARK.item.damage_increase_step_5'}}</option>
+        </select>
+    </div>
+    {{/if}}
+</div>

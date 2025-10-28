@@ -1,0 +1,30 @@
+<div class="content" style="width: 99%">
+    <h3>{{localize 'SHADOWDARK.item.requirements'}}</h3>
+    <div>
+        <fieldset class="items" style="height: 100%;">
+            {{#unless requirementsChosen}}
+                <div style="color: rgba(0, 0, 0, 0.6); text-align: center;">
+                    <em>{{localize "SHADOWDARK.apps.level-up.dragdrop"}}</em>
+                </div>
+            {{/unless}}
+            {{#each item.system.requirements}}
+                <div style="white-space: nowrap;">
+                    <a
+                        class="remove-item fas fa-delete-right"
+                        data-action="deleteRequirement"
+                        data-index="{{@index}}"
+                        data-id="{{this._id}}"
+                    ></a>
+                    <a
+                        class="content-link"
+                        data-link
+                        data-tooltip="{{this.name}}"
+                        data-id="{{this._id}}"
+                    >
+                        {{this.name}}
+                    </a>
+                </div>
+            {{/each}}
+        </fieldset>
+    </div>
+</div>

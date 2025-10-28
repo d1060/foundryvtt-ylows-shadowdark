@@ -1,0 +1,24 @@
+<div {{#if (lookup showsPowerSelection system.talentClass)}} class="centered-box" style="text-align: center; margin: auto;"{{/if}}>
+    {{#if (lookup showsLevelInput system.talentClass)}}
+        <h3>{{localize 'SHADOWDARK.item.level'}}</h3>
+        {{numberInput
+            item.system.level
+            name="system.level"
+            placeholder="0"
+        }}
+    {{/if}}
+    {{#if (lookup showsPowerSelection system.talentClass)}}
+        <h3>{{localize 'SHADOWDARK.item.is_power'}}</h3>
+        <input type="checkbox" name="system.isPower" {{#if system.isPower}} checked{{/if}}>
+    {{/if}}
+    {{#if (eq system.talentClass 'nanoMagic')}}
+        <h3>{{localize 'SHADOWDARK.item.nano_magic_type'}}</h3>
+        <select name="system.nanoProgramType">
+            <option value="talent" {{#if (eq system.nanoProgramType 'talent')}} selected{{/if}}>{{localize 'SHADOWDARK.nano_talent'}}</option>
+            <option value="internal" {{#if (eq system.nanoProgramType 'internal')}} selected{{/if}}>{{localize 'SHADOWDARK.nano_internal'}}</option>
+            <option value="external" {{#if (eq system.nanoProgramType 'external')}} selected{{/if}}>{{localize 'SHADOWDARK.nano_external'}}</option>
+            <option value="internal_drawback" {{#if (eq system.nanoProgramType 'internal_drawback')}} selected{{/if}}>{{localize 'SHADOWDARK.nano_internal_drawback'}}</option>
+            <option value="external_drawback" {{#if (eq system.nanoProgramType 'external_drawback')}} selected{{/if}}>{{localize 'SHADOWDARK.nano_external_drawback'}}</option>
+        </select>
+    {{/if}}
+</div>

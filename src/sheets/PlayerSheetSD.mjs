@@ -64,6 +64,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			discardItem: this.#onDiscardItem,
 			useAbility: this.#onUseAbility,
 			usePotion: this.#onUsePotion,
+			craftPotion: this.#onCraftPotion,
 			rechargeMagicItem: this.#onRechargeMagicItem,
 			spendMagicalCharge: this.#onSpendMagicCharge,
 			focusSpell: this.#onFocusSpell,
@@ -242,6 +243,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 	/** @override */
 	async _preparePartContext(partId, context, options) {
 		shadowdark.resetTimestamp();
+		this.compendiumItemsCheck(context);
 		shadowdark.logTimestamp(`PlayerSheetSD _preparePartContext for '${partId}' START.`);
 		context = await super._preparePartContext(partId, context, options);
 		context.evolutionGrid = game.settings.get("shadowdark", "evolutionGrid");
@@ -484,6 +486,17 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		context.magicCoreLevel = await this.actor.magicCoreLevel(this.actor?.system?.magic?.type);
 	}
 	
+	compendiumItemsCheck(context) {
+		const ancestry = fromUuidSync(context.system.ancestry);
+		if (!ancestry) delete context.system['ancestry'];
+		const background = fromUuidSync(context.system.background);
+		if (!background) delete context.system['background'];
+		const deity = fromUuidSync(context.system.deity);
+		if (!deity) delete context.system['deity'];
+		const playerClass = fromUuidSync(context.system.class);
+		if (!playerClass) delete context.system['class'];
+	}
+
 	async _onDropBackgroundItem(item) {
 		switch (item.type) {
 			case "Ancestry":
@@ -1217,6 +1230,79 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		event.preventDefault();
 		const itemId = target.dataset.itemId;
 		this.actor.usePotion(itemId);
+	}
+
+	static async #onCraftPotion(event, target) {
+		event.preventDefault();
+		const itemId = target.dataset.itemId;
+		const craftablePotionsTalents = await this.actor.craftablePotions();
+		if (!craftablePotionsTalents || !craftablePotionsTalents.length) return;
+
+		const craftablePotions = [];
+		for (const talent of craftablePotionsTalents) {
+			for (const item of talent?.system?.craftTargets ?? []) {
+				craftablePotions.push(item);
+			}
+		}
+
+		if (!craftablePotions || !craftablePotions.length) return;
+
+		const content = await foundry.applications.handlebars.renderTemplate(
+			"systems/shadowdark/templates/dialog/craft-potion.hbs",
+			{
+				craftablePotions,
+			}
+		);
+
+		const targetPotion = await foundry.applications.api.DialogV2.wait({
+				classes: ["app", "shadowdark", "shadowdark-dialog", "window-app", 'themed', 'theme-light'],
+				window: {
+					resizable: false,
+					title: game.i18n.localize("SHADOWDARK.dialog.item.craft_potion_select.title"),
+				},
+				content,
+				buttons: [
+					{
+						action: 'select',
+						icon: "fa fa-square-check",
+						label: `${game.i18n.localize("SHADOWDARK.dialog.general.select")}`,
+						callback: event => {
+							const checkedRadio = event.currentTarget.querySelector("input[type='radio']:checked");
+							return checkedRadio?.getAttribute("uuid") ?? false;
+						},
+					},
+					{
+						action: 'cancel',
+						icon: "fa fa-square-xmark",
+						label: `${game.i18n.localize("SHADOWDARK.dialog.general.cancel")}`,
+						callback: () => false,
+					},
+				],
+				default: "select",
+		});
+
+		if (targetPotion) {
+			const potion = await fromUuid(targetPotion);
+			if (!potion) return;
+
+			const [newPotion] = await this.actor.createEmbeddedDocuments(
+				"Item",
+				[potion]
+			);
+			
+			const item = this.actor.getEmbeddedDocument("Item", itemId);
+			if (item.system.quantity <= 1) {
+				this.actor.deleteEmbeddedDocuments("Item", [itemId]);
+			} else {
+				item.system.quantity--;
+				this.actor.updateEmbeddedDocuments(
+					"Item", [{
+						"_id": itemId,
+						"system.quantity": item.system.quantity,
+					}]
+				);
+			}
+		}
 	}
 
 	async _sendDroppedItemToChat(active, item, options = {}) {

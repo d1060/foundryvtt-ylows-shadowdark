@@ -16,12 +16,14 @@
 		</span>
 	</div>
 	<div class="content">
-		<a
-			class="content-link background-content-link"
-			data-link
-			data-uuid="{{system.background}}"
-		>
-			{{uuidToName system.background}}
-		</a>
+		{{#if system.background}}
+			<a
+				class="content-link background-content-link"
+				data-link
+				data-uuid="{{system.background}}"
+			>
+				{{uuidToName system.background}}
+			</a>
+		{{/if}}
 	</div>
 </div>

@@ -1,0 +1,8 @@
+{{#if (lookup hasHPCost system.talentClass)}}
+    <h3>{{localize 'SHADOWDARK.item.talent_HPCost'}}</h3>
+    <input
+        name="system.hpCost"
+        type="text"
+        value="{{ system.hpCost }}"
+        />
+{{/if}}

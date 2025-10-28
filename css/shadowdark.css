@@ -1863,7 +1863,7 @@ picture {
   margin-top: 3px;
 }
 .shadowdark.sheet .centered-box {
-  display: flex;
+  display: grid;
   align-items: center;
 }
 .shadowdark.sheet .tab {
@@ -2277,6 +2277,24 @@ picture {
   border: 3px solid var(--secondary);
 }
 .shadowdark-dialog.pickup-lightsource .actor-selector .actor label:hover {
+  background: var(--form-background);
+}
+.shadowdark-dialog.pickup-lightsource .potion-selector {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+.shadowdark-dialog.pickup-lightsource .potion-selector .potion input[type=radio] {
+  display: none;
+}
+.shadowdark-dialog.pickup-lightsource .potion-selector .potion label {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.shadowdark-dialog.pickup-lightsource .potion-selector .potion input[type=radio]:checked + label img {
+  border: 3px solid var(--secondary);
+}
+.shadowdark-dialog.pickup-lightsource .potion-selector .potion label:hover {
   background: var(--form-background);
 }
 .shadowdark-dialog .form-group {

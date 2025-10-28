@@ -28,6 +28,16 @@
 				placeholder="0"
 			}}
 			<h3>{{localize 'SHADOWDARK.coins.cp'}}</h3>
+
+			{{#if item.potion}}
+				{{numberInput
+					item.system.ingredientCost
+					name="system.ingredientCost"
+					class="coin-value"
+					placeholder="0"
+				}}
+				<h3>{{localize 'SHADOWDARK.item.ingredient-cost'}}</h3>
+			{{/if}}
 		</div>
 	</div>
 </div>

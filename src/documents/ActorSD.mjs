@@ -3509,6 +3509,9 @@ export default class ActorSD extends Actor {
 		});
 	}
 
+	async craftablePotions() {
+		return this.items.filter(i => i.type == 'Talent' && i.system.craftablePotion);
+	}
 
 	async usePotion(itemId) {
 		const item = this.items.get(itemId);

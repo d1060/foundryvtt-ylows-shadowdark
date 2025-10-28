@@ -1,0 +1,36 @@
+<div style="width: 99%">
+    <h3>{{localize 'SHADOWDARK.item.talent_duration'}}</h3>
+    <div>
+        <select name="system.duration" >
+            <option value=""{{#if (eq system.duration '')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_instant'}}</option>
+            <option value="sustained"{{#if (eq system.duration 'sustained')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_sustained'}}</option>
+            <option value="1-turn"{{#if (eq system.duration '1-turn')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_one_turn'}}</option>
+            <option value="1-minute"{{#if (eq system.duration '1-minute')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_one_minute'}}</option>
+            <option value="1-hour"{{#if (eq system.duration '1-hour')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_one_hour'}}</option>
+            <option value="1-day"{{#if (eq system.duration '1-day')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_one_day'}}</option>
+            <option value="permanent"{{#if (eq system.duration 'permanent')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_permanent'}}</option>
+        </select>
+    </div>
+    <div>
+        {{localize 'SHADOWDARK.item.duration_increase'}}
+        <select name="system.duration_increase" >
+            <option value=""{{#if (eq system.duration_increase '')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_increase_none'}}</option>
+            <option value="once"{{#if (eq system.duration_increase 'once')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_increase_once'}}</option>
+            <option value="one-step"{{#if (eq system.duration_increase 'one-step')}} selected{{/if}}>{{localize 'SHADOWDARK.item.talent_duration_increase_one_step'}}</option>
+        </select>
+    </div>
+    {{#if system.duration_increase}}
+    <div>
+        {{localize 'SHADOWDARK.item.duration_increase_step'}}
+        <select
+        name="system.duration_increase_step"
+        />
+            <option value="1"{{#if (eq system.duration_increase_step '1')}} selected{{/if}}>{{localize 'SHADOWDARK.item.duration_increase_step_1'}}</option>
+            <option value="2"{{#if (eq system.duration_increase_step '2')}} selected{{/if}}>{{localize 'SHADOWDARK.item.duration_increase_step_2'}}</option>
+            <option value="3"{{#if (eq system.duration_increase_step '3')}} selected{{/if}}>{{localize 'SHADOWDARK.item.duration_increase_step_3'}}</option>
+            <option value="4"{{#if (eq system.duration_increase_step '4')}} selected{{/if}}>{{localize 'SHADOWDARK.item.duration_increase_step_4'}}</option>
+            <option value="5"{{#if (eq system.duration_increase_step '5')}} selected{{/if}}>{{localize 'SHADOWDARK.item.duration_increase_step_5'}}</option>
+        </select>
+    </div>
+    {{/if}}
+</div>
