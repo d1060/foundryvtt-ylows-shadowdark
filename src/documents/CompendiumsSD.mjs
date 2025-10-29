@@ -596,4 +596,14 @@ export default class CompendiumsSD {
 	static async energySources(filterSources=true) {
 		return CompendiumsSD.properties("magic_energy_source", filterSources);
 	}
+
+	static async craftableItems() {
+		const allItems = await CompendiumsSD._documents("Item", null, true);
+		const allCraftableItems = allItems.filter(i => i.system.craftable);
+
+		const worldItems = game.items.filter(i => i.system.craftable);
+		allCraftableItems.push(...worldItems);
+
+		return allCraftableItems;
+	}
 }

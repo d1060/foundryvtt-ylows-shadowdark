@@ -929,6 +929,9 @@ section.effect-panel .effect-item .effect-info .tags .talent {
   gap: 0px 8px;
   font-size: 12px;
 }
+.shadowdark .SD-grid.inventory-coins {
+  grid-template-columns: 1fr 1fr;
+}
 .shadowdark .tab-spells .SD-list > li .actions {
   flex: 0 0 90px !important;
 }
@@ -2281,7 +2284,8 @@ picture {
 }
 .shadowdark-dialog.pickup-lightsource .potion-selector {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 12px;                     /* row, column gaps */
 }
 .shadowdark-dialog.pickup-lightsource .potion-selector .potion input[type=radio] {
   display: none;
@@ -2297,6 +2301,57 @@ picture {
 .shadowdark-dialog.pickup-lightsource .potion-selector .potion label:hover {
   background: var(--form-background);
 }
+
+.potion-selector.scrollable {
+  max-height: 60vh;                  /* tweak to taste */
+  overflow-y: auto;
+  padding-right: 4px;                /* a little room next to the scrollbar */
+}
+
+.potion {
+  display: flex;
+  align-items: center;
+}
+
+.potion > label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;                      /* allows ellipsis */
+  cursor: pointer;
+}
+
+.potion img {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.potion .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.potion.is-disabled label {
+  color: grey;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .potion-selector.three-col {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .potion-selector.three-col {
+    grid-template-columns: 1fr;
+  }
+}
+
 .shadowdark-dialog .form-group {
   display: grid;
   grid-template-columns: 128px 1fr;
@@ -2758,3 +2813,22 @@ picture {
 .stretch-flex {
   flex: 1 1 auto;
 }
+
+.crafting-hideable-section {
+  display: none;
+}
+
+#toggle-disabled-craft-items:checked ~ .crafting-hideable-section {
+  display: block;   /* or grid/flex/etc. */
+  max-height: 226px;
+}
+
+.potion-selector.scrollable.disabled-items-list {
+  max-height: 226px;
+}
+
+#toggle-disabled-craft-items:checked + label .fa-caret-right {
+  transform: rotate(90deg);
+}
+
+.SD-banner .fa-caret-right { transition: transform 0.2s ease; }

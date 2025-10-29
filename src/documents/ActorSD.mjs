@@ -341,7 +341,7 @@ export default class ActorSD extends Actor {
 		let foundItem = this.items.find(i => i.id === item.id)
 		if (foundItem)
 		{
-			if (foundItem.system.quantity > 1)
+			if (foundItem.system.quantity > amount)
 			{
 				foundItem.reduceAmmunition(amount);
 				return true;

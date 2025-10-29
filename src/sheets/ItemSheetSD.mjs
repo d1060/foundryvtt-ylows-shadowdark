@@ -46,6 +46,7 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			npcAttackRanges: this.#onNpcAttackRanges,
 			removeNameTable: this.#onRemoveTable,
 			deleteCraftTarget: this.#onDeleteCraftTarget,
+			deleteCraftRecipeItem: this.#onDeleteCraftRecipeItem,
 			deleteRequirement: this.#onDeleteRequirement,
 			addPrefix: this.#onAddPrefix,
 			addSuffix: this.#onAddSuffix,
@@ -870,6 +871,10 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		if (!this.item.system.craftTargets || this.item.system.craftTargets.length === 0)
 			context.craftTargetsChosen = false;
 
+		context.craftRecipeChosen = true;
+		if (!this.item.system.craftRecipe || this.item.system.craftRecipe.length === 0)
+			context.craftRecipeChosen = false;
+
 		return context;
 	}
 
@@ -1425,6 +1430,31 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			return;
 		}
 
+		if (data.type == 'Item' && this.item.system.craftable)
+		{
+			const droppedItem = await fromUuid(data.uuid);
+
+			const pushData = {
+				name: droppedItem.name,
+				_id: droppedItem._id,
+				uuid: droppedItem.uuid,
+				img: droppedItem.img,
+				quantity: 1
+			}
+
+			if (!this.item.system.craftRecipe) this.item.system.craftRecipe = [];
+
+			const craftRecipe = this.item.system.craftRecipe.find(r => r.uuid === droppedItem.uuid);
+			if (craftRecipe) {
+				craftRecipe.quantity++;
+			} else {
+				this.item.system.craftRecipe.push(pushData);
+			}
+
+			this.item.update({"system.craftRecipe": this.item.system.craftRecipe});
+			return;
+		}
+
 		if (!(allowedType && isSpellDrop)) return super._onDrop();
 
 		const name = game.i18n.format(
@@ -1528,6 +1558,8 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 			if (effectId)
 				await this._onEffectChangeValue(event, effectId);
 		}
+		else if (event.target.name === 'craftRecipeQuantity')
+			await this._onUpdateCraftRecipeQuantity(event.target);
 		else if (UtilitySD.isNestedPropertyArray(this.item, event.target.name))
 		{
 			let uuid = UtilitySD.getSelectedUuid(form, event.target);
@@ -1628,6 +1660,14 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 		var index = this.item.system.craftTargets.indexOf(target);
 		this.item.system.craftTargets.splice(index, 1);
 		this.item.update({"system.craftTargets": this.item.system.craftTargets});
+	}
+
+	static async #onDeleteCraftRecipeItem(event, target) {
+		const targetId = target.dataset.id;
+		var target = this.item.system.craftRecipe.find(r => r._id === targetId);
+		var index = this.item.system.craftRecipe.indexOf(target);
+		this.item.system.craftRecipe.splice(index, 1);
+		this.item.update({"system.craftRecipe": this.item.system.craftRecipe});
 	}
 
 	static async #onDeleteRequirement(event, target) {
@@ -1772,6 +1812,16 @@ export default class ItemSheetSD extends HandlebarsApplicationMixin(ItemSheetV2)
 				break;
 		}
 		await this.item.update({['system.bodyParts']: this.item.system.bodyParts});
+	}
+
+	async _onUpdateCraftRecipeQuantity(target) {
+		const targetId = target.dataset.id;
+		var recipeItem = this.item.system.craftRecipe.find(r => r._id === targetId);
+
+		const value = parseInt(target.value);
+		recipeItem.quantity = value;
+		
+		this.item.update({"system.craftRecipe": this.item.system.craftRecipe});
 	}
 
 	async _onHitLocationMouseMove(event) {

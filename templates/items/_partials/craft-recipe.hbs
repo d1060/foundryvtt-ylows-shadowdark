@@ -1,0 +1,36 @@
+{{#if system.craftable}}
+<div class="content" style="width: 99%">
+    <h3>{{localize 'SHADOWDARK.item.craft-recipe'}}</h3>
+    <div>
+        <fieldset class="items" style="height: 100%;{{#if craftRecipeChosen}} width: fit-content{{/if}}">
+            {{#unless craftRecipeChosen}}
+                <div style="color: rgba(0, 0, 0, 0.6); text-align: center;">
+                    <em>{{localize "SHADOWDARK.apps.level-up.dragdrop"}}</em>
+                </div>
+            {{/unless}}
+            {{#if craftRecipeChosen}}
+            <div style="color: rgba(0, 0, 0, 0.6); text-align: center; row-gap: 4px; display: grid; grid-template-columns: 22px 28px 1fr 60px; column-gap: 4px; align-items: center;">
+            {{#each system.craftRecipe}}
+                <a
+                    class="remove-item fas fa-delete-right"
+                    data-action="deleteCraftRecipeItem"
+                    data-index="{{@index}}"
+                    data-id="{{this._id}}"
+                ></a>
+                <img style="height: 24px" src="{{this.img}}" />
+                <a
+                    style="font-size: 14px; font-family: 'Montserrat-Bold';"
+                    data-link
+                    data-tooltip="{{this.name}}"
+                    data-id="{{this._id}}"
+                >
+                    {{this.name}}
+                </a>
+                <input style="width: 60px" type="number" name="craftRecipeQuantity" data-index="{{@index}}" data-id="{{this._id}}" value="{{this.quantity}}" />
+            {{/each}}
+            </div>
+            {{/if}}
+        </fieldset>
+    </div>
+</div>
+{{/if}}

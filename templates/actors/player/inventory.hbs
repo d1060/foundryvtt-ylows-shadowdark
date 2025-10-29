@@ -18,6 +18,12 @@
 					{{> actors/player/inventory/gems }}
 					<div data-action="startSellItems" style="display: grid; place-items: center;"><span class="fa-solid fa-coins"> {{localize 'SHADOWDARK.inventory.sell_items'}}</span></div>
 				{{/if}}
+				{{#if system.bonuses.crafter}}
+					<div data-action="craftItems" style="display: grid; place-items: center; margin-top: 5px;">
+						<img src="/systems/shadowdark/assets/icons/anvil.png" height="32" />
+						<span>{{localize 'SHADOWDARK.inventory.craft_items'}}</span>
+					</div>
+				{{/if}}
 			</div>
 		</div>
 	</div>

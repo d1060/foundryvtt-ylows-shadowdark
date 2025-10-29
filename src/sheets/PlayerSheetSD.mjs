@@ -73,6 +73,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			itemChatClick: this.#onItemChatClick,
 			openEvolutionGrid: this.#onOpenEvolutionGrid,
 			startSellItems: this.#onStartSellItems,
+			craftItems: this.#onCraftItems,
 			sellBulkSell: this.#onSellBulkSell,
 			cancelBulkSell: this.#onCancelBulkSell,
 			addToBulkSell: this.#onAddToBulkSell,
@@ -991,6 +992,122 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		this.actor.bulkSell = {active: true, barterCheck: 10, gp: 0, sp: 0, cp: 0, originalCost: 0 }
 		await BulkSellSD.clearBulkSelltems(this.actor);
 		this.render(true);
+	}
+
+	static async #onCraftItems(event, target) {
+		event.preventDefault();
+		const allCraftableItems = await CompendiumsSD.craftableItems();
+
+		if (!allCraftableItems || !allCraftableItems.length)
+		{
+			//shadowdark.debug(`onCraftItems: Could not find any craftable item`);
+			return;
+		}
+
+		const itemsYouCanCraft = [];
+		const itemsYouCannotCraft = [];
+		for (const item of allCraftableItems) {
+			if (!item.system.craftRecipe || item.system.craftRecipe.length == 0)
+				item.noRecipe = true;
+			else 
+			{
+				item.noRecipe = false;
+				item.hasIngredients = true;
+				item.recipeTooltip = "";
+				for (const recipeItem of item.system.craftRecipe) {
+					item.recipeTooltip += '<br>' + recipeItem.name + ': ' + recipeItem.quantity;
+					//shadowdark.debug(`onCraftItems: Checking recipe for ${item.name}: ${recipeItem.quantity} ${recipeItem.name}`);
+					const itemsIhave = this.actor.items.filter(i => i.name.slugify() === recipeItem.name.slugify());
+					if (!itemsIhave)
+					{
+						item.hasIngredients = false;
+					}
+					let myQuantity = 0;
+					for (const itemIhave of itemsIhave) {
+						myQuantity += itemIhave.system.quantity;
+					}
+					if (myQuantity < recipeItem.quantity)
+					{
+						item.hasIngredients = false;
+					}
+				}
+
+				if (item.noRecipe || !item.hasIngredients)
+				{
+					item.disabled = true;
+					itemsYouCannotCraft.push(item)
+				} else {
+					item.disabled = false;
+					itemsYouCanCraft.push(item);
+				}
+			}
+		}
+
+		const content = await foundry.applications.handlebars.renderTemplate(
+			"systems/shadowdark/templates/dialog/craft-item.hbs",
+			{
+				itemsYouCanCraft,
+				itemsYouCannotCraft,
+				allCraftableItems,
+			}
+		);
+
+		const targetItem = await foundry.applications.api.DialogV2.wait({
+				classes: ["app", "shadowdark", "shadowdark-dialog", "window-app", 'themed', 'theme-light'],
+				window: {
+					resizable: false,
+					title: game.i18n.localize("SHADOWDARK.dialog.item.craft_item_select.title"),
+				},
+				content,
+				buttons: [
+					{
+						action: 'select',
+						icon: "fa fa-square-check",
+						label: `${game.i18n.localize("SHADOWDARK.dialog.general.select")}`,
+						callback: event => {
+							const checkedRadio = event.currentTarget.querySelector("input[type='radio']:checked");
+							return checkedRadio?.getAttribute("uuid") ?? false;
+						},
+					},
+					{
+						action: 'cancel',
+						icon: "fa fa-square-xmark",
+						label: `${game.i18n.localize("SHADOWDARK.dialog.general.cancel")}`,
+						callback: () => false,
+					},
+				],
+				default: "select",
+		});
+
+		if (targetItem) {
+			const newItem = await fromUuid(targetItem);
+			if (!newItem) return;
+
+			const [newPotion] = await this.actor.createEmbeddedDocuments(
+				"Item",
+				[newItem]
+			);
+
+			for (const recipeItem of newItem.system.craftRecipe) {
+				const ingredients = this.actor.items.filter(i => i.name.slugify() === recipeItem.name.slugify());
+				if (!ingredients)
+					continue;
+
+				let toReduce = recipeItem.quantity;
+				for (const ingredient of ingredients) {
+					if (ingredient.system.quantity >= toReduce)
+					{
+						this.actor.reduceQuantity(ingredient, toReduce);
+						break;
+					}
+					else
+					{
+						this.actor.reduceQuantity(ingredient, ingredient.system.quantity);
+						toReduce -= ingredient.system.quantity;
+					}
+				}
+			}
+		}
 	}
 
 	static async #onSellBulkSell(event, target) {
