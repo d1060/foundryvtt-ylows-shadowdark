@@ -1,4 +1,11 @@
 <div class="centered-box" style="width: 99%">
-    <div><h3>{{localize 'SHADOWDARK.item.talent_multiple'}}</h3><input type="checkbox" name="system.allowMultipleChoice"{{#if system.allowMultipleChoice}} checked{{/if}}></div>
-    <div><h3>{{localize 'SHADOWDARK.item.craftable_potion'}}</h3><input type="checkbox" name="system.craftablePotion"{{#if system.craftablePotion}} checked{{/if}}></div>
+    <div style="margin-left: auto;"><h3>{{localize 'SHADOWDARK.item.talent_multiple'}}</h3><input type="checkbox" name="system.allowMultipleChoice"{{#if system.allowMultipleChoice}} checked{{/if}}></div>
+    <div style="margin-left: auto;"><h3>{{localize 'SHADOWDARK.item.craftable_talent'}}</h3><input type="checkbox" name="system.craftableTalent"{{#if system.craftableTalent}} checked{{/if}}></div>
+    {{#if system.craftableTalent}}
+        <div style="margin-left: auto; margin-right: 22px;"><h4>{{localize 'SHADOWDARK.item.craftable_talent_melee'}}</h4><input type="checkbox" name="system.craftableTalent_Melee"{{#if system.craftableTalent_Melee}} checked{{/if}}></div>
+        <div style="margin-left: auto; margin-right: 22px;"><h4>{{localize 'SHADOWDARK.item.craftable_talent_ranged'}}</h4><input type="checkbox" name="system.craftableTalent_Ranged"{{#if system.craftableTalent_Ranged}} checked{{/if}}></div>
+        <div style="margin-left: auto; margin-right: 22px;"><h4>{{localize 'SHADOWDARK.item.craftable_talent_armor'}}</h4><input type="checkbox" name="system.craftableTalent_Armor"{{#if system.craftableTalent_Armor}} checked{{/if}}></div>
+        <div style="margin-left: auto; margin-right: 22px;"><h4>{{localize 'SHADOWDARK.item.craftable_talent_shield'}}</h4><input type="checkbox" name="system.craftableTalent_Shield"{{#if system.craftableTalent_Shield}} checked{{/if}}></div>
+    {{/if}}
+    <div style="margin-left: auto;"><h3>{{localize 'SHADOWDARK.item.craftable_potion'}}</h3><input type="checkbox" name="system.craftablePotion"{{#if system.craftablePotion}} checked{{/if}}></div>
 </div>

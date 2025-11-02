@@ -17,11 +17,23 @@
 			<b>{{localize 'SHADOWDARK.item.armor_bonus_attribute'}}</b> <em>{{fromConfig "ABILITIES_LONG" item.system.ac.attribute}}</em>
 			{{/if}}
 		</p>
+		{{#if item.system.baseArmor}}
 		<p>
-			{{#if item.system.baseArmor}}
 			<b>{{localize 'SHADOWDARK.item.armor.base_armor.title'}}</b> <em>{{baseItemName}}</em>
-			{{/if}}
 		</p>
+		{{/if}}
+		{{#if item.system.creator}}
+			<p>
+				<b>{{localize 'SHADOWDARK.item.creator'}}</b>
+				<em>{{item.system.creatorName}}</em>
+			</p>
+		{{/if}}
+		{{#if item.system.customArmorTargetName}}
+			<p>
+				<b>{{localize 'SHADOWDARK.item.weapon_custom'}}</b>
+				<em>{{item.system.customArmorTargetName}}</em>
+			</p>
+		{{/if}}
     {{{description}}}
   </div>
 

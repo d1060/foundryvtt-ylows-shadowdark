@@ -1,0 +1,49 @@
+<section class="barter" autocomplete="off" spellcheck="off">
+    <div style="display: grid; place-items: center;"><h3>{{localize 'SHADOWDARK.inventory.barter_check'}} <span class="barter-check-value">{{barterCheck}}</span></h3></div>
+    <input style="background-color: transparent;" type="range" name="barterCheck" min="2" max="25" step="1" value="{{barterCheck}}">
+    <fieldset class="items droppable" style="height: 100%;">
+        {{#unless itemsChosen}}
+            <div style="color: rgba(0, 0, 0, 0.6); text-align: center;">
+                <em>{{localize "SHADOWDARK.apps.level-up.dragdrop"}}</em>
+            </div>
+        {{/unless}}
+        {{#if itemsChosen}}
+            <div class="items-grid" style="color: rgba(0, 0, 0, 0.6); text-align: center;">
+            {{#each items}}
+                <a
+                    class="remove-item fas fa-delete-right"
+                    data-action="deleteItem"
+                    data-index="{{@index}}"
+                    data-id="{{this._id}}"
+                ></a>
+                <img style="height: 24px" src="{{this.img}}" />
+                <a
+                    style="font-size: 14px; font-family: 'Montserrat-Bold';"
+                    data-link
+                    data-tooltip="{{this.name}}"
+                    data-id="{{this._id}}"
+                >
+                    {{this.name}}
+                </a>
+                <input style="width: 60px" type="number" name="itemQuantity" data-index="{{@index}}" data-id="{{this._id}}" value="{{this.quantity}}" />
+                <span>
+                    <span class="buy_item_index_{{@index}} item_cp">{{#if this.actualCost.cp}}{{this.actualCost.cp}}{{/if}}</span><span class="buy_item_coins buy_item_cp_{{@index}}">{{#if this.actualCost.cp}}{{localize 'SHADOWDARK.coins.cp'}}{{/if}}</span>
+                    <span class="buy_item_index_{{@index}} item_sp">{{#if this.actualCost.sp}}{{this.actualCost.sp}}{{/if}}</span><span class="buy_item_coins buy_item_sp_{{@index}}">{{#if this.actualCost.sp}}{{localize 'SHADOWDARK.coins.sp'}}{{/if}}</span>
+                    <span class="buy_item_index_{{@index}} item_gp">{{#if this.actualCost.gp}}{{this.actualCost.gp}}{{/if}}</span><span class="buy_item_coins buy_item_gp_{{@index}}">{{#if this.actualCost.gp}}{{localize 'SHADOWDARK.coins.gp'}}{{/if}}</span>
+                </span>
+            {{/each}}
+            </div>
+        {{/if}}
+    </fieldset>
+    {{#if itemsChosen}}
+    <div class="footer">
+        <h3>{{localize "SHADOWDARK.inventory.buy_items_cost"}}</h3>
+        <span>
+            <span class="buy_item_transaction item_cp">{{#if transaction.cp}}{{transaction.cp}}{{/if}}</span><span class="buy_item_transaction_coins buy_item_cp">{{#if transaction.cp}}{{localize 'SHADOWDARK.coins.cp'}}{{/if}}</span>
+            <span class="buy_item_transaction item_sp">{{#if transaction.sp}}{{transaction.sp}}{{/if}}</span><span class="buy_item_transaction_coins buy_item_sp">{{#if transaction.sp}}{{localize 'SHADOWDARK.coins.sp'}}{{/if}}</span>
+            <span class="buy_item_transaction item_gp">{{#if transaction.gp}}{{transaction.gp}}{{/if}}</span><span class="buy_item_transaction_coins buy_item_gp">{{#if transaction.gp}}{{localize 'SHADOWDARK.coins.gp'}}{{/if}}</span>
+        </span>
+        <button type="button" class="confirm-buy" data-action="confirmBuy" name="confirmBuy" value="1"{{#unless haveFunds}} style="opacity: 0.5;" disabled{{/unless}}><span class="fa-solid fa-donate"></span>{{localize 'SHADOWDARK.dialog.item.confirm'}}</button>
+    </div>
+    {{/if}}
+</section>

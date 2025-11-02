@@ -930,8 +930,8 @@ export default class ActorSD extends Actor {
 		weaponOptions.bonusDamage = weaponMasterBonus;
 
 		// Find out if the user has a modified damage die
-		let oneHanded = item.system.damage.oneHanded ?? false;
-		let twoHanded = item.system.damage.twoHanded ?? false;
+		let oneHanded = item.system.damage?.oneHanded ?? false;
+		let twoHanded = item.system.damage?.twoHanded ?? false;
 
 		// Improve the base damage die if this weapon has the relevant property
 		for (const property of this.system.bonuses.weaponDamageDieImprovementByProperty) {
@@ -1054,8 +1054,21 @@ export default class ActorSD extends Actor {
 			twoHanded = twoHanded ? "d12" : false;
 		}
 
+		if (this.system.bonuses.bladeLore && item.system.creator && item.system.creator == this.uuid)
+		{
+			weaponOptions.attackBonus++;
+			weaponOptions.bonusDamage++;
+		}
+
+		if (item.system.customWeaponTarget && item.system.customWeaponTarget == this.uuid)
+		{
+			weaponOptions.attackBonus++;
+			if (this.system.bonuses.smithingTranscendent)
+				weaponOptions.attackBonus++;
+		}
+
 		if (item.system.type === "melee") {
-			weaponOptions.attackBonus =	baseAttackBonus
+			weaponOptions.attackBonus += baseAttackBonus
 				+ parseInt(this.system.bonuses.meleeAttackBonus, 10)
 				+ parseInt(item.system.bonuses.attackBonus, 10)
 				+ weaponMasterBonus;
@@ -1069,7 +1082,8 @@ export default class ActorSD extends Actor {
 			if (oneHanded) {
 				weaponOptions.baseDamage = CONFIG.SHADOWDARK.WEAPON_BASE_DAMAGE[oneHanded];
 				weaponOptions.handedness = game.i18n.localize("SHADOWDARK.item.weapon_damage.oneHanded_short");
-				if (await item.hasProperty('supersharp')) weaponOptions.baseDamage += '+1';
+				if (await item.hasProperty('supersharp')) weaponOptions.bonusDamage++;
+				if (await item.hasProperty('ultrasharp')) weaponOptions.bonusDamage += 2;
 
 				weaponDisplays.melee.push({
 					display: await this.buildWeaponDisplay(weaponOptions),
@@ -1082,7 +1096,7 @@ export default class ActorSD extends Actor {
 				weaponOptions.baseDamage = CONFIG.SHADOWDARK.WEAPON_BASE_DAMAGE[
 					twoHanded
 				];
-				if (await item.hasProperty('supersharp')) weaponOptions.baseDamage += '+1';
+
 				weaponOptions.handedness = game.i18n.localize("SHADOWDARK.item.weapon_damage.twoHanded_short");
 
 				weaponDisplays.melee.push({
@@ -1099,7 +1113,7 @@ export default class ActorSD extends Actor {
 				var parts = weaponOptions.baseDamage.split("d");
 				parts[0] = parseInt(parts[0]) + 1;
 				weaponOptions.baseDamage = parts.join("d");
-				if (await item.hasProperty('supersharp')) weaponOptions.baseDamage += '+1';
+
 				weaponOptions.handedness = game.i18n.localize("SHADOWDARK.item.weapon_damage.oneHanded_short") + ", quick strike";
 				var attackBonus = weaponOptions.attackBonus;
 				weaponOptions.attackBonus -= 2;
@@ -1113,14 +1127,14 @@ export default class ActorSD extends Actor {
 					itemId,
 				});
 				
-				if (item.system.damage.twoHanded) {
+				if (item.system.damage?.twoHanded) {
 					weaponOptions.baseDamage = CONFIG.SHADOWDARK.WEAPON_BASE_DAMAGE[
-						item.system.damage.twoHanded
+						item.system.damage?.twoHanded
 					];
 					var parts = weaponOptions.baseDamage.split("d");
 					parts[0] = parseInt(parts[0]) + 1;
 					weaponOptions.baseDamage = parts.join("d");
-					if (await item.hasProperty('supersharp')) weaponOptions.baseDamage += '+1';
+
 					weaponOptions.handedness = game.i18n.localize("SHADOWDARK.item.weapon_damage.twoHanded_short") + ", quick strike";
 
 					weaponDisplays.melee.push({
@@ -1135,6 +1149,35 @@ export default class ActorSD extends Actor {
 				weaponOptions.attackOption = "";
 				weaponOptions.attackBonus = attackBonus;
 			}
+
+			// if thrown build range attack option
+			if (await item.hasProperty("thrown")) {
+
+				const thrownBaseBonus = Math.max(meleeAttack, rangedAttack);
+
+				weaponOptions.attackBonus = thrownBaseBonus
+					+ parseInt(this.system.bonuses.rangedAttackBonus, 10)
+					+ parseInt(item.system.bonuses.attackBonus, 10)
+					+ weaponMasterBonus;
+
+				weaponOptions.baseDamage = CONFIG.SHADOWDARK.WEAPON_BASE_DAMAGE[oneHanded];
+
+				weaponOptions.handedness = game.i18n.localize("SHADOWDARK.item.weapon_damage.oneHanded_short");
+				weaponOptions.attackRange = CONFIG.SHADOWDARK.RANGES_SHORT[
+					item.system.range
+				];
+				weaponOptions.bonusDamage =
+					weaponMasterBonus
+					+ parseInt(this.system.bonuses.rangedDamageBonus, 10)
+					+ parseInt(item.system.bonuses.damageBonus, 10);
+
+				weaponDisplays.ranged.push({
+					display: await this.buildWeaponDisplay(weaponOptions),
+					handedness: "1h",
+					baseDamage: weaponOptions.baseDamage,
+					itemId,
+				});
+			}
 			
 			if (this.system.bonuses.dualWeaponAttack && await this.isDualWielding())
 			{
@@ -1146,7 +1189,7 @@ export default class ActorSD extends Actor {
 				for (const item of equippedWeaponItems)
 				{
 					const isUnarmedAttack = await item.hasProperty('unarmed');
-					if (item.system.damage && item.system.damage.oneHanded && item.system.damage.oneHanded !== "" && (!item.system.damage.twoHanded || item.system.damage.twoHanded === "") && !isUnarmedAttack)
+					if (item.system.damage && item.system.damage?.oneHanded && item.system.damage?.oneHanded !== "" && (!item.system.damage?.twoHanded || item.system.damage?.twoHanded === "") && !isUnarmedAttack)
 					{
 						if (!weapon1) weapon1 = item;
 						else
@@ -1159,8 +1202,8 @@ export default class ActorSD extends Actor {
 				
 				if (itemId === weapon2._id)
 				{
-					var weapon1Parts = weapon1.system.damage.oneHanded.split("d");
-					var weapon2Parts = weapon2.system.damage.oneHanded.split("d");
+					var weapon1Parts = weapon1.system.damage?.oneHanded.split("d");
+					var weapon2Parts = weapon2.system.damage?.oneHanded.split("d");
 					var dualWieldDamage = "";
 					
 					if (weapon1Parts[0] === "") weapon1Parts[0] = "1";
@@ -1180,8 +1223,9 @@ export default class ActorSD extends Actor {
 					var weaponName = weaponOptions.weaponName;
 					weaponOptions.weaponName = "Dual Wield";
 					weaponOptions.baseDamage = dualWieldDamage;
-					if (await weapon1.hasProperty('supersharp') && await weapon1.hasProperty('supersharp')) weaponOptions.baseDamage += '+2';
-					else if (await weapon1.hasProperty('supersharp') || await weapon1.hasProperty('supersharp')) weaponOptions.baseDamage += '+1';
+
+					if (await weapon2.hasProperty('supersharp')) weaponOptions.bonusDamage++;
+					if (await weapon2.hasProperty('ultrasharp')) weaponOptions.bonusDamage += 2;
 
 					weaponOptions.handedness = game.i18n.localize("SHADOWDARK.item.weapon_damage.twoHanded_short");
 					var attackBonus = weaponOptions.attackBonus;
@@ -1200,36 +1244,6 @@ export default class ActorSD extends Actor {
 					weaponOptions.attackBonus = attackBonus;
 				}
 			}
-
-			// if thrown build range attack option
-			if (await item.hasProperty("thrown")) {
-
-				const thrownBaseBonus = Math.max(meleeAttack, rangedAttack);
-
-				weaponOptions.attackBonus = thrownBaseBonus
-					+ parseInt(this.system.bonuses.rangedAttackBonus, 10)
-					+ parseInt(item.system.bonuses.attackBonus, 10)
-					+ weaponMasterBonus;
-
-				weaponOptions.baseDamage = CONFIG.SHADOWDARK.WEAPON_BASE_DAMAGE[oneHanded];
-				if (await item.hasProperty('supersharp')) weaponOptions.baseDamage += '+1';
-
-				weaponOptions.handedness = game.i18n.localize("SHADOWDARK.item.weapon_damage.oneHanded_short");
-				weaponOptions.attackRange = CONFIG.SHADOWDARK.RANGES_SHORT[
-					item.system.range
-				];
-				weaponOptions.bonusDamage =
-					weaponMasterBonus
-					+ parseInt(this.system.bonuses.rangedDamageBonus, 10)
-					+ parseInt(item.system.bonuses.damageBonus, 10);
-
-				weaponDisplays.ranged.push({
-					display: await this.buildWeaponDisplay(weaponOptions),
-					handedness: "1h",
-					baseDamage: weaponOptions.baseDamage,
-					itemId,
-				});
-			}
 		}
 		else if (item.system.type === "ranged") {
 			weaponOptions.attackBonus = baseAttackBonus
@@ -1247,7 +1261,8 @@ export default class ActorSD extends Actor {
 
 			if (oneHanded) {
 				weaponOptions.baseDamage = CONFIG.SHADOWDARK.WEAPON_BASE_DAMAGE[oneHanded];
-				if (await item.hasProperty('supersharp')) weaponOptions.baseDamage += '+1';
+				if (await item.hasProperty('supersharp')) weaponOptions.bonusDamage++;
+				if (await item.hasProperty('ultrasharp')) weaponOptions.bonusDamage += 2;
 				weaponOptions.handedness = game.i18n.localize("SHADOWDARK.item.weapon_damage.oneHanded_short");
 
 				weaponDisplays.ranged.push({
@@ -1259,7 +1274,8 @@ export default class ActorSD extends Actor {
 			}
 			if (twoHanded) {
 				weaponOptions.baseDamage = CONFIG.SHADOWDARK.WEAPON_BASE_DAMAGE[twoHanded];
-				if (await item.hasProperty('supersharp')) weaponOptions.baseDamage += '+1';
+				if (await item.hasProperty('supersharp')) weaponOptions.bonusDamage++;
+				if (await item.hasProperty('ultrasharp')) weaponOptions.bonusDamage += 2;
 				weaponOptions.handedness = game.i18n.localize("SHADOWDARK.item.weapon_damage.twoHanded_short");
 
 				weaponDisplays.ranged.push({
@@ -1739,6 +1755,23 @@ export default class ActorSD extends Actor {
 		else
 		{
 			this.isEquippingHeavyArmor = true;
+		}
+
+		if (armor.system.customArmorTarget && armor.system.customArmorTarget == this.uuid)
+		{
+			armorClass += 1;
+			armorClassTooltip += "Custom Armor Bonus: 1<br>";
+			if (this.system.bonuses.smithingTranscendent)
+			{
+				armorClass += 1;
+				armorClassTooltip += "Transcendent Smithing: 1<br>";
+			}
+		}
+
+		if (this.system.bonuses.armorPositioning && armor.system.creator && armor.system.creator == this.uuid)
+		{
+			armorClass += 1;
+			armorClassTooltip += "Armor Positioning: 1<br>";
 		}
 
 		if (await armor.isMetallicArmor()) this.isEquippingMetallicArmor = true;
@@ -2808,6 +2841,18 @@ export default class ActorSD extends Actor {
 				if (this.system.bonuses?.opponentACpenalty)
 					actorAc -= this.system.bonuses?.opponentACpenalty;
 
+				if (this.system.bonuses.weakPointSpecialist) {
+					if (token.actor.system?.bonuses?.rigid ||
+						token.actor.system?.bonuses?.metallic ||
+						token.actor.system?.bonuses?.armored ||
+						isMetallic )
+					{
+						actorAc--;
+						if (this.system.bonuses.smithingTranscendent)
+							actorAc--;
+					}
+				}
+
 				if (options.target) options.target += ", ";
 				options.target += actorAc;
 			}
@@ -2831,15 +2876,24 @@ export default class ActorSD extends Actor {
 			item: item,
 			rollType: (item.isWeapon()) ? item.system.baseWeapon.slugify() : item.name.slugify(),
 			usesAmmunition: item.usesAmmunition,
-			spellPenalty
+			spellPenalty,
+			itemBonus: 0,
+			itemDamageBonus: 0
 		};
+
+		if (item.system.customWeaponTarget && item.system.customWeaponTarget == this.uuid)
+		{
+			data.itemBonus += 1;
+			if (this.system.bonuses.smithingTranscendent)
+				data.itemBonus += 1;
+		}
 
 		const bonuses = this.system.bonuses;
 		const penalties = this.system.penalties;
 
 		// Summarize the bonuses for the attack roll
 		const parts = [(game.settings.get("shadowdark", "use2d10") ? "2d10" : "1d20"), "@itemBonus", "@abilityBonus", "@talentBonus", "@targetLock", "@hitLocationBonus", "@injuryPenalty", "@spellPenalty"];
-		data.damageParts = [];
+		data.damageParts = ["@itemDamageBonus"];
 
 		// Check damage multiplier
 		const damageMultiplier = Math.max(
@@ -2849,12 +2903,23 @@ export default class ActorSD extends Actor {
 
 		// Magic Item bonuses
 		if (item.system.bonuses.attackBonus) {
-			data.itemBonus = item.system.bonuses.attackBonus;
+			data.itemBonus += item.system.bonuses.attackBonus;
 		}
-		if (item.system.bonuses.damageBonus) {
-			data.damageParts.push("@itemDamageBonus");
+
+		if (item.system.bonuses.damageBonus)
 			data.itemDamageBonus = item.system.bonuses.damageBonus * damageMultiplier;
+
+		if (this.system.bonuses.bladeLore && item.system.creator && item.system.creator == this.uuid)
+		{
+			data.itemBonus += 1;
+			data.itemDamageBonus++;
 		}
+
+		if (await item.hasProperty('supersharp'))
+			data.itemDamageBonus++;
+
+		if (await item.hasProperty('ultrasharp'))
+			data.itemDamageBonus += 2;
 
 		/* Attach Special Ability if part of the attack.
 			Created in `data.itemSpecial` field.
@@ -3123,8 +3188,6 @@ export default class ActorSD extends Actor {
 		if (dualWeapon !== '') {
 			damageRoll += ' +' + dualWeapon;
 		}
-
-		if (await data.item.hasProperty('supersharp')) damageRoll += '+1';
 
 		for (let part of data.damageParts)
 		{
@@ -3743,6 +3806,10 @@ export default class ActorSD extends Actor {
 		if (await item.isBasicArmor())
 			return true;
 
+		if (item.system.customWeaponTarget && item.system.customWeaponTarget == this.uuid)
+			return true;
+		if (item.system.customArmorTarget && item.system.customArmorTarget == this.uuid)
+			return true;
 		var proficiencyName = item.name.slugify();
 		if (item.isWeapon() && item.system.baseWeapon && item.system.baseWeapon !== "")
 			proficiencyName = item.system.baseWeapon.slugify();
@@ -4015,5 +4082,143 @@ export default class ActorSD extends Actor {
 				"Item",
 				[item.id]
 			);
+	}
+
+	async applySmithingPerksToCreatedItem(item)
+	{
+		const updateData = {
+			"_id": item.id,
+			"system.creator": this.uuid,
+			"system.creatorName": this.name,
+		}
+
+		if (item.type == 'Armor') {
+			if (this.system.bonuses.smithingSuperiorMaterials) {
+				if (item.system.slots?.slots_used > 1) {
+					item.system.slots.slots_used--;
+					if (this.system.bonuses.smithingTranscendent && item.system.slots.slots_used > 1)
+						item.system.slots.slots_used--;
+
+					updateData['system.slots.slots_used'] = item.system.slots.slots_used;
+				}
+			}
+			if (this.system.bonuses.smithingCustomArmor) {
+				const chosenTarget = await UtilitySD.actorChoiceDialog({addSomeoneElse: true, title: 'SHADOWDARK.dialog.item.custom_item.title', label: 'SHADOWDARK.dialog.item.custom.label'});
+				if (chosenTarget) {
+					updateData['name'] = chosenTarget.name + '\'s ' + item.name;
+					updateData['system.customArmorTarget'] = chosenTarget.uuid;
+					updateData['system.customArmorTargetName'] = chosenTarget.name;
+				}
+			}
+		} else if (item.type == 'Weapon') {
+			if (this.system.bonuses.smithingImpactSpecialist) {
+				let oneHanded, twoHanded;
+				if (item.system.damage?.oneHanded) {
+					oneHanded = item.system.damage.oneHanded;
+					oneHanded = shadowdark.utils.getNextDieInList(
+						oneHanded,
+						shadowdark.config.DAMAGE_DICE
+					);
+					updateData['system.damage.oneHanded'] = oneHanded;
+				}
+				if (item.system.damage?.twoHanded) {
+					twoHanded = item.system.damage.twoHanded;
+					twoHanded = shadowdark.utils.getNextDieInList(
+						twoHanded,
+						shadowdark.config.DAMAGE_DICE
+					);
+					updateData['system.damage.twoHanded'] = twoHanded;
+				}
+
+				if (this.system.bonuses.smithingTranscendent) {
+					if (item.system.damage?.oneHanded) {
+						oneHanded = shadowdark.utils.getNextDieInList(
+							oneHanded,
+							shadowdark.config.DAMAGE_DICE
+						);
+						updateData['system.damage.oneHanded'] = oneHanded;
+					}
+					if (item.system.damage?.twoHanded) {
+						twoHanded = shadowdark.utils.getNextDieInList(
+							twoHanded,
+							shadowdark.config.DAMAGE_DICE
+						);
+						updateData['system.damage.twoHanded'] = twoHanded;
+					}
+				}
+			}
+			if (this.system.bonuses.smithingExpertSharpener) {
+				const properties = await shadowdark.compendiums.weaponProperties();
+				const supersharp = properties.find(p => p.name.slugify() == 'supersharp');
+				const ultrasharp = properties.find(p => p.name.slugify() == 'ultrasharp');
+				if (this.system.bonuses.smithingTranscendent && ultrasharp) {
+					item.addProperty(ultrasharp.uuid);
+				} else if (supersharp) {
+					item.addProperty(supersharp.uuid);
+				} else {
+
+				}
+			}
+			if (this.system.bonuses.smithingCustomWeapon) {
+				const chosenTarget = await UtilitySD.actorChoiceDialog({addSomeoneElse: true, title: 'SHADOWDARK.dialog.item.custom_item.title', label: 'SHADOWDARK.dialog.item.custom.label'});
+				if (chosenTarget) {
+					updateData['name'] = chosenTarget.name + '\'s ' + item.name;
+					updateData['system.customWeaponTarget'] = chosenTarget.uuid;
+					updateData['system.customWeaponTargetName'] = chosenTarget.name;
+				}
+			}
+		}
+
+		this.updateEmbeddedDocuments("Item", [updateData]);
+
+		if (this.system.bonuses.smithingMasterCrafter) {
+			const itemType = await item.isAShield() ? "Shield" : (
+				item.isArmor() ? "Armor" : (
+					item.isRangedWeapon() ? "Ranged" : ( 
+						item.isMeleeWeapon() ? "Melee" : "Other"
+					)
+				)
+			);
+
+			const applicableTechniques = await shadowdark.compendiums.craftableTechniques(itemType);
+			if (!applicableTechniques || !applicableTechniques.length) return;
+
+			const technique = await UtilitySD.choiceDialog({
+				choices: applicableTechniques,
+				title: 'SHADOWDARK.dialog.item.choose_technique.title',
+				label: 'SHADOWDARK.dialog.item.choose_technique.label'
+			});
+
+			if (technique) {
+				await this.updateEmbeddedDocuments("Item", [{
+					"_id": item.id,
+					"system.magicItem": true,
+				}]);
+
+				const changes = [];
+				for (const effect of technique.effects) {
+					for (const change of effect.changes) {
+						changes.push({key: change.key, 
+								mode: change.mode,
+								value: change.value
+						});
+					}
+				}
+
+				const itemEffectData =  {
+					name: technique.name,
+					label: technique.name,
+					img: technique.img,
+					changes,
+					disabled: true,
+					transfer: true,
+					sourceName: 'Master Crafter',
+					system: { origin: 'Master Crafter' },
+					description: technique.system.description,
+				};
+
+				await item.createEmbeddedDocuments("ActiveEffect", [itemEffectData]);
+			}
+		}
 	}
 }

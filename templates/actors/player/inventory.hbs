@@ -17,6 +17,7 @@
 					{{> actors/player/inventory/coins }}
 					{{> actors/player/inventory/gems }}
 					<div data-action="startSellItems" style="display: grid; place-items: center;"><span class="fa-solid fa-coins"> {{localize 'SHADOWDARK.inventory.sell_items'}}</span></div>
+					<div data-action="buyItems" style="display: grid; place-items: center;"><span class="fa-solid fa-balance-scale"> {{localize 'SHADOWDARK.inventory.buy_items'}}</span></div>
 				{{/if}}
 				{{#if system.bonuses.crafter}}
 					<div data-action="craftItems" style="display: grid; place-items: center; margin-top: 5px;">

@@ -33,6 +33,18 @@
 				<em>{{baseItemName}}</em>
 			</p>
 		{{/if}}
+		{{#if item.system.creator}}
+			<p>
+				<b>{{localize 'SHADOWDARK.item.creator'}}</b>
+				<em>{{item.system.creatorName}}</em>
+			</p>
+		{{/if}}
+		{{#if item.system.customWeaponTargetName}}
+			<p>
+				<b>{{localize 'SHADOWDARK.item.weapon_custom'}}</b>
+				<em>{{item.system.customWeaponTargetName}}</em>
+			</p>
+		{{/if}}
 		{{{description}}}
 	</div>
 

@@ -72,6 +72,7 @@ Hooks.once("init", () => {
 		lightSourceTracker: new apps.LightSourceTrackerSD(),
 		effectPanel: null,
 		lootPanel: null,
+		utils: globalThis.shadowdark.utils
 	};
 
 	CONFIG.SHADOWDARK = SHADOWDARK;

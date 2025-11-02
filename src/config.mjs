@@ -208,6 +208,8 @@ SHADOWDARK.EFFECT_ASK_INPUT = [
 	"system.bonuses.empoweredRunecasting",
 	"system.bonuses.runeSpecialist",
 	"system.bonuses.spellPenetration",
+	"system.bonuses.potionSpecialist",
+	"system.bonuses.poisonSpecialist",
 ];
 
 SHADOWDARK.EFFECT_CATEGORIES = {
@@ -848,6 +850,21 @@ SHADOWDARK.PREDEFINED_EFFECTS = {
 	//system.penalties.disadvantage
 	//system.penalties.physicalCriticalRange
 	//system.penalties.mentalCriticalRange
+	//system.bonuses.smithingSuperiorMaterials -> When you craft armor, it gets -1 to gear slots (minimum of 1).
+	//system.bonuses.smithingImpactSpecialist -> When you craft a weapon, its damage dice is increased by a scale: 1d4 -> 1d6 -> 1d8 -> 1d10 -> 1d12 -> 2d6 -> 2d8.
+	//system.bonuses.smithingExpertSharpener -> When you craft a weapon, it gets +1 to damage
+	//system.bonuses.smithingCustomWeapon -> You can craft a weapon specifically for a particular individual. That person gets +1 to attacks when wielding that weapon
+	//system.bonuses.smithingCustomArmor -> You can craft an armor specifically for a particular individual. That person gets +1 to AC when wearing that armor
+	//system.bonuses.armorPositioning -> When fighting wearing armor you crafted yourself, you get +1 to AC.
+	//system.bonuses.bladeLore -> When fighting with a weapon you crafted yourself, you get +1 to attack and damage
+	//system.bonuses.weakPointSpecialist -> When fighting against armored opponents, their protection is 1 AC lower against you
+	//system.bonuses.smithingForgeImproviser -> You can craft weapon and armor for cheaper. The material cost for crafting such items is 1/5 of their market cost.
+	//system.bonuses.smithingMasterCrafter -> When you craft a weapon or shield, you can select a technique from either "Solar Soldier", "Silver Knight", "Hunter" or "Martial Artist" classes. When wielding that gear, the person can use that technique. The technique must be applicable to the crafted equipment type
+	//system.bonuses.smithingTranscendent -> When you craft an item with a smithing secret that contains a numerical value, that numerical value is doubled.
+	//system.bonuses.strenghtenedPotions
+	//system.bonuses.strenghtenedPoisons
+	//system.bonuses.potionSpecialist
+	//system.bonuses.poisonSpecialist
 
 	//TODO:
 	//system.bonuses.injector On hit, injects a random drug on the target. Roll DC 12 CON. On a failure, roll 1d6:
@@ -864,6 +881,8 @@ SHADOWDARK.PREDEFINED_EFFECTS = {
 	//system.bonuses.blindingFlash -> Everyone in 6 hexes rolls CON vs 14. On a failure, they are blinded for 1d4 turns.
 	//system.bonuses.corrosiveGas -> Everyone in close range always takes [[/r 1d4]] per turn.
 
+	// system.bonuses.smithingForgeExperimentalist -> When you craft a weapon or armor, you can give it a new property, or remove one of its properties.
+
 	// New abilities:
 	// Gain more HP at each heal.
 	// Imprisoning spells.
@@ -874,7 +893,7 @@ SHADOWDARK.PREDEFINED_EFFECTS = {
 	// system.bonuses.nanoTolerance
 	// system.bonuses.productionReady
 	// system.bonuses.programOptimizationCount
-	// system.bonuses.nanoPrtotectedMemory
+	// system.bonuses.nanoProtectedMemory
 	// system.bonuses.solarNanobots
 	// system.bonuses.elementalArmor
 	// system.bonuses.extraElementalDamage
@@ -966,12 +985,54 @@ SHADOWDARK.WEAPON_BASE_DAMAGE = {
 	d4: "1d4", // Avg 2.5
 	d6: "1d6", // Avg 3.5
 	d8: "1d8", // Avg 4.5
+	'2d4': '2d4', // Avg 5
 	d10: "1d10", // Avg 5.5
 	d12: "1d12", // Avg 6.5
 	"2d6": "2d6", // Avg 7
+	'3d4': "3d4", // Avg 7.5
 	"2d8": "2d8", // Avg 9
+	'4d4': '4d4', // Avg 5
+	"3d6": "3d6", // Avg 7
 	"2d10": "2d10", // Avg 11
+	'5d4': '5d4', // Avg 5
 	"2d12": "2d12", // Avg 13
+	"3d8": "3d8", // Avg 7
+	"4d6": "4d6", // Avg 7
+	"4d6": "4d6", // Avg 7
+	'6d4': '6d4', // Avg 5
+	"3d10": "3d10", // Avg 11
+	"7d4" : "7d4",
+	"5d6" : "5d6",
+	"4d8" : "4d8",
+	"3d12" : "3d12",
+	"8d4" : "8d4",
+	"6d6" : "6d6",
+	"4d10" : "4d10",
+	"9d4" : "9d4",
+	"5d8" : "5d8",
+	"7d6" : "7d6",
+	"10d4" : "10d4",
+	"4d12" : "4d12",
+	"6d8" : "6d8",
+	"5d10" : "5d10",
+	"8d6" : "8d6",
+	"9d6" : "9d6",
+	"7d8" : "7d8",
+	"5d12" : "5d12",
+	"6d10" : "6d10",
+	"10d6" : "10d6",
+	"8d8" : "8d8",
+	"7d10" : "7d10",
+	"6d12" : "6d12",
+	"9d8" : "9d8",
+	"8d10" : "8d10",
+	"10d8" : "10d8",
+	"7d12" : "7d12",
+	"9d10" : "9d10",
+	"8d12" : "8d12",
+	"10d10" : "10d10",
+	"9d12" : "9d12",
+	"10d12" : "10d12",
 };
 
 SHADOWDARK.WEAPON_BASE_DAMAGE_DIE_ONLY = {

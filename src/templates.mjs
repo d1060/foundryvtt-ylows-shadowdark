@@ -177,6 +177,7 @@ export default function() {
 		"systems/shadowdark/templates/items/talent/_partials/talent-class.hbs",
 		"systems/shadowdark/templates/items/talent/_partials/talent-class-detail.hbs",
 		"systems/shadowdark/templates/items/talent/_partials/talent-options.hbs",
+		"systems/shadowdark/templates/items/talent/_partials/talent-craft-target.hbs",
 		"systems/shadowdark/templates/items/talent/_partials/nano-magic.hbs",
 		"systems/shadowdark/templates/items/talent/_partials/power-level.hbs",
 		"systems/shadowdark/templates/items/talent/_partials/resisted-by.hbs",

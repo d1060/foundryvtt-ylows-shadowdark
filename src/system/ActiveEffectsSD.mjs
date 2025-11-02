@@ -630,7 +630,28 @@ export default class ActiveEffectsSD {
 			const chosen = await this.askEffectInput({name, type, options});
 			return chosen[type] ?? [value];
 		}
-		
+		else if (key === "potionSpecialist") {
+			let craftablePotions = await actor.craftablePotions();
+			craftablePotions = craftablePotions.filter(p => p.name.slugify().includes('potion'))
+			if (!craftablePotions) return null;
+
+			const type = "potion";
+
+			const options = await shadowdark.utils.getSlugifiedItemList(craftablePotions);
+			const chosen = await this.askEffectInput({name, type, options});
+			return chosen[type] ?? [value];
+		}
+		else if (key === "poisonSpecialist") {
+			let craftablePoisons = await actor.craftablePotions();
+			craftablePoisons = craftablePoisons.filter(p => p.name.slugify().includes('poison'));
+			if (!craftablePoisons) return null;
+			const type = "poison";
+
+			const options = await shadowdark.utils.getSlugifiedItemList(craftablePoisons);
+			const chosen = await this.askEffectInput({name, type, options});
+			return chosen[type] ?? [value];
+		}
+
 		return [value];
 	}
 

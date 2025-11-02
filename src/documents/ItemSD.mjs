@@ -433,7 +433,6 @@ export default class ItemSD extends Item {
 		return ranges.join(", ");
 	}
 
-
 	async propertyItems() {
 		const propertyItems = [];
 

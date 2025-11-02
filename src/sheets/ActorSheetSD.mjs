@@ -242,57 +242,14 @@ export default class ActorSheetSD extends HandlebarsApplicationMixin(ActorSheetV
 	}
 
 	async _onTransferItem(item, options = {}) {
-		// Display a dialog allowing the GM to choose which character to assign
-		// the dropped light source to.
-		const playerActors = game.actors.filter(
-			actor => actor.type === "Player" && actor != this.actor
-		);
-
-		if (!playerActors.length) return;
-		
-		// const activeUsers = game.users
-		// 	.filter(u => u.active && !u.isGM);
-		const content = await foundry.applications.handlebars.renderTemplate(
-			"systems/shadowdark/templates/dialog/transfer-item.hbs",
-			{
-				playerActors,
-				data: {
-					item
-				}
-			}
-		);
-
-		const targetActor = await foundry.applications.api.DialogV2.wait({
-				classes: ["app", "shadowdark", "shadowdark-dialog", "window-app", 'themed', 'theme-light'],
-				window: {
-					resizable: false,
-					title: game.i18n.localize("SHADOWDARK.dialog.item.pick_up.title"),
-				},
-				content,
-				buttons: [
-					{
-						action: 'select',
-						icon: "fa fa-square-check",
-						label: `${game.i18n.localize("SHADOWDARK.dialog.general.select")}`,
-						callback: event => {
-							const checkedRadio = event.currentTarget.querySelector("input[type='radio']:checked");
-							return checkedRadio?.getAttribute("id") ?? false;
-						},
-					},
-					{
-						action: 'cancel',
-						icon: "fa fa-square-xmark",
-						label: `${game.i18n.localize("SHADOWDARK.dialog.general.cancel")}`,
-						callback: () => false,
-					},
-				],
-				default: "select",
-				//close: () => console.log("Closed Dialog"),
+		const targetActor = await UtilitySD.actorChoiceDialog({
+			template: 'systems/shadowdark/templates/dialog/transfer-item.hbs',
+			title: 'SHADOWDARK.dialog.item.pick_up.title'
 		});
 
 		if (targetActor) {
 			const from = item.actor;
-			const to = game.actors.get(targetActor);
+			const to = targetActor;
 			from.transferItem(item, to);
 		}
 	}

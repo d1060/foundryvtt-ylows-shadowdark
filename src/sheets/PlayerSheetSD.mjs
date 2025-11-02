@@ -8,6 +8,7 @@ import BritannianMagicSD from "./magic/BritannianMagicSD.mjs";
 import UtilitySD from "../utils/UtilitySD.mjs";
 import EvolutionGridSD from "../apps/EvolutionGridSD.mjs";
 import BulkSellSD from "../utils/BulkSellSD.mjs";
+import BuyItemsSD from "../apps/BuyItemsSD.mjs";
 import RandomizerSD from "../apps/RandomizerSD.mjs";
 import LightSourceTrackerSD from "../apps/LightSourceTrackerSD.mjs";
 import CompendiumsSD from "../documents/CompendiumsSD.mjs";
@@ -73,6 +74,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			itemChatClick: this.#onItemChatClick,
 			openEvolutionGrid: this.#onOpenEvolutionGrid,
 			startSellItems: this.#onStartSellItems,
+			buyItems: this.#onBuyItems,
 			craftItems: this.#onCraftItems,
 			sellBulkSell: this.#onSellBulkSell,
 			cancelBulkSell: this.#onCancelBulkSell,
@@ -238,6 +240,20 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				this._onSetDescription(event, fieldName);
 			});
 		}
+
+		var barterCheck = this.element.querySelector('input[name="bulkSell.barterCheck"]');
+		if (barterCheck) {
+			barterCheck.addEventListener("input", (ev) => {
+				const val = Number(ev.currentTarget.value);
+				this._onBarterSlider(val);
+			});
+
+			// prevent Enter from submitting while focused on the slider
+			barterCheck.addEventListener("keydown", (ev) => {
+				if (ev.key === "Enter") ev.preventDefault();
+			});
+		}
+
 		shadowdark.logTimestamp("PlayerSheetSD _onRender End.");
 	}
 
@@ -994,6 +1010,17 @@ export default class PlayerSheetSD extends ActorSheetSD {
 		this.render(true);
 	}
 
+    async _onBarterSlider(value) {
+		this.actor.bulkSell.barterCheck = parseInt(value);
+		await BulkSellSD.calculatePricesByBarterCheck(this.actor);
+		await BulkSellSD.updatePrices(this);
+    }
+
+	static async #onBuyItems(event, target) {
+		var buyItems = new BuyItemsSD({sheet: this});
+		buyItems.render(true);
+	}
+
 	static async #onCraftItems(event, target) {
 		event.preventDefault();
 		const allCraftableItems = await CompendiumsSD.craftableItems();
@@ -1015,7 +1042,11 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				item.hasIngredients = true;
 				item.recipeTooltip = "";
 				for (const recipeItem of item.system.craftRecipe) {
-					item.recipeTooltip += '<br>' + recipeItem.name + ': ' + recipeItem.quantity;
+					let recipeQuantity = recipeItem.quantity;
+					if (this.actor.system.bonuses.smithingForgeImproviser)
+						recipeQuantity = Math.ceil(recipeQuantity / 2);
+
+					item.recipeTooltip += '<br>' + recipeItem.name + ': ' + recipeQuantity;
 					//shadowdark.debug(`onCraftItems: Checking recipe for ${item.name}: ${recipeItem.quantity} ${recipeItem.name}`);
 					const itemsIhave = this.actor.items.filter(i => i.name.slugify() === recipeItem.name.slugify());
 					if (!itemsIhave)
@@ -1026,7 +1057,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 					for (const itemIhave of itemsIhave) {
 						myQuantity += itemIhave.system.quantity;
 					}
-					if (myQuantity < recipeItem.quantity)
+					if (myQuantity < recipeQuantity)
 					{
 						item.hasIngredients = false;
 					}
@@ -1083,10 +1114,12 @@ export default class PlayerSheetSD extends ActorSheetSD {
 			const newItem = await fromUuid(targetItem);
 			if (!newItem) return;
 
-			const [newPotion] = await this.actor.createEmbeddedDocuments(
+			const [createdItem] = await this.actor.createEmbeddedDocuments(
 				"Item",
 				[newItem]
 			);
+
+			await this.actor.applySmithingPerksToCreatedItem(createdItem);
 
 			for (const recipeItem of newItem.system.craftRecipe) {
 				const ingredients = this.actor.items.filter(i => i.name.slugify() === recipeItem.name.slugify());
@@ -1094,6 +1127,9 @@ export default class PlayerSheetSD extends ActorSheetSD {
 					continue;
 
 				let toReduce = recipeItem.quantity;
+				if (this.actor.system.bonuses.smithingForgeImproviser)
+					toReduce = Math.ceil(toReduce / 2);
+
 				for (const ingredient of ingredients) {
 					if (ingredient.system.quantity >= toReduce)
 					{
@@ -1308,6 +1344,17 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				}
 			}
 		}
+
+		var activeEffects = await item.getEmbeddedCollection("ActiveEffect");
+		for (const activeEffect of activeEffects)
+		{
+			await item.updateEmbeddedDocuments("ActiveEffect", [
+				{
+					"_id": activeEffect.id,
+					"disabled": !item.system.equipped,
+				},
+			]);
+		}
 	}
 
 	static async #onToggleStashed(event, target) {
@@ -1406,7 +1453,36 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				"Item",
 				[potion]
 			);
-			
+
+			let strenghtened = 0;
+			if (this.actor.system.bonuses.strenghtenedPotions && newPotion.name.slugify().includes('potion')) {
+				await this.multiplyPotionParameters(newPotion, 2);
+				strenghtened++;
+			}
+			else if (this.actor.system.bonuses.strenghtenedPoisons && newPotion.name.slugify().includes('poison')) {
+				await this.multiplyPotionParameters(newPotion, 2);
+				strenghtened++;
+			}
+
+			if (this.actor.system.bonuses.potionSpecialist && newPotion.name.slugify() == this.actor.system.bonuses.potionSpecialist) {
+				await this.multiplyPotionParameters(newPotion, 2);
+				strenghtened++;
+			}
+			else if (this.actor.system.bonuses.poisonSpecialist && newPotion.name.slugify() == this.actor.system.bonuses.poisonSpecialist) {
+				await this.multiplyPotionParameters(newPotion, 2);
+				strenghtened++;
+			}
+
+			if (strenghtened) {
+				const newName = (strenghtened == 1 ? "Strenghtened " : "Double-Strenghtened ") + newPotion.name
+				this.actor.updateEmbeddedDocuments(
+					"Item", [{
+						"_id": newPotion.id,
+						"name": newName,
+					}]
+				);
+			}
+
 			const item = this.actor.getEmbeddedDocument("Item", itemId);
 			if (item.system.quantity <= 1) {
 				this.actor.deleteEmbeddedDocuments("Item", [itemId]);
@@ -1420,6 +1496,65 @@ export default class PlayerSheetSD extends ActorSheetSD {
 				);
 			}
 		}
+	}
+
+	async multiplyPotionParameters(potion, factor) {
+		for (const effect of potion.effects) {
+			for (const change of effect.changes) {
+				if (UtilitySD.isNumeric(change.value)) {
+					change.value *= factor;
+					await potion.updateEmbeddedDocuments("ActiveEffect", [
+						{
+							"_id": effect.id,
+							"changes": effect.changes,
+						},
+					]);
+				}
+			}
+		}
+
+		if (potion.system.damage) {
+			potion.system.damage.numDice *= factor
+			if (potion.system.damage.numDice > 1) {
+				if (potion.system.damage.oneHanded)
+				{
+					const match = potion.system.damage.oneHanded.match(/[dD](\d+?)/);
+					if (match) {
+						const diceType = match[1];
+						potion.system.damage.oneHanded = potion.system.damage.numDice + 'd' + diceType;
+					}
+				}
+				if (potion.system.damage.twoHanded)
+				{
+					const match = potion.system.damage.twoHanded.match(/[dD](\d+?)/);
+					if (match) {
+						const diceType = match[1];
+						potion.system.damage.twoHanded = potion.system.damage.numDice + 'd' + diceType;
+					}
+				}
+			}
+
+			await this.actor.updateEmbeddedDocuments("Item", [
+				{
+					"_id": potion.id,
+					"system.damage": potion.system.damage,
+				},
+			]);
+		}
+		
+		let desc = potion.system.description;
+		const DELIMS = /([ ,.\n\r])(\d+)(?=[ ,.\n\r])/g;
+  		desc = desc.replace(DELIMS, (_, lead, num) => lead + String(Number(num) * factor));
+
+		const DELIMSD = /([ ,.\n\r])(\d+)([dD])/g;
+  		desc = desc.replace(DELIMSD, (_, lead, num, d) => lead + String(Number(num) * factor) + d);
+
+		await this.actor.updateEmbeddedDocuments("Item", [
+			{
+				"_id": potion.id,
+				"system.description": desc,
+			},
+		]);
 	}
 
 	async _sendDroppedItemToChat(active, item, options = {}) {
@@ -1730,7 +1865,7 @@ export default class PlayerSheetSD extends ActorSheetSD {
 					i.isArmorWhileManifestedMetalCore = true;
 				}
 
-				let totalSlotsUsed = Math.ceil(quantity / perSlot) * slotsUsed;
+				let totalSlotsUsed = (quantity / perSlot) * slotsUsed;
 				totalSlotsUsed -= freeCarry * slotsUsed;
 				if (i.bodyPartFreeSlot && totalSlotsUsed >= 1) totalSlotsUsed -= 1;
 
@@ -1745,6 +1880,9 @@ export default class PlayerSheetSD extends ActorSheetSD {
 						slots.gear += i.slotsUsed;
 					}
 				}
+
+				let perSlotMagnitude = Math.ceil(Math.log10(perSlot));
+				i.slotsUsed = UtilitySD.roundTo(i.slotsUsed, perSlotMagnitude);
 
 				// sort into groups
 				if (i.system.equipped) {
@@ -1888,22 +2026,29 @@ export default class PlayerSheetSD extends ActorSheetSD {
 
 		const freeCoins = shadowdark.defaults.FREE_COIN_CARRY;
 		if (totalCoins > freeCoins) {
-			slots.coins = Math.ceil((totalCoins - freeCoins) / freeCoins);
+			slots.coins = (totalCoins - freeCoins) / freeCoins;
 		}
 
 		// Now do the same for gems...
 		let totalGems = gems.length;
 		if (totalGems > 0) {
-			slots.gems = Math.ceil(totalGems / CONFIG.SHADOWDARK.DEFAULTS.GEMS_PER_SLOT);
+			slots.gems = totalGems / CONFIG.SHADOWDARK.DEFAULTS.GEMS_PER_SLOT;
 		}
 
 		// calculate total slots
 		slots.total = slots.gear + slots.treasure + slots.coins + slots.gems;
+
+		slots.total = UtilitySD.roundTo(slots.total, 1);
+		slots.gear = UtilitySD.roundTo(slots.gear, 1);
+		slots.treasure = UtilitySD.roundTo(slots.treasure, 1);
+		slots.coins = UtilitySD.roundTo(slots.coins, 1);
+		slots.gems = UtilitySD.roundTo(slots.gems, 1);
+
 		slots.totalTooltip = '';
-		if (slots.gear) slots.totalTooltip += slots.gear + ' ' + game.i18n.localize("SHADOWDARK.inventory.gear") + '<br>';
+		if (slots.gear)     slots.totalTooltip += slots.gear     + ' ' + game.i18n.localize("SHADOWDARK.inventory.gear") + '<br>';
 		if (slots.treasure) slots.totalTooltip += slots.treasure + ' ' + game.i18n.localize("SHADOWDARK.inventory.section.treasure") + '<br>';
-		if (slots.coins) slots.totalTooltip += slots.coins + ' ' + game.i18n.localize("SHADOWDARK.inventory.coins") + '<br>';
-		if (slots.gems) slots.totalTooltip += slots.gems + ' ' + game.i18n.localize("SHADOWDARK.inventory.gems");
+		if (slots.coins)    slots.totalTooltip += slots.coins    + ' ' + game.i18n.localize("SHADOWDARK.inventory.coins") + '<br>';
+		if (slots.gems)     slots.totalTooltip += slots.gems     + ' ' + game.i18n.localize("SHADOWDARK.inventory.gems");
 
 		const classAbilities = [];
 

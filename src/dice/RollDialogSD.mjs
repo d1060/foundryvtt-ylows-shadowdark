@@ -171,7 +171,7 @@ export default class RollDialogSD extends HandlebarsApplicationMixin(Application
 		}
 
 		const showHitLocation = game.settings.get("shadowdark", "hitLocation");
-        if (showHitLocation) {
+        if (showHitLocation && !this.rollOptions.target) {
 			if (this.rollOptions.targetToken) {
 				let [actorAc, acTooltip, isMetallic, metallicPart] = await this.rollOptions.targetToken.actor?.getArmorClass(this.data.hitLocation?.name ?? 'Chest') ?? [0, '', false, 0];
 				this.rollOptions.target = actorAc;

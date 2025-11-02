@@ -1,4 +1,5 @@
 import ActorSheetSD from "./ActorSheetSD.mjs";
+import UtilitySD from "../utils/UtilitySD.mjs";
 
 export default class LightSheetSD extends ActorSheetSD {
 
@@ -67,55 +68,14 @@ export default class LightSheetSD extends ActorSheetSD {
 			);
 		}
 		else {
-			// Display a dialog allowing the GM to choose which character to assign
-			// the dropped light source to.
-			const playerActors = game.actors.filter(
-				actor => actor.type === "Player"
-			);
-			// const activeUsers = game.users
-			// 	.filter(u => u.active && !u.isGM);
-
-			const content = await foundry.applications.handlebars.renderTemplate(
-				"systems/shadowdark/templates/dialog/assign-picked-up-lightsource.hbs",
-				{
-					playerActors,
-				}
-			);
-
-			const targetActor = await foundry.applications.api.DialogV2.wait({
-				classes: ["app", "shadowdark", "shadowdark-dialog", "window-app", 'themed', 'theme-light'],
-				position: {
-    				width: "auto",
-    				height: "auto"
-  				},
-				window: {
-					resizable: false,
-					title: game.i18n.localize("SHADOWDARK.dialog.light_source.pick_up.title"),
-				},
-				content,
-				buttons: [
-					{
-						action: 'select',
-						icon: "fa fa-square-check",
-						label: `${game.i18n.localize("SHADOWDARK.dialog.general.select")}`,
-						callback: html => {
-							return html.currentTarget.querySelector("input[type='radio']:checked")?.id ?? false;
-						},
-					},
-					{
-						action: 'cancel',
-						icon: "fa fa-square-xmark",
-						label: `${game.i18n.localize("SHADOWDARK.dialog.general.cancel")}`,
-						callback: () => false,
-					},
-				],
-				default: "select",
-				close: () => console.log("Closed Dialog"),
+			const targetActor = await UtilitySD.actorChoiceDialog({
+				template: 'systems/shadowdark/templates/dialog/assign-picked-up-lightsource.hbs',
+				title: 'SHADOWDARK.dialog.light_source.pick_up.title'
 			});
 
 			if (targetActor) {
 				game.shadowdark.lightSourceTracker.pickupLightSourceFromScene(
-					game.actors.get(targetActor),
+					targetActor,
 					options.actor ?? this.actor,
 					ChatMessage.getSpeaker()
 				);

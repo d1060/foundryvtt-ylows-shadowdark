@@ -90,4 +90,17 @@ export default class BulkSellSD {
 
         actor.bulkSell.active = false;
     }
+
+    static async updatePrices(sheet) {
+        var prices = sheet.element.querySelector('.bulkSellPrices');
+        if (prices) {
+            var priceCp = sheet.element.querySelector('.bulkSell-cp');
+            var priceSp = sheet.element.querySelector('.bulkSell-sp');
+            var priceGp = sheet.element.querySelector('.bulkSell-gp');
+
+            priceCp.textContent = sheet.actor.bulkSell.cp;
+            priceSp.textContent = sheet.actor.bulkSell.sp;
+            priceGp.textContent = sheet.actor.bulkSell.gp;
+        }
+    }
 }

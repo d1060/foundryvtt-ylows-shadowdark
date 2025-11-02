@@ -1,3 +1,5 @@
+import CompendiumsSD from "../documents/CompendiumsSD.mjs";
+
 export default class UtilitySD {
 
 	static generateUUID() { // Public Domain/MIT
@@ -1205,5 +1207,192 @@ export default class UtilitySD {
 		});
 
 		return returnOption == 'Yes';
+	}
+
+	static async actorChoiceDialog(options) {
+		if (!options.template) options.template = "systems/shadowdark/templates/dialog/choose-actor.hbs";
+		if (!options.title) options.title = "SHADOWDARK.dialog.item.pick_up.title";
+		if (!options.label) options.label = "SHADOWDARK.dialog.item.give_item.label";
+
+		const playerActors = game.actors.filter(
+			actor => actor.type === "Player" && actor != this.actor
+		);
+
+		if (options.addSomeoneElse) {
+			playerActors.push({
+				_id: 'someoneElse',
+				name: "Someone Else",
+				img: 'icons/environment/people/traveler.png'
+			});
+		}
+
+		if (!playerActors.length) return null;
+		
+		const content = await foundry.applications.handlebars.renderTemplate(
+			options.template,
+			{
+				playerActors,
+				data: {
+					item: options.item
+				},
+				label: options.label,
+			}
+		);
+
+		const targetActor = await foundry.applications.api.DialogV2.wait({
+				classes: ["app", "shadowdark", "shadowdark-dialog", "window-app", 'themed', 'theme-light'],
+				window: {
+					resizable: false,
+					title: game.i18n.localize(options.title),
+				},
+				content,
+				buttons: [
+					{
+						action: 'select',
+						icon: "fa fa-square-check",
+						label: `${game.i18n.localize("SHADOWDARK.dialog.general.select")}`,
+						callback: event => {
+							const checkedRadio = event.currentTarget.querySelector("input[type='radio']:checked");
+							return checkedRadio?.getAttribute("id") ?? false;
+						},
+					},
+					{
+						action: 'cancel',
+						icon: "fa fa-square-xmark",
+						label: `${game.i18n.localize("SHADOWDARK.dialog.general.cancel")}`,
+						callback: () => false,
+					},
+				],
+				default: "select",
+				close: () => shadowdark.debug("Closed Actor Choice Dialog"),
+		});
+
+		if (targetActor && targetActor != 'someoneElse')
+			return game.actors.get(targetActor);
+
+		return null;
+	}
+
+	static async choiceDialog(options) {
+		if (!options.choices || !options.choices.length) return null;
+		if (!options.template) options.template = "systems/shadowdark/templates/dialog/choose-document.hbs";
+		if (!options.title) options.title = "SHADOWDARK.dialog.item.pick_up.title";
+		if (!options.label) options.label = "SHADOWDARK.dialog.item.give_item.label";
+
+		for (const choice of options.choices) {
+			if (choice.system.description) {
+				choice.enrichedDescription =  await foundry.applications.ux.TextEditor.implementation.enrichHTML( 
+                choice.system.description, 
+                { 
+                    async: true,
+                });
+			} else {
+				choice.enrichedDescription = "";
+			}
+			choice.enrichedDescription = foundry.utils.escapeHTML(choice.enrichedDescription);
+		}
+
+		const content = await foundry.applications.handlebars.renderTemplate(
+			options.template,
+			{
+				choices: options.choices,
+				label: options.label,
+			}
+		);
+
+		const target = await foundry.applications.api.DialogV2.wait({
+				classes: ["app", "shadowdark", "shadowdark-dialog", "window-app", 'themed', 'theme-light'],
+				window: {
+					resizable: false,
+					title: game.i18n.localize(options.title),
+				},
+				content,
+				buttons: [
+					{
+						action: 'select',
+						icon: "fa fa-square-check",
+						label: `${game.i18n.localize("SHADOWDARK.dialog.general.select")}`,
+						callback: event => {
+							const checkedRadio = event.currentTarget.querySelector("input[type='radio']:checked");
+							return checkedRadio?.getAttribute("id") ?? false;
+						},
+					},
+					{
+						action: 'cancel',
+						icon: "fa fa-square-xmark",
+						label: `${game.i18n.localize("SHADOWDARK.dialog.general.cancel")}`,
+						callback: () => false,
+					},
+				],
+				default: "select",
+				close: () => shadowdark.debug("Closed Actor Choice Dialog"),
+		});
+
+		if (target)
+			return await fromUuid(target);
+
+		return null;
+	}
+
+	static async fixRollTablesByCompendium(compendiumName) {
+		const documents = await CompendiumsSD._documents(
+			"RollTable", null, true
+		);
+
+		const packs = game.packs.contents.filter(pack => pack.collection.startsWith(compendiumName));
+		
+		for (const document of documents) {
+			const compendium = this.getCompendiumFromUuid(document.uuid);
+			if (compendium != 'Compendium.' + compendiumName) continue;
+
+			shadowdark.debug(`Processing Roll Table '${document.name}' in '${compendium}'`);
+
+			const lootTable = await fromUuid(document.uuid);
+			if (!lootTable) continue;
+			const updates = [];
+
+			for (const result of lootTable.results.contents) {
+				if (!result || !result.documentUuid)
+					continue;
+				const resultCompendium = this.getCompendiumFromUuid(result.documentUuid);
+				if (compendium != resultCompendium) {
+					shadowdark.debug(`    Result '${result.name}' from compendium '${resultCompendium}' doesn't match Loot table's '${compendium}'`);
+
+					let foundItemInPack;
+					for (const pack of packs) {
+						foundItemInPack = pack.index.contents.find(c => c.name.slugify() === result.name.slugify());
+						if (foundItemInPack) break;
+					}
+
+					if (foundItemInPack) {
+						const item = await fromUuid(foundItemInPack.uuid);
+						shadowdark.debug(`        Found Item '${item.name}' in selected compendium. Replacing it.`);
+
+						const isFromPack = !!item.pack;
+						updates.push({
+							_id: result.id,
+							documentCollection: isFromPack ? item.pack : item.documentName,
+							documentUuid: item.uuid,
+							img: item.img
+						});
+					}
+				}
+			}
+
+			if (updates.length)
+				await lootTable.updateEmbeddedDocuments("TableResult", updates);
+		}
+		shadowdark.debug(`Done Processing Roll Tables`);
+	}
+
+	static getCompendiumFromUuid(uuid) {
+		if (!uuid) return uuid;
+		let match = uuid.match(/(Compendium\..*?)\./);
+		if (match)
+			return match[1];
+		match = uuid.match(/(.*?)\./);
+		if (match)
+			return match[1];
+		return null;
 	}
 }

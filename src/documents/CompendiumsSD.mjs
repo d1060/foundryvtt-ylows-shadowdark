@@ -597,6 +597,12 @@ export default class CompendiumsSD {
 		return CompendiumsSD.properties("magic_energy_source", filterSources);
 	}
 
+	static async craftableTechniques(itemType, filterSources=true) {
+		const documents = await CompendiumsSD._documents("Item", "Talent", filterSources);
+		const craftableTalents = documents.filter( document => document.system.talentClass == 'technique' && document.system.craftableTalent  && document.system['craftableTalent_' + itemType] );
+		return craftableTalents;
+	}
+
 	static async craftableItems() {
 		const allItems = await CompendiumsSD._documents("Item", null, true);
 		const allCraftableItems = allItems.filter(i => i.system.craftable);
