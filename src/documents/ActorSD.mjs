@@ -1082,6 +1082,7 @@ export default class ActorSD extends Actor {
 			if (oneHanded) {
 				weaponOptions.baseDamage = CONFIG.SHADOWDARK.WEAPON_BASE_DAMAGE[oneHanded];
 				weaponOptions.handedness = game.i18n.localize("SHADOWDARK.item.weapon_damage.oneHanded_short");
+				if (await item.hasProperty('ancient-steel')) weaponOptions.bonusDamage++;
 				if (await item.hasProperty('supersharp')) weaponOptions.bonusDamage++;
 				if (await item.hasProperty('ultrasharp')) weaponOptions.bonusDamage += 2;
 
@@ -1224,6 +1225,7 @@ export default class ActorSD extends Actor {
 					weaponOptions.weaponName = "Dual Wield";
 					weaponOptions.baseDamage = dualWieldDamage;
 
+					if (await weapon2.hasProperty('ancient-steel')) weaponOptions.bonusDamage++;
 					if (await weapon2.hasProperty('supersharp')) weaponOptions.bonusDamage++;
 					if (await weapon2.hasProperty('ultrasharp')) weaponOptions.bonusDamage += 2;
 
@@ -1261,6 +1263,7 @@ export default class ActorSD extends Actor {
 
 			if (oneHanded) {
 				weaponOptions.baseDamage = CONFIG.SHADOWDARK.WEAPON_BASE_DAMAGE[oneHanded];
+				if (await item.hasProperty('ancient-steel')) weaponOptions.bonusDamage++;
 				if (await item.hasProperty('supersharp')) weaponOptions.bonusDamage++;
 				if (await item.hasProperty('ultrasharp')) weaponOptions.bonusDamage += 2;
 				weaponOptions.handedness = game.i18n.localize("SHADOWDARK.item.weapon_damage.oneHanded_short");
@@ -1274,6 +1277,7 @@ export default class ActorSD extends Actor {
 			}
 			if (twoHanded) {
 				weaponOptions.baseDamage = CONFIG.SHADOWDARK.WEAPON_BASE_DAMAGE[twoHanded];
+				if (await item.hasProperty('ancient-steel')) weaponOptions.bonusDamage++;
 				if (await item.hasProperty('supersharp')) weaponOptions.bonusDamage++;
 				if (await item.hasProperty('ultrasharp')) weaponOptions.bonusDamage += 2;
 				weaponOptions.handedness = game.i18n.localize("SHADOWDARK.item.weapon_damage.twoHanded_short");
@@ -2915,6 +2919,9 @@ export default class ActorSD extends Actor {
 			data.itemDamageBonus++;
 		}
 
+		if (await item.hasProperty('ancient-steel'))
+			data.itemDamageBonus++;
+
 		if (await item.hasProperty('supersharp'))
 			data.itemDamageBonus++;
 
@@ -3702,7 +3709,7 @@ export default class ActorSD extends Actor {
 
 		await ChatMessage.create({
 			content,
-			rollMode: CONST.DICE_ROLL_MODES.PUBLIC,
+			rollMode: CONST.DICE_ROLL_MODES.SELF,
 		});
 	}
 
@@ -3730,7 +3737,7 @@ export default class ActorSD extends Actor {
 
 		await ChatMessage.create({
 			content,
-			rollMode: CONST.DICE_ROLL_MODES.PUBLIC,
+			rollMode: CONST.DICE_ROLL_MODES.SELF,
 		});
 	}
 

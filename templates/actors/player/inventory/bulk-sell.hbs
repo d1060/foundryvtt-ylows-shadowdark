@@ -1,5 +1,5 @@
 <div>
-    <div style="display: grid; place-items: center;"><h3>{{localize 'SHADOWDARK.inventory.barter_check'}} {{bulkSell.barterCheck}}</h3></div>
+    <div style="display: grid; place-items: center;"><h3 class="bulkSellBarterCheck">{{localize 'SHADOWDARK.inventory.barter_check'}} {{bulkSell.barterCheck}}</h3></div>
     <input style="background-color: transparent;" type="range" name="bulkSell.barterCheck" min="2" max="25" step="1" value="{{bulkSell.barterCheck}}">
     <div class="bulkSellPrices" style="display: inline; place-items: center; margin-bottom: 4px;">{{localize 'SHADOWDARK.coins.gp'}} <b class="bulkSell-gp">{{bulkSell.gp}}</b>, {{localize 'SHADOWDARK.coins.sp'}} <b class="bulkSell-sp">{{bulkSell.sp}}</b>, {{localize 'SHADOWDARK.coins.cp'}} <b class="bulkSell-cp">{{bulkSell.cp}}</b></div>
     <div style="display: grid; grid-template-columns: 1fr 1fr; column-gap: 2px; margin-top: 4px;">

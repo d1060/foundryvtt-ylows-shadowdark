@@ -129,7 +129,7 @@
 	<span data-tooltip="{{nanoMagicProgram.description}}" {{#unless nanoMagicProgram.hasLevels}}style="grid-column: 4 / 6"{{/unless}}>{{{nanoMagicProgram.effectDescription}}}</span>
 	{{#if nanoMagicProgram.hasLevels}}
 	<h3 class="nano-magic-program-header">{{localize "SHADOWDARK.item.level"}}:</h3>
-	<span>{{nanoMagicProgram.effectLevels}}</span>
+	<span>{{nanoMagicProgram.levels}}</span>
 	{{/if}}
 </div>
 {{#if ../productionReadyOrProgramOptimization}}

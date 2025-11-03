@@ -1,3 +1,5 @@
+import UtilitySD from "../utils/UtilitySD.mjs";
+
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api
 export default class GemBagSD extends HandlebarsApplicationMixin(ApplicationV2) {
 	constructor(options) {
@@ -40,6 +42,16 @@ export default class GemBagSD extends HandlebarsApplicationMixin(ApplicationV2) 
 	get title() {
 		const title = game.i18n.localize("SHADOWDARK.app.gem_bag.title");
 		return `${title}: ${this.actor.name}`;
+	}
+
+	async _onFirstRender(context, options) {
+		await super._onFirstRender(context, options);
+
+		this._createContextMenu(this._getItemContextOptions, "[data-item-id]", {
+      		hookName: "_getItemContextOptions",
+      		parentClassHooks: false,
+      		fixed: true,
+    	});
 	}
 
 	/** @inheritdoc */
@@ -100,7 +112,7 @@ export default class GemBagSD extends HandlebarsApplicationMixin(ApplicationV2) 
 
 		const canEdit = function(element) {
 			let result = false;
-			const itemId = element.data("item-id");
+			const itemId = element.dataset.itemId;
 
 			if (game.user.isGM) {
 				result = true;
@@ -114,15 +126,36 @@ export default class GemBagSD extends HandlebarsApplicationMixin(ApplicationV2) 
 			return result;
 		};
 
+		const isItem = function(element, actor) {
+			let result = false;
+			const itemId = element.dataset.itemId;
+
+			const item = actor.items.find(item => item._id === itemId);
+			return item && ["Armor", "Basic", "Gem", "Potion", "Scroll", "Wand", "Weapon"].includes(item.type);
+		};
+
 		return [
 			{
 				name: game.i18n.localize("SHADOWDARK.sheet.general.item_edit.title"),
 				icon: '<i class="fas fa-edit"></i>',
 				condition: element => canEdit(element),
 				callback: element => {
-					const itemId = element.data("item-id");
+					const itemId = element.dataset.itemId;
 					const item = this.actor.items.get(itemId);
 					return item.sheet.render(true);
+				},
+			},
+			{
+				name: game.i18n.localize("SHADOWDARK.sheet.general.item_transfer.title"),
+				icon: '<i class="fas fa-handshake-o"></i>',
+				condition: element => canEdit(element, this.actor) && isItem(element, this.actor),
+				callback: element => {
+					const itemId = element.dataset.itemId;
+					if (itemId)
+					{
+						const item = this.actor.items.get(itemId);
+						this._onTransferItem(item);
+					}
 				},
 			},
 			{
@@ -130,7 +163,7 @@ export default class GemBagSD extends HandlebarsApplicationMixin(ApplicationV2) 
 				icon: '<i class="fas fa-trash"></i>',
 				condition: element => canEdit(element),
 				callback: element => {
-					const itemId = element.data("item-id");
+					const itemId = element.dataset.itemId;
 					this._onItemDelete(itemId);
 				},
 			},
@@ -147,6 +180,19 @@ export default class GemBagSD extends HandlebarsApplicationMixin(ApplicationV2) 
 		newItem.sheet.render(true);
 	}
 
+	async _onTransferItem(item, options = {}) {
+		const targetActor = await UtilitySD.actorChoiceDialog({
+			template: 'systems/shadowdark/templates/dialog/transfer-item.hbs',
+			title: 'SHADOWDARK.dialog.item.pick_up.title'
+		});
+
+		if (targetActor) {
+			const from = item.actor;
+			const to = targetActor;
+			from.transferItem(item, to);
+		}
+	}
+
 	_onItemDelete(itemId) {
 		const itemData = this.actor.getEmbeddedDocument("Item", itemId);
 
@@ -154,36 +200,45 @@ export default class GemBagSD extends HandlebarsApplicationMixin(ApplicationV2) 
 			"systems/shadowdark/templates/dialog/delete-item.hbs",
 			{name: itemData.name}
 		).then(html => {
-			new Dialog({
-				title: `${game.i18n.localize("SHADOWDARK.dialog.item.confirm_delete")}`,
+			foundry.applications.api.DialogV2.wait({
+				classes: ["app", "shadowdark", "shadowdark-dialog", "window-app", 'themed', 'theme-light'],
+				window: {
+					resizable: false,
+					title: "Confirm Deletion",
+				},
 				content: html,
-				buttons: {
-					Yes: {
+				buttons: [
+					{
+						action: 'Yes',
 						icon: "<i class=\"fa fa-check\"></i>",
 						label: `${game.i18n.localize("SHADOWDARK.dialog.general.yes")}`,
 						callback: async () => {
+							let type = "Item";
+
 							await this.actor.deleteEmbeddedDocuments(
-								"Item",
+								type,
 								[itemId]
 							);
+
+							this.actor.onDeleteDocuments(itemData);
 						},
 					},
-					Cancel: {
+					{
+						action: 'Cancel',
 						icon: "<i class=\"fa fa-times\"></i>",
 						label: `${game.i18n.localize("SHADOWDARK.dialog.general.cancel")}`,
 					},
-				},
+				],
 				default: "Yes",
-			}).render(true);
+			});
 		});
 	}
 
 	static async #sellGem(event, target) {
 		event.preventDefault();
 
-		const itemId = $(event.currentTarget).data("item-id");
+		const itemId = target.dataset.itemId;
 		const itemData = this.actor.getEmbeddedDocument("Item", itemId);
-
 		const actor = this.actor;
 
 		foundry.applications.handlebars.renderTemplate(

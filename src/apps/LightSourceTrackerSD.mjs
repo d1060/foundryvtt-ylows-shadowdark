@@ -411,7 +411,6 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 		if (!actorData) return false;
 
 		const actor = game.actors.get(actorData._id);
-
 		const itemActorId = itemActor._id;
 
 		// Create the items onto the assigned character
@@ -531,6 +530,7 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 
 	async externalToggleLightSource(actor, item) {
 		if (this._isDisabled()) return;
+		if (!item) return;
 
 		const status = item.system.light.active ? "on" : "off";
 
@@ -765,28 +765,34 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 						if (actor.type !== "Light") {
 							const item = actor.getEmbeddedDocument("Item", itemData._id);
 							this.toggleLightSource(actor, item);
-							await actor.yourLightExpired(itemData._id);
-							await actor.updateEmbeddedDocuments("Item", [{
-								"_id": itemData._id,
-								"system.light.active": false,
-								"system.light.isExpended": light.isExpended,
-							}]);
-							//await actor.deleteEmbeddedDocuments("Item", [itemData._id]);
+							if (item && item.ownership[game.user.id] && item.ownership[game.user.id] >= 3)
+							{
+								await actor.yourLightExpired(itemData._id);
+								await actor.updateEmbeddedDocuments("Item", [{
+									"_id": itemData._id,
+									"system.light.active": false,
+									"system.light.isExpended": light.isExpended,
+								}]);
+								//await actor.deleteEmbeddedDocuments("Item", [itemData._id]);
+							}
 						} else {
 							// For light actors, we want to remove the token AND the actor
-							await actor.yourLightExpired(itemData._id);
 							const lightActorTokens = await canvas.scene.tokens.filter(t => t.actor && t.actor._id === actor._id);
 							for (const token of lightActorTokens) {
 								this._updateTokenLightSourceImages(token, itemData, actor);
 							}
 
-							await actor.update({ "img": actor.img });
-							await actor.updateEmbeddedDocuments("Item", [{
-								"_id": itemData._id,
-								"img": actor.img,
-								"system.light.active": false,
-								"system.light.isExpended": light.isExpended,
-							}]);
+							if (item && item.ownership[game.user.id] && item.ownership[game.user.id] >= 3)
+							{
+								await actor.yourLightExpired(itemData._id);
+								await actor.update({ "img": actor.img });
+								await actor.updateEmbeddedDocuments("Item", [{
+									"_id": itemData._id,
+									"img": actor.img,
+									"system.light.active": false,
+									"system.light.isExpended": light.isExpended,
+								}]);
+							}
 							//await canvas.scene.tokens
 							//	.filter(t => t.actor._id === actor._id)
 							//	.forEach(t => t.delete());
@@ -802,9 +808,12 @@ export default class LightSourceTrackerSD extends HandlebarsApplicationMixin(App
 							"Item", itemData._id
 						);
 
-						item.update({
-							"system.light.remainingSecs": light.remainingSecs,
-						});
+						if (item && ((item.ownership[game.user.id] && item.ownership[game.user.id] >= 3) || game.user.isGM))
+						{
+							item.update({
+								"system.light.remainingSecs": light.remainingSecs,
+							});
+						}
 					}
 				}
 			}

@@ -102,5 +102,10 @@ export default class BulkSellSD {
             priceSp.textContent = sheet.actor.bulkSell.sp;
             priceGp.textContent = sheet.actor.bulkSell.gp;
         }
+
+        var check = sheet.element.querySelector('.bulkSellBarterCheck');
+        if (check) {
+            check.textContent = game.i18n.localize("SHADOWDARK.inventory.barter_check") + " " + sheet.actor.bulkSell.barterCheck;
+        }
     }
 }

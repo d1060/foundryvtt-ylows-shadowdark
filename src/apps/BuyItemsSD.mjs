@@ -146,10 +146,10 @@ export default class BuyItemsSD extends HandlebarsApplicationMixin(ApplicationV2
 			if (item.system.cost) {
 				var price = item.system.cost.cp + item.system.cost.sp * 10 + item.system.cost.gp * 100;
 				var priceRatio = 1;
-				if (this.barterCheck < 15) {
-					priceRatio = ((15 - this.barterCheck) * 0.1) + 1;
+				if (this.barterCheck < 20) {
+					priceRatio = ((20 - this.barterCheck) * 0.1) + 1;
 				} else {
-					priceRatio = 1 - ((this.barterCheck - 15) * 0.05);
+					priceRatio = 1 - ((this.barterCheck - 20) * 0.05);
 				}
 				price = Math.floor(price * priceRatio * item.quantity);
 				this.transactionCost += price;

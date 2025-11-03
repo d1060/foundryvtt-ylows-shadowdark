@@ -318,7 +318,7 @@ export default class NanoMagicProgramSD extends HandlebarsApplicationMixin(Appli
 		if (effectiveEffect.system.nanoPointCostPerLevel)
 		{
 			program.nanoPointsPerLevel = effectiveEffect.system.nanoPointCostPerLevel;
-			program.increases = Math.floor((program.effectLevels - 1) / program.nanoPointsPerLevel);
+			program.increases = Math.floor((program.effectLevels - program.effect.system.nanoPointCostPerLevel) / program.nanoPointsPerLevel);
 			program.effectPoints += program.increases * program.nanoPointsPerLevel;
 		}
 		totalNanoPoints += program.effectPoints;
@@ -337,7 +337,7 @@ export default class NanoMagicProgramSD extends HandlebarsApplicationMixin(Appli
 		var drawbackCost = parseInt(program.drawback?.system?.nanoPointCost ?? '0');
 		if (program.drawback.system.nanoPointCostPerLevel)
 		{
-			drawbackCost += (program.effectLevels - 1) * parseInt(program.drawback?.system?.nanoPointCostPerLevel ?? '0');
+			drawbackCost += (program.effectLevels - program.effect.system.nanoPointCostPerLevel) * parseInt(program.drawback?.system?.nanoPointCostPerLevel ?? '0');
 		}
 		totalNanoPoints += drawbackCost;
 		
@@ -374,7 +374,7 @@ export default class NanoMagicProgramSD extends HandlebarsApplicationMixin(Appli
 
 		let perLevelIncrease = nanoPointCostPerLevel;
 		if (perLevelIncrease) {
-			let increases = Math.floor((this.program.effectLevels - 1) / perLevelIncrease);
+			let increases = Math.floor(((this.program.effectLevels / this.program.effect.system.nanoPointCostPerLevel) - 1) / perLevelIncrease);
 			let isPlural = increases > 1;
 
 			while (description.match(/\{\-?\d+\}/))

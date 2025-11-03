@@ -172,6 +172,17 @@ export default class NanoMagicSD {
 
 		var numOptimizedPrograms = 0;
 		var numProductionReadyPrograms = 0;
+		var activeDrawbacks = [];
+		for (var i = 0; i < actor.system.magic.nanoMagicPrograms.length; i++)
+		{
+			let program = actor.system.magic.nanoMagicPrograms[i];
+			if (program.active) {
+				if (program.drawback) {
+					activeDrawbacks.push(program.drawback._id);
+				}
+			}
+		}
+
 		for (var i = 0; i < actor.system.magic.nanoMagicPrograms.length; i++)
 		{
 			let program = actor.system.magic.nanoMagicPrograms[i];
@@ -198,7 +209,12 @@ export default class NanoMagicSD {
 				program.productionReady = false;
 			}
 
-			program.disabled = program.lost || (program.points > actor.system?.magic?.nanoPoints.value && !actor.system.magic.nanoMagicPrograms[i].active);
+			program.levels = program.effectLevels / program.effect.system.nanoPointCostPerLevel;
+			program.eligible = true;
+			if (!program.active && program.drawback && activeDrawbacks.some(d => d == program.drawback._id))
+				program.eligible = false;
+
+			program.disabled = program.lost || (program.points > actor.system?.magic?.nanoPoints.value && !actor.system.magic.nanoMagicPrograms[i].active) || !program.eligible;
 			program.hideDrawback = !program.drawback || program.drawback === "noDrawback";
 		}
 		
@@ -425,7 +441,7 @@ export default class NanoMagicSD {
 				if (UtilitySD.isNumeric(change.value)) {
 					let value = UtilitySD.parseIntIfNumeric(change.value);
 					if (change.key === 'system.penalties.maxHp') {
-						change.value = -program.effectLevels;
+						change.value = -(program.effectLevels / program.effect.system.nanoPointCostPerLevel);
 					} else {
 						change.value = -program.increases - 1;
 					}
